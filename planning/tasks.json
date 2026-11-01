@@ -153,7 +153,7 @@
         "T001"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "review",
       "epicId": "E02",
       "priority": 2,
       "milestone": "App Store 1.0",
