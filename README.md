@@ -18,6 +18,11 @@ opisuje [specyfikacja wizualna](docs/product/T003-system-wizualny.md).
 Zasoby do integracji w T005: [tokeny](design/tokens.json) oraz
 [String Catalog PL/EN](design/Localizable.xcstrings).
 
+Warunkowy wybór backendu T007, region, model kosztów i trwałość zadań opisuje
+[ADR-001](docs/architecture/ADR-001-backend.md). Konfigurację do wykonania po
+autoryzacji i wymagane dowody zawiera [procedura staging](docs/operations/T007-staging.md).
+Staging nie został wdrożony; aktualność dokumentacji i kosztów wymaga weryfikacji.
+
 ## Kontrola zmian
 
 ```sh
