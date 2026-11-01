@@ -13,6 +13,11 @@ Projekt układów ekranów, nawigacji i przepływów T002 znajduje się w
 [projekcie UX](docs/product/T002-projekt-przeplywow.md), a stany loading, empty,
 error, offline i powroty w [macierzy stanów i odbioru](docs/product/T002-stany-i-odbior.md).
 
+System wizualny T003, kontrakty komponentów i macierz weryfikacji dostępności
+opisuje [specyfikacja wizualna](docs/product/T003-system-wizualny.md).
+Zasoby do integracji w T005: [tokeny](design/tokens.json) oraz
+[String Catalog PL/EN](design/Localizable.xcstrings).
+
 ## Kontrola zmian
 
 ```sh
