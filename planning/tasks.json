@@ -21,7 +21,7 @@
       ],
       "dependsOn": [],
       "tier": "planner",
-      "status": "todo",
+      "status": "review",
       "epicId": "E01",
       "priority": 2,
       "milestone": "App Store 1.0",
