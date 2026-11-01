@@ -23,11 +23,15 @@ jobs:
         shell: bash
         run: |
           if [[ -d MojaSzafa.xcodeproj ]]; then
+            # Runner images rotate simulators (e.g. iPhone 16 -> 17), so pick the first available iPhone.
+            SIMULATOR_ID="$(xcrun simctl list devices available -j \
+              | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).devices;for(const k of Object.keys(r).filter(k=>k.includes("iOS")).sort().reverse()){const d=r[k].find(x=>x.isAvailable!==false&&x.name.startsWith("iPhone"));if(d){console.log(d.udid);return}}process.exit(1)})')"
+            echo "Using simulator $SIMULATOR_ID"
             xcodebuild test \
               -project MojaSzafa.xcodeproj \
               -scheme MojaSzafa \
               -sdk iphonesimulator \
-              -destination 'platform=iOS Simulator,name=iPhone 16'
+              -destination "platform=iOS Simulator,id=$SIMULATOR_ID"
           else
             echo 'Projekt Xcode powstanie w T005; walidacja backlogu jest zielona.'
           fi
