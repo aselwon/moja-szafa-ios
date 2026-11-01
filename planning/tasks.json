@@ -65,7 +65,7 @@
         "T002"
       ],
       "tier": "planner",
-      "status": "review",
+      "status": "done",
       "epicId": "E01",
       "priority": 2,
       "milestone": "App Store 1.0",
