@@ -1,13 +1,5 @@
 # Zablokowane zadania
 
-## T005 — 2026-11-01
-
-- Gałąź / PR: https://github.com/aselwon/moja-szafa-ios/pull/5 (otwarty, NIE zmergowany)
-- Co próbowano: harness dociągnął `main` do gałęzi 7 raz(y); CI dalej czerwone
-- Ostatni błąd (bez sekretów): CI PR czerwone (szczegóły w checkach PR).
-- Hipoteza: błąd jest w kodzie gałęzi zadania, nie w bazie.
-- Pytanie do właściciela: poprawić gałąź `task/T005` albo zamknąć PR i przywrócić `T005` do `todo`.
-
 ## T008 — 2026-11-01
 
 - Gałąź / PR: brak (nie wypchnięto)
