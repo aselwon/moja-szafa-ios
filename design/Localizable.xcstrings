@@ -1,0 +1,2778 @@
+{
+  "sourceLanguage": "pl",
+  "strings": {
+    "tab.today": {
+      "comment": "T003: tab; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dzisiaj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        }
+      }
+    },
+    "tab.wardrobe": {
+      "comment": "T003: tab; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szafa"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wardrobe"
+          }
+        }
+      }
+    },
+    "tab.outfits": {
+      "comment": "T003: tab; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestawy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outfits"
+          }
+        }
+      }
+    },
+    "tab.statistics": {
+      "comment": "T003: tab; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statystyki"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistics"
+          }
+        }
+      }
+    },
+    "common.save": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "common.cancel": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anuluj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "common.close": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamknij"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "common.back": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wstecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    },
+    "common.next": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dalej"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        }
+      }
+    },
+    "common.skip": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomiń"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
+          }
+        }
+      }
+    },
+    "common.later": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Później"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        }
+      }
+    },
+    "common.retry": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spróbuj ponownie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      }
+    },
+    "common.edit": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        }
+      }
+    },
+    "common.delete": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "common.undo": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnij"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        }
+      }
+    },
+    "common.loading": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wczytuję…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading…"
+          }
+        }
+      }
+    },
+    "common.saving": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisuję…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving…"
+          }
+        }
+      }
+    },
+    "common.error": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wykonać tej czynności. Twoje zmiany zostały zachowane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action could not be completed. Your changes have been kept."
+          }
+        }
+      }
+    },
+    "common.offline": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Pokazujemy dane dostępne na tym urządzeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re offline. Showing data available on this device."
+          }
+        }
+      }
+    },
+    "common.search": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szukaj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        }
+      }
+    },
+    "common.filters": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtry"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters"
+          }
+        }
+      }
+    },
+    "common.clearFilters": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść filtry"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear filters"
+          }
+        }
+      }
+    },
+    "common.apply": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastosuj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply"
+          }
+        }
+      }
+    },
+    "common.sort": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortuj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort"
+          }
+        }
+      }
+    },
+    "common.profile": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        }
+      }
+    },
+    "common.noPhoto": {
+      "comment": "T003: common; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie niedostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo unavailable"
+          }
+        }
+      }
+    },
+    "onboarding.title": {
+      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoja szafa, gotowe zestawy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe, outfits ready to wear"
+          }
+        }
+      }
+    },
+    "onboarding.example": {
+      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przykład"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Example"
+          }
+        }
+      }
+    },
+    "onboarding.showExample": {
+      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobacz przykład"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View example"
+          }
+        }
+      }
+    },
+    "onboarding.start": {
+      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zacznij"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get started"
+          }
+        }
+      }
+    },
+    "onboarding.skip": {
+      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomiń wprowadzenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip introduction"
+          }
+        }
+      }
+    },
+    "onboarding.preferences": {
+      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje preferencje (opcjonalnie)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your preferences (optional)"
+          }
+        }
+      }
+    },
+    "auth.signIn": {
+      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        }
+      }
+    },
+    "auth.email": {
+      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adres email"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email address"
+          }
+        }
+      }
+    },
+    "auth.sendLink": {
+      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij link do logowania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send sign-in link"
+          }
+        }
+      }
+    },
+    "auth.checkEmail": {
+      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź pocztę i otwórz link, aby wrócić do aplikacji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your email and open the link to return to the app."
+          }
+        }
+      }
+    },
+    "auth.expired": {
+      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesja wygasła. Zaloguj się ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session expired. Sign in again."
+          }
+        }
+      }
+    },
+    "import.photos": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj zdjęcia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add photos"
+          }
+        }
+      }
+    },
+    "import.camera": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrób zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take photo"
+          }
+        }
+      }
+    },
+    "import.crop": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadruj zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop photo"
+          }
+        }
+      }
+    },
+    "import.removeBackground": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń tło"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove background"
+          }
+        }
+      }
+    },
+    "import.original": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj oryginału"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use original"
+          }
+        }
+      }
+    },
+    "import.manual": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uzupełnij ręcznie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter details manually"
+          }
+        }
+      }
+    },
+    "import.aiSuggestion": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugestia AI — możesz ją poprawić"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI suggestion — you can edit it"
+          }
+        }
+      }
+    },
+    "import.duplicate": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta rzecz może już być w Twojej szafie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This item may already be in your wardrobe."
+          }
+        }
+      }
+    },
+    "import.saveAnyway": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz mimo to"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save anyway"
+          }
+        }
+      }
+    },
+    "import.keepDraft": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj draft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep draft"
+          }
+        }
+      }
+    },
+    "import.discard": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odrzuć zmiany"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard changes"
+          }
+        }
+      }
+    },
+    "import.continue": {
+      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontynuuj edycję"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue editing"
+          }
+        }
+      }
+    },
+    "wardrobe.empty": {
+      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj pierwszą rzecz do swojej szafy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add the first item to your wardrobe."
+          }
+        }
+      }
+    },
+    "wardrobe.add": {
+      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj rzecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add item"
+          }
+        }
+      }
+    },
+    "wardrobe.noResults": {
+      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak rzeczy pasujących do tych filtrów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No items match these filters."
+          }
+        }
+      }
+    },
+    "garment.category": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kategoria"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Category"
+          }
+        }
+      }
+    },
+    "garment.other": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        }
+      }
+    },
+    "garment.colors": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kolory"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colors"
+          }
+        }
+      }
+    },
+    "garment.pattern": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wzór"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pattern"
+          }
+        }
+      }
+    },
+    "garment.seasons": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sezony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seasons"
+          }
+        }
+      }
+    },
+    "garment.formality": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formalność"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formality"
+          }
+        }
+      }
+    },
+    "garment.brand": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marka (opcjonalnie)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brand (optional)"
+          }
+        }
+      }
+    },
+    "garment.purchaseDate": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data zakupu (opcjonalnie)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase date (optional)"
+          }
+        }
+      }
+    },
+    "garment.price": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena zakupu (PLN)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase price (PLN)"
+          }
+        }
+      }
+    },
+    "garment.unknownPrice": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie znam ceny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I don’t know the price"
+          }
+        }
+      }
+    },
+    "garment.available": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available"
+          }
+        }
+      }
+    },
+    "garment.laundry": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "W praniu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In laundry"
+          }
+        }
+      }
+    },
+    "garment.unavailable": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niedostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        }
+      }
+    },
+    "garment.archive": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiwizuj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive"
+          }
+        }
+      }
+    },
+    "garment.restore": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywróć z archiwum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unarchive"
+          }
+        }
+      }
+    },
+    "garment.deleteTitle": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń rzecz trwale"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently delete item"
+          }
+        }
+      }
+    },
+    "garment.deleteBody": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuniesz zdjęcia i powiązania tej rzeczy. Statystyki mogą się zmienić. Tej czynności nie można cofnąć."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This will delete the item’s photos and relationships. Statistics may change. This action cannot be undone."
+          }
+        }
+      }
+    },
+    "garment.deleteConfirm": {
+      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń trwale"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete permanently"
+          }
+        }
+      }
+    },
+    "sync.pending": {
+      "comment": "T003: sync; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiany czekają na synchronizację"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes are waiting to sync"
+          }
+        }
+      }
+    },
+    "sync.conflict": {
+      "comment": "T003: sync; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta rzecz została zmieniona na innym urządzeniu. Porównaj wersje przed zapisem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This item was changed on another device. Compare versions before saving."
+          }
+        }
+      }
+    },
+    "sync.resolve": {
+      "comment": "T003: sync; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porównaj wersje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare versions"
+          }
+        }
+      }
+    },
+    "sync.noLocalChanges": {
+      "comment": "T003: sync; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak lokalnych zmian"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No local changes"
+          }
+        }
+      }
+    },
+    "outfit.create": {
+      "comment": "T003: outfit; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utwórz ręcznie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create manually"
+          }
+        }
+      }
+    },
+    "outfit.empty": {
+      "comment": "T003: outfit; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie masz jeszcze zapisanych zestawów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have no saved outfits yet."
+          }
+        }
+      }
+    },
+    "outfit.save": {
+      "comment": "T003: outfit; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save outfit"
+          }
+        }
+      }
+    },
+    "outfit.swap": {
+      "comment": "T003: outfit; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamień rzecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace item"
+          }
+        }
+      }
+    },
+    "outfit.favorite": {
+      "comment": "T003: outfit; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj do ulubionych"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to favorites"
+          }
+        }
+      }
+    },
+    "outfit.incomplete": {
+      "comment": "T003: outfit; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niekompletny zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete outfit"
+          }
+        }
+      }
+    },
+    "ai.generate": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaproponuj zestawy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggest outfits"
+          }
+        }
+      }
+    },
+    "ai.occasion": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okazja"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Occasion"
+          }
+        }
+      }
+    },
+    "ai.notes": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodatkowe uwagi (opcjonalnie)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Additional notes (optional)"
+          }
+        }
+      }
+    },
+    "ai.working": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotowuję propozycje. Możesz opuścić ten ekran."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing suggestions. You can leave this screen."
+          }
+        }
+      }
+    },
+    "ai.unavailable": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propozycje AI są teraz niedostępne. Możesz utworzyć zestaw ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI suggestions are currently unavailable. You can create an outfit manually."
+          }
+        }
+      }
+    },
+    "ai.checkStatus": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź status"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check status"
+          }
+        }
+      }
+    },
+    "ai.agree": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zgadzam się"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I agree"
+          }
+        }
+      }
+    },
+    "ai.decline": {
+      "comment": "T003: ai; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teraz nie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        }
+      }
+    },
+    "wear.today": {
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszę dzisiaj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear today"
+          }
+        }
+      }
+    },
+    "wear.save": {
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save wear"
+          }
+        }
+      }
+    },
+    "wear.history": {
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia noszenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear history"
+          }
+        }
+      }
+    },
+    "wear.empty": {
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zapisanych noszeń w tym dniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No wears recorded on this day."
+          }
+        }
+      }
+    },
+    "wear.alreadyCounted": {
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta rzecz już liczy się w tym dniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This item already counts for this day."
+          }
+        }
+      }
+    },
+    "wear.undoBody": {
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofniesz tylko to zdarzenie. Inne noszenia tego dnia pozostaną zapisane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this event will be undone. Other wears on this day will remain recorded."
+          }
+        }
+      }
+    },
+    "cpw.lifetime": {
+      "comment": "T003: cpw; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koszt jednego noszenia — całe życie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cost per wear — lifetime"
+          }
+        }
+      }
+    },
+    "cpw.noPrice": {
+      "comment": "T003: cpw; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak ceny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No price"
+          }
+        }
+      }
+    },
+    "cpw.unworn": {
+      "comment": "T003: cpw; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeszcze nienoszone"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not worn yet"
+          }
+        }
+      }
+    },
+    "cpw.estimated": {
+      "comment": "T003: cpw; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Z estymacją wcześniejszych noszeń"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Includes estimated prior wears"
+          }
+        }
+      }
+    },
+    "cpw.trackingStart": {
+      "comment": "T003: cpw; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data początku dziennika"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tracking start date"
+          }
+        }
+      }
+    },
+    "plan.title": {
+      "comment": "T003: plan; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planner"
+          }
+        }
+      }
+    },
+    "plan.add": {
+      "comment": "T003: plan; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj plan"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add plan"
+          }
+        }
+      }
+    },
+    "plan.label": {
+      "comment": "T003: plan; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan — nie jest zapisanym noszeniem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan — not a recorded wear"
+          }
+        }
+      }
+    },
+    "plan.empty": {
+      "comment": "T003: plan; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak planu na ten dzień."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No plan for this day."
+          }
+        }
+      }
+    },
+    "trip.title": {
+      "comment": "T003: trip; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyjazdy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trips"
+          }
+        }
+      }
+    },
+    "trip.new": {
+      "comment": "T003: trip; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowy wyjazd"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New trip"
+          }
+        }
+      }
+    },
+    "trip.packing": {
+      "comment": "T003: trip; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista pakowania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packing checklist"
+          }
+        }
+      }
+    },
+    "trip.packed": {
+      "comment": "T003: trip; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spakowane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packed"
+          }
+        }
+      }
+    },
+    "purchase.title": {
+      "comment": "T003: purchase; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź zakup"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check a potential purchase"
+          }
+        }
+      }
+    },
+    "purchase.candidate": {
+      "comment": "T003: purchase; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta rzecz jeszcze nie należy do Twojej szafy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This item is not in your wardrobe yet."
+          }
+        }
+      }
+    },
+    "purchase.confirm": {
+      "comment": "T003: purchase; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kupiłem — dodaj do szafy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased — add to wardrobe"
+          }
+        }
+      }
+    },
+    "weather.city": {
+      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miasto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City"
+          }
+        }
+      }
+    },
+    "weather.location": {
+      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj lokalizacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use my location"
+          }
+        }
+      }
+    },
+    "weather.manual": {
+      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz temperaturę ręcznie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter temperature manually"
+          }
+        }
+      }
+    },
+    "weather.unavailable": {
+      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak aktualnej pogody"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No current weather data"
+          }
+        }
+      }
+    },
+    "notifications.enable": {
+      "comment": "T003: notifications; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Włącz przypomnienia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable reminders"
+          }
+        }
+      }
+    },
+    "widget.open": {
+      "comment": "T003: widget; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz aplikację"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open app"
+          }
+        }
+      }
+    },
+    "share.preview": {
+      "comment": "T003: share; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podgląd kolażu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collage preview"
+          }
+        }
+      }
+    },
+    "share.action": {
+      "comment": "T003: share; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępnij kolaż"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share collage"
+          }
+        }
+      }
+    },
+    "statistics.value": {
+      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wartość rzeczy ze znaną ceną"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value of items with known prices"
+          }
+        }
+      }
+    },
+    "statistics.period": {
+      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okres aktywności"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity period"
+          }
+        }
+      }
+    },
+    "statistics.never": {
+      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nigdy nienoszone"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Never worn"
+          }
+        }
+      }
+    },
+    "statistics.ninetyDays": {
+      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nienoszone od 90 dni"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not worn in 90 days"
+          }
+        }
+      }
+    },
+    "statistics.empty": {
+      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak aktywności w wybranym okresie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No activity in the selected period."
+          }
+        }
+      }
+    },
+    "billing.restore": {
+      "comment": "T003: billing; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywróć zakupy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        }
+      }
+    },
+    "billing.manage": {
+      "comment": "T003: billing; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zarządzaj subskrypcją"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage subscription"
+          }
+        }
+      }
+    },
+    "billing.unavailable": {
+      "comment": "T003: billing; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oferta chwilowo niedostępna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offer temporarily unavailable"
+          }
+        }
+      }
+    },
+    "billing.pending": {
+      "comment": "T003: billing; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakup oczekuje na zatwierdzenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase awaiting approval"
+          }
+        }
+      }
+    },
+    "billing.verifying": {
+      "comment": "T003: billing; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weryfikujemy zakup"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifying purchase"
+          }
+        }
+      }
+    },
+    "billing.noPurchases": {
+      "comment": "T003: billing; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie znaleziono aktywnych zakupów"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active purchases found"
+          }
+        }
+      }
+    },
+    "settings.title": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ustawienia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "settings.language": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Język"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        }
+      }
+    },
+    "settings.systemLanguage": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Język systemu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System language"
+          }
+        }
+      }
+    },
+    "settings.privacy": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prywatność"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
+          }
+        }
+      }
+    },
+    "settings.terms": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warunki korzystania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of use"
+          }
+        }
+      }
+    },
+    "settings.help": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomoc"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help"
+          }
+        }
+      }
+    },
+    "settings.aiConsent": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zgoda na AI"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI consent"
+          }
+        }
+      }
+    },
+    "settings.analyticsConsent": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zgoda na analitykę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analytics consent"
+          }
+        }
+      }
+    },
+    "settings.logout": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyloguj się"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        }
+      }
+    },
+    "settings.logoutWarning": {
+      "comment": "T003: settings; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niewysłane zmiany mogą zostać utracone. Wróć i zsynchronizuj albo wyloguj się i usuń lokalne dane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsynced changes may be lost. Go back and sync, or sign out and delete local data."
+          }
+        }
+      }
+    },
+    "export.title": {
+      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport danych"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data export"
+          }
+        }
+      }
+    },
+    "export.prepare": {
+      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotuj eksport"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare export"
+          }
+        }
+      }
+    },
+    "export.download": {
+      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pobierz eksport"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download export"
+          }
+        }
+      }
+    },
+    "export.working": {
+      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotowujemy eksport. Możesz zamknąć ten ekran i sprawdzić status później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your export is being prepared. You can close this screen and check its status later."
+          }
+        }
+      }
+    },
+    "account.delete": {
+      "comment": "T003: account; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń konto i dane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account and data"
+          }
+        }
+      }
+    },
+    "account.deleteWarning": {
+      "comment": "T003: account; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie konta i danych jest nieodwracalne. Nie anuluje subskrypcji Apple. Możesz nią zarządzać niezależnie; nie jest to warunek usunięcia konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting your account and data is irreversible. It does not cancel your Apple subscription. You can manage it separately; this is not required to delete your account."
+          }
+        }
+      }
+    },
+    "account.deleting": {
+      "comment": "T003: account; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuwanie danych trwa. Sprawdź status później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data deletion is in progress. Check the status later."
+          }
+        }
+      }
+    },
+    "account.connectionRequired": {
+      "comment": "T003: account; tekst interfejsu, nie dane użytkownika.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połącz się z internetem, aby potwierdzić usunięcie konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to the internet to confirm account deletion."
+          }
+        }
+      }
+    },
+    "wardrobe.count": {
+      "comment": "Liczba całkowita nieujemna Int64. Pełny tekst; nie doklejać jednostki.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld rzecz"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld rzeczy"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld rzeczy"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld rzeczy"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld item"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld items"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "wear.days": {
+      "comment": "Liczba całkowita nieujemna Int64. Pełny tekst; nie doklejać jednostki.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dzień noszenia"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dni noszenia"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dni noszenia"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dni noszenia"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day worn"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days worn"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sync.lastUpdated": {
+      "comment": "%@ to data i czas sformatowane dla wybranego locale, nie surowy timestamp.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostatnia synchronizacja: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last synced: %@"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
