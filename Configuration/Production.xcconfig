@@ -1,0 +1,13 @@
+// Public configuration only. No credentials or registered Apple identities assumed.
+APP_ENVIRONMENT = prod
+PRODUCT_BUNDLE_IDENTIFIER = pl.mojaszafa.app
+INFOPLIST_KEY_CFBundleDisplayName = Moja Szafa
+INFOPLIST_KEY_AppEnvironment = $(APP_ENVIRONMENT)
+// T007/T009 must configure and validate real endpoints before enabling networking.
+BACKEND_BASE_URL =
+INFOPLIST_KEY_BackendBaseURL = $(BACKEND_BASE_URL)
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution
+DEVELOPMENT_TEAM =
+PROVISIONING_PROFILE_SPECIFIER =
+#include? "Signing/Production.local.xcconfig"

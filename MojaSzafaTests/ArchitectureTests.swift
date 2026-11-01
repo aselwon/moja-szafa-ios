@@ -3,6 +3,17 @@ import XCTest
 
 @MainActor
 final class ArchitectureTests: XCTestCase {
+    func testBuiltAppEnvironmentAndIdentityAgree() {
+        let environment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String
+        let expectedIDs = ["dev": "pl.mojaszafa.app.dev", "staging": "pl.mojaszafa.app.staging", "prod": "pl.mojaszafa.app"]
+        XCTAssertNotNil(environment)
+        XCTAssertNotNil(expectedIDs[environment ?? ""])
+        XCTAssertEqual(Bundle.main.bundleIdentifier, expectedIDs[environment ?? ""])
+        // Until T007/T009 approve endpoints, every environment must remain offline.
+        let endpoint = Bundle.main.object(forInfoDictionaryKey: "BackendBaseURL") as? String
+        XCTAssertTrue(endpoint == nil || endpoint == "")
+    }
+
     func testLiveCompositionFailsExplicitlyInsteadOfReturningMockData() async {
         let model = WardrobeModel(repository: AppDependencies.live().wardrobe)
         await model.load()

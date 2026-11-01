@@ -29,13 +29,14 @@ Staging nie został wdrożony; aktualność dokumentacji i kosztów wymaga weryf
 node scripts/harness-check.mjs
 ```
 
-Po utworzeniu projektu Xcode CI dodatkowo buduje i testuje schemat `MojaSzafa`
-na symulatorze iOS.
+CI buduje i testuje Debug, Staging i Release na `macos-latest` z domyślnym Xcode runnera (bez przypinania wersji).
+[Środowiska, podpisywanie i weryfikacja T006](docs/operations/T006-environments-ci.md)
+opisują konfigurację, skan sekretów i ograniczenia dowodów.
 
 ## Projekt iOS (T005)
 
 Otwórz `MojaSzafa.xcodeproj`, wybierz schemat `MojaSzafa` i symulator iPhone.
-Baza techniczna: Xcode 16.4, Swift 6, iOS 17+ (do zatwierdzenia w D08).
+Baza techniczna: aktualny stabilny Xcode, Swift 6, iOS 17+ (do zatwierdzenia w D08).
 [Architektura i instrukcja czystego buildu](docs/architecture/T005-ios-foundation.md)
 opisują DI, repozytoria, testy i ograniczenia weryfikacji.
 Aplikacja nie ma jeszcze połączenia z backendem: jawnie pokazuje ten stan,
