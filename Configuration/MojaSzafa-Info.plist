@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Custom keys: GENERATE_INFOPLIST_FILE ignores non-Apple INFOPLIST_KEY_* settings, so they live here. -->
+	<key>AppEnvironment</key>
+	<string>$(APP_ENVIRONMENT)</string>
+	<key>BackendBaseURL</key>
+	<string>$(BACKEND_BASE_URL)</string>
+</dict>
+</plist>

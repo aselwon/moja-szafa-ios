@@ -6,12 +6,12 @@ The repository contains a native SwiftUI iPhone application, an XCTest target,
 and the shared `MojaSzafa` scheme. No package manager, generator, downloaded
 fonts or third-party dependencies are required. Open `MojaSzafa.xcodeproj`.
 
-Use stable **Xcode 16.4 (16F6)** on **macOS 15.3 or later**, with its iOS 18.5
-simulator runtime. The source uses Swift 6 language mode, structured concurrency
+Use the current stable **Xcode** (CI uses the default Xcode of GitHub's
+`macos-latest` runner, currently Xcode 26) with any available iPhone simulator. The source uses Swift 6 language mode, structured concurrency
 and a deployment target of **iOS 17.0**. This is a provisional engineering
 baseline, not an owner-approved support policy: product decision D08 still
 needs confirmation of supported devices, OS versions and test hardware.
-This does not assert that Xcode 16.4 meets future App Store submission rules;
+This does not assert that a given Xcode meets future App Store submission rules;
 that verification belongs to T064.
 
 From a clean checkout on that Mac:
@@ -21,7 +21,7 @@ xcodebuild -version
 xcodebuild -list -project MojaSzafa.xcodeproj
 xcodebuild test \
   -project MojaSzafa.xcodeproj -scheme MojaSzafa \
-  -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
   -derivedDataPath /tmp/moja-szafa-debug \
   -resultBundlePath /tmp/moja-szafa-tests.xcresult \
   CODE_SIGNING_ALLOWED=NO
@@ -35,9 +35,9 @@ xcodebuild build \
 Use a fresh result-bundle path for each test run. Simulator builds require no
 Apple account. Device builds require a real team and registered bundle ID;
 `pl.mojaszafa.app` is a local project identifier, not a claimed registration.
-Signing, environment separation and CI toolchain pinning remain T006. The
-existing macOS CI discovers this project and runs the shared scheme's tests;
-its `macos-latest` runner is not a reproducible version pin. No CI execution
+Signing policy, environment separation and pinned CI are now documented in
+[T006](../operations/T006-environments-ci.md). CI uses the runner's default Xcode
+on `macos-latest` and runs all three configurations; it fails if the toolchain is unavailable. No CI execution
 is claimed here. App Store icon/artwork and distribution setup are future work.
 
 ## Boundaries and dependency direction

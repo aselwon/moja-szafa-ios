@@ -4,3 +4,9 @@ build/
 *.xcresult/
 xcuserdata/
 *.xcuserstate
+Configuration/Signing/*.local.xcconfig
+.env
+.env.*
+*.p8
+*.p12
+*.mobileprovision
