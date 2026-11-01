@@ -123,3 +123,13 @@ no workflow changes are needed. Require that job to pass on PostgreSQL 15 before
 accepting the migration execution criterion. Actual Supabase staging integration
 must separately validate Auth identity, role grants and storage behavior after
 T007 is authorized. The harness check is not a substitute for executing SQL.
+
+## T009 API extension
+
+Migration `003_api.sql` now adds the versioned garment list/save RPCs and a private
+transactional replay ledger. The migration runner defaults to 003. The table and
+API boundaries above describe the T008 baseline; direct client table writes
+remain denied. See [T009 contract and verification](../docs/architecture/T009-api-contract.md)
+and [OpenAPI v1](api/openapi-v1.json) for the implemented surface, configuration,
+error envelope and remaining feature endpoints. The test runner now verifies a
+populated v002 upgrade and concurrent/post-commit mutation replay as well.

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Minimal read model; ownership, pricing and sync contracts belong to T008–T012.
+/// Feature read model; versioned wire DTOs stay in the data layer.
 struct Garment: Identifiable, Equatable, Sendable {
     let id: UUID
     let name: String
