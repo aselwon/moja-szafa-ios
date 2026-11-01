@@ -2772,6 +2772,91 @@
           }
         }
       }
+    },
+    "foundation.featurePending": {
+      "comment": "T005: application foundation status; no sample wardrobe data.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta funkcja nie jest jeszcze dostępna w tej wersji aplikacji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This feature is not yet available in this version of the app."
+          }
+        }
+      }
+    },
+    "foundation.serviceUnavailable": {
+      "comment": "T005: application foundation status; no sample wardrobe data.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączenie z usługą szafy nie zostało jeszcze skonfigurowane. Nie można pobrać Twoich ubrań."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The wardrobe service connection has not been configured yet. Your garments cannot be loaded."
+          }
+        }
+      }
+    },
+    "foundation.wardrobeEmpty": {
+      "comment": "T005: application foundation status; no sample wardrobe data.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie masz jeszcze ubrań w szafie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe has no garments yet."
+          }
+        }
+      }
+    },
+    "foundation.offline": {
+      "comment": "T005: application foundation status; no sample wardrobe data.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Spróbuj ponownie, gdy odzyskasz dostęp do internetu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are offline. Try again when your internet connection is restored."
+          }
+        }
+      }
+    },
+    "foundation.loadFailed": {
+      "comment": "T005: application foundation status; no sample wardrobe data.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wczytać szafy. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe could not be loaded. Please try again."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
