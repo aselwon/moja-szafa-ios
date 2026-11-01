@@ -3,6 +3,7 @@ APP_ENVIRONMENT = prod
 PRODUCT_BUNDLE_IDENTIFIER = pl.mojaszafa.app
 INFOPLIST_KEY_CFBundleDisplayName = Moja Szafa
 INFOPLIST_KEY_AppEnvironment = $(APP_ENVIRONMENT)
+INFOPLIST_FILE = Configuration/MojaSzafa-Info.plist
 // T007/T009 must configure and validate real endpoints before enabling networking.
 BACKEND_BASE_URL =
 INFOPLIST_KEY_BackendBaseURL = $(BACKEND_BASE_URL)
