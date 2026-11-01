@@ -1,0 +1,1675 @@
+{
+  "schema_version": "1.0",
+  "project": {
+    "name": "Moja Szafa iOS",
+    "release": "App Store 1.0",
+    "languages": [
+      "pl",
+      "en"
+    ],
+    "currency": "PLN",
+    "scope": "Full production release"
+  },
+  "import_instructions": {
+    "mode": "agent-mapped; not native importer format",
+    "epics": "parent issues",
+    "tasks": "sub-issues",
+    "dependencies": "blocked by",
+    "deduplication_key": "external_id",
+    "status": "map Backlog to workspace status; preserve existing progress",
+    "priority_mapping": {
+      "1": "High",
+      "2": "Normal"
+    },
+    "estimates": "unset pending repo review"
+  },
+  "epics": [
+    {
+      "external_id": "E01",
+      "title": "Produkt i projekt UX"
+    },
+    {
+      "external_id": "E02",
+      "title": "Platforma i infrastruktura"
+    },
+    {
+      "external_id": "E03",
+      "title": "Konto i prywatność"
+    },
+    {
+      "external_id": "E04",
+      "title": "Cyfrowa szafa"
+    },
+    {
+      "external_id": "E05",
+      "title": "Stylista AI"
+    },
+    {
+      "external_id": "E06",
+      "title": "Historia i analityka szafy"
+    },
+    {
+      "external_id": "E07",
+      "title": "Planowanie i funkcje iOS"
+    },
+    {
+      "external_id": "E08",
+      "title": "Subskrypcje"
+    },
+    {
+      "external_id": "E09",
+      "title": "Jakość i operacje"
+    },
+    {
+      "external_id": "E10",
+      "title": "Publikacja i utrzymanie"
+    }
+  ],
+  "tasks": [
+    {
+      "external_id": "T001",
+      "epic_id": "E01",
+      "title": "Zatwierdź specyfikację produktu 1.0",
+      "description": "Spisz kompletną macierz funkcji Free/Plus, kraj startowy Polska, języki PL/EN, walutę PLN oraz decyzje właściciela. Nie wpisuj fikcyjnych cen ani danych prawnych. Lista decyzji ma właściciela i blokowane zadania.",
+      "acceptance_criteria": [
+        "Spisz kompletną macierz funkcji Free/Plus, kraj startowy Polska, języki PL/EN, walutę PLN oraz decyzje właściciela.",
+        "Nie wpisuj fikcyjnych cen ani danych prawnych.",
+        "Lista decyzji ma właściciela i blokowane zadania.."
+      ],
+      "depends_on": [],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E01",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T002",
+      "epic_id": "E01",
+      "title": "Zaprojektuj wszystkie przepływy i stany",
+      "description": "Dostarcz projekt ekranów dla onboardingu, szafy, AI, historii, planera, statystyk, płatności i ustawień. Każdy przepływ ma loading, empty, error, offline oraz ścieżkę powrotu.",
+      "acceptance_criteria": [
+        "Dostarcz projekt ekranów dla onboardingu, szafy, AI, historii, planera, statystyk, płatności i ustawień.",
+        "Każdy przepływ ma loading, empty, error, offline oraz ścieżkę powrotu.."
+      ],
+      "depends_on": [
+        "T001"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E01",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T003",
+      "epic_id": "E01",
+      "title": "Zbuduj system wizualny i lokalizację",
+      "description": "Zdefiniuj kolory, typografię, komponenty, dark mode i PL/EN w String Catalog. Długie teksty i Dynamic Type nie zasłaniają akcji.",
+      "acceptance_criteria": [
+        "Zdefiniuj kolory, typografię, komponenty, dark mode i PL/EN w String Catalog.",
+        "Długie teksty i Dynamic Type nie zasłaniają akcji.."
+      ],
+      "depends_on": [
+        "T002"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E01",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T004",
+      "epic_id": "E01",
+      "title": "Przetestuj prototyp z użytkownikami",
+      "description": "Przeprowadź co najmniej 5 sesji z dostępnymi testerami; sprawdź dodanie ubrania, wybór zestawu i zapis noszenia. Udokumentuj obserwacje i popraw blokujące problemy; bez testerów pozostaw zadanie otwarte.",
+      "acceptance_criteria": [
+        "Przeprowadź co najmniej 5 sesji z dostępnymi testerami; sprawdź dodanie ubrania, wybór zestawu i zapis noszenia.",
+        "Udokumentuj obserwacje i popraw blokujące problemy; bez testerów pozostaw zadanie otwarte.."
+      ],
+      "depends_on": [
+        "T002"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E01",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T005",
+      "epic_id": "E02",
+      "title": "Utwórz projekt iOS i architekturę",
+      "description": "SwiftUI, async/await, moduły funkcjonalne, repozytoria i DI. Czysty checkout buduje się na udokumentowanym stabilnym Xcode; mock nie jest domyślnym backendem release.",
+      "acceptance_criteria": [
+        "SwiftUI, async/await, moduły funkcjonalne, repozytoria i DI.",
+        "Czysty checkout buduje się na udokumentowanym stabilnym Xcode; mock nie jest domyślnym backendem release.."
+      ],
+      "depends_on": [
+        "T003"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T006",
+      "epic_id": "E02",
+      "title": "Przygotuj środowiska i CI",
+      "description": "Oddziel dev/staging/prod, konfigurację i podpisywanie. CI na macOS uruchamia build i testy; skan sekretów przechodzi; release nie łączy się ze stagingiem.",
+      "acceptance_criteria": [
+        "Oddziel dev/staging/prod, konfigurację i podpisywanie.",
+        "CI na macOS uruchamia build i testy; skan sekretów przechodzi; release nie łączy się ze stagingiem.."
+      ],
+      "depends_on": [
+        "T005"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T007",
+      "epic_id": "E02",
+      "title": "Wybierz i skonfiguruj backend",
+      "description": "Zapisz ADR z aktualną dokumentacją, regionem, kosztami i trwałością zadań. PostgreSQL, auth, private storage i worker działają na staging; konta i płatne zasoby wymagają realnych uprawnień właściciela.",
+      "acceptance_criteria": [
+        "Zapisz ADR z aktualną dokumentacją, regionem, kosztami i trwałością zadań.",
+        "PostgreSQL, auth, private storage i worker działają na staging; konta i płatne zasoby wymagają realnych uprawnień właściciela.."
+      ],
+      "depends_on": [
+        "T001"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T008",
+      "epic_id": "E02",
+      "title": "Zaimplementuj schemat i migracje",
+      "description": "Utwórz tabele opisane w briefie, indeksy, relacje własności, constraints i polityki dostępu. Migracja na pustej bazie i aktualizacja poprzedniej wersji przechodzą testy.",
+      "acceptance_criteria": [
+        "Utwórz tabele opisane w briefie, indeksy, relacje własności, constraints i polityki dostępu.",
+        "Migracja na pustej bazie i aktualizacja poprzedniej wersji przechodzą testy.."
+      ],
+      "depends_on": [
+        "T007"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T009",
+      "epic_id": "E02",
+      "title": "Zbuduj kontrakty API i klienta",
+      "description": "Wersjonowane DTO i schemy, paginacja, walidacja, błędy z request_id i idempotencja mutacji. Powtórzenie zapisu po timeout nie dubluje danych.",
+      "acceptance_criteria": [
+        "Wersjonowane DTO i schemy, paginacja, walidacja, błędy z request_id i idempotencja mutacji.",
+        "Powtórzenie zapisu po timeout nie dubluje danych.."
+      ],
+      "depends_on": [
+        "T005",
+        "T008"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T010",
+      "epic_id": "E02",
+      "title": "Zaimplementuj trwałe zadania",
+      "description": "Worker ma lease, timeout, ograniczone retry, deduplikację i dead-letter. Restart nie gubi analizy ani nie nalicza podwójnie limitu; status można odczytać po ponownym otwarciu aplikacji.",
+      "acceptance_criteria": [
+        "Worker ma lease, timeout, ograniczone retry, deduplikację i dead-letter.",
+        "Restart nie gubi analizy ani nie nalicza podwójnie limitu; status można odczytać po ponownym otwarciu aplikacji.."
+      ],
+      "depends_on": [
+        "T009"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T011",
+      "epic_id": "E02",
+      "title": "Zbuduj prywatny pipeline obrazów",
+      "description": "Podpisane uploady, walidacja dekodowania i limitów, miniatury, usunięcie EXIF, sprzątanie osieroconych plików. Nieautoryzowany użytkownik nie odczytuje obiektu ani podpisanego URL po wygaśnięciu.",
+      "acceptance_criteria": [
+        "Podpisane uploady, walidacja dekodowania i limitów, miniatury, usunięcie EXIF, sprzątanie osieroconych plików.",
+        "Nieautoryzowany użytkownik nie odczytuje obiektu ani podpisanego URL po wygaśnięciu.."
+      ],
+      "depends_on": [
+        "T008",
+        "T010"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T012",
+      "epic_id": "E02",
+      "title": "Zaimplementuj synchronizację offline",
+      "description": "Lokalna baza, outbox z UUID, wersjonowanie rekordów, tombstones, retry i konflikt. Dodanie/edycja ubrania oraz noszenie działają offline, synchronizują się bez duplikatów; usunięcie konta wygrywa z zaległymi zapisami.",
+      "acceptance_criteria": [
+        "Lokalna baza, outbox z UUID, wersjonowanie rekordów, tombstones, retry i konflikt.",
+        "Dodanie/edycja ubrania oraz noszenie działają offline, synchronizują się bez duplikatów; usunięcie konta wygrywa z zaległymi zapisami.."
+      ],
+      "depends_on": [
+        "T009"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E02",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T013",
+      "epic_id": "E03",
+      "title": "Dodaj Sign in with Apple i email",
+      "description": "Obie metody działają na urządzeniu, również Apple private relay, ponowne logowanie i wygasła sesja. Łączenie tożsamości wymaga potwierdzenia i nie scala kont po samym adresie email.",
+      "acceptance_criteria": [
+        "Obie metody działają na urządzeniu, również Apple private relay, ponowne logowanie i wygasła sesja.",
+        "Łączenie tożsamości wymaga potwierdzenia i nie scala kont po samym adresie email.."
+      ],
+      "depends_on": [
+        "T009"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E03",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T014",
+      "epic_id": "E03",
+      "title": "Zbuduj onboarding i profil",
+      "description": "Użytkownik wybiera opcjonalne style, kolory i preferencje; może pominąć onboarding. Nie wymagaj płci, rozmiaru ani zdjęcia sylwetki. Pokazuj wartość przed paywallem.",
+      "acceptance_criteria": [
+        "Użytkownik wybiera opcjonalne style, kolory i preferencje; może pominąć onboarding.",
+        "Nie wymagaj płci, rozmiaru ani zdjęcia sylwetki.",
+        "Pokazuj wartość przed paywallem.."
+      ],
+      "depends_on": [
+        "T013",
+        "T003"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E03",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T015",
+      "epic_id": "E03",
+      "title": "Zaimplementuj zgody i ustawienia prywatności",
+      "description": "Przed zewnętrznym AI pokaż odbiorcę, dane i cel; zapisz wersję zgody. Odmowa i cofnięcie blokują nowe wysyłki AI oraz anulują niewysłane zadania; ręczna szafa działa dalej.",
+      "acceptance_criteria": [
+        "Przed zewnętrznym AI pokaż odbiorcę, dane i cel; zapisz wersję zgody.",
+        "Odmowa i cofnięcie blokują nowe wysyłki AI oraz anulują niewysłane zadania; ręczna szafa działa dalej.."
+      ],
+      "depends_on": [
+        "T014"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E03",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T016",
+      "epic_id": "E03",
+      "title": "Dodaj eksport danych",
+      "description": "Użytkownik zamawia prywatny eksport JSON oraz zdjęć; archiwum ma krótki okres dostępności. Eksport obejmuje historię, plan i ceny, nie obejmuje cudzych danych i sekretów.",
+      "acceptance_criteria": [
+        "Użytkownik zamawia prywatny eksport JSON oraz zdjęć; archiwum ma krótki okres dostępności.",
+        "Eksport obejmuje historię, plan i ceny, nie obejmuje cudzych danych i sekretów.."
+      ],
+      "depends_on": [
+        "T011",
+        "T013"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E03",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T017",
+      "epic_id": "E03",
+      "title": "Zaimplementuj usunięcie konta",
+      "description": "Usunięcie dostępne w aplikacji, reautoryzacja, cofnięcie tokenów Apple, unieważnienie sesji i trwałe sprzątanie danych/zdjęć. Ponowienie jest bezpieczne; retencja backupów odpowiada polityce.",
+      "acceptance_criteria": [
+        "Usunięcie dostępne w aplikacji, reautoryzacja, cofnięcie tokenów Apple, unieważnienie sesji i trwałe sprzątanie danych/zdjęć.",
+        "Ponowienie jest bezpieczne; retencja backupów odpowiada polityce.."
+      ],
+      "depends_on": [
+        "T013",
+        "T015"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E03",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T018",
+      "epic_id": "E03",
+      "title": "Przygotuj polityki i kanał wsparcia",
+      "description": "Opublikuj Privacy Policy, warunki, support i opis podwykonawców zgodne z rzeczywistymi przepływami. Właściciel uzupełnia administratora i dane kontaktowe; brak placeholderów w release.",
+      "acceptance_criteria": [
+        "Opublikuj Privacy Policy, warunki, support i opis podwykonawców zgodne z rzeczywistymi przepływami.",
+        "Właściciel uzupełnia administratora i dane kontaktowe; brak placeholderów w release.."
+      ],
+      "depends_on": [
+        "T001",
+        "T015",
+        "T017"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E03",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T019",
+      "epic_id": "E04",
+      "title": "Dodaj aparat i import wielu zdjęć",
+      "description": "Obsłuż JPEG/HEIC, orientację, anulowanie, odmowę aparatu, limit 10 MB i kompresję do 1600 px. Import wielu zdjęć ma osobny status każdej rzeczy i nie gubi częściowych sukcesów.",
+      "acceptance_criteria": [
+        "Obsłuż JPEG/HEIC, orientację, anulowanie, odmowę aparatu, limit 10 MB i kompresję do 1600 px.",
+        "Import wielu zdjęć ma osobny status każdej rzeczy i nie gubi częściowych sukcesów.."
+      ],
+      "depends_on": [
+        "T005",
+        "T011"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T020",
+      "epic_id": "E04",
+      "title": "Dodaj kadrowanie i usuwanie tła",
+      "description": "Edytowalny kadr, podgląd przed/po, zachowanie oryginału i fallback przy błędzie segmentacji. Użytkownik może zaakceptować zdjęcie bez usuniętego tła.",
+      "acceptance_criteria": [
+        "Edytowalny kadr, podgląd przed/po, zachowanie oryginału i fallback przy błędzie segmentacji.",
+        "Użytkownik może zaakceptować zdjęcie bez usuniętego tła.."
+      ],
+      "depends_on": [
+        "T019"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T021",
+      "epic_id": "E04",
+      "title": "Zaimplementuj formularz ubrania",
+      "description": "Nazwa, kategoria, paleta kolorów, wzór, sezony, formalność, marka, cena i data zakupu. Cena w groszach, brak ceny różny od zera, walidacja i ręczna korekta AI.",
+      "acceptance_criteria": [
+        "Nazwa, kategoria, paleta kolorów, wzór, sezony, formalność, marka, cena i data zakupu.",
+        "Cena w groszach, brak ceny różny od zera, walidacja i ręczna korekta AI.."
+      ],
+      "depends_on": [
+        "T008",
+        "T019"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T022",
+      "epic_id": "E04",
+      "title": "Zbuduj szafę i szczegóły",
+      "description": "Siatka miniaturek, wyszukiwanie, filtry, sortowanie, szczegóły i historia. Przy 1000 rzeczach paginacja nie pobiera wszystkich oryginałów; stany offline są czytelne.",
+      "acceptance_criteria": [
+        "Siatka miniaturek, wyszukiwanie, filtry, sortowanie, szczegóły i historia.",
+        "Przy 1000 rzeczach paginacja nie pobiera wszystkich oryginałów; stany offline są czytelne.."
+      ],
+      "depends_on": [
+        "T021",
+        "T012"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T023",
+      "epic_id": "E04",
+      "title": "Dodaj dostępność i archiwizację",
+      "description": "Dostępne, pranie, niedostępne oraz archiwalne. Zmiana synchronizuje się między urządzeniami, wyklucza z AI i zachowuje historię oraz CPW.",
+      "acceptance_criteria": [
+        "Dostępne, pranie, niedostępne oraz archiwalne.",
+        "Zmiana synchronizuje się między urządzeniami, wyklucza z AI i zachowuje historię oraz CPW.."
+      ],
+      "depends_on": [
+        "T022"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T024",
+      "epic_id": "E04",
+      "title": "Zaimplementuj trwałe usunięcie ubrania",
+      "description": "Zwykłą akcją jest archiwizacja; trwałe usunięcie wyjaśnia wpływ na historię, usuwa zdjęcia i relacje, przelicza agregaty. Kolejka offline nie odtwarza usuniętej rzeczy.",
+      "acceptance_criteria": [
+        "Zwykłą akcją jest archiwizacja; trwałe usunięcie wyjaśnia wpływ na historię, usuwa zdjęcia i relacje, przelicza agregaty.",
+        "Kolejka offline nie odtwarza usuniętej rzeczy.."
+      ],
+      "depends_on": [
+        "T023",
+        "T017"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T025",
+      "epic_id": "E04",
+      "title": "Dodaj wykrywanie potencjalnych duplikatów",
+      "description": "Hash/perceptual similarity proponuje sprawdzenie podobnej rzeczy, bez automatycznego scalania. Użytkownik może zachować dwa identyczne egzemplarze.",
+      "acceptance_criteria": [
+        "Hash/perceptual similarity proponuje sprawdzenie podobnej rzeczy, bez automatycznego scalania.",
+        "Użytkownik może zachować dwa identyczne egzemplarze.."
+      ],
+      "depends_on": [
+        "T020",
+        "T022"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T026",
+      "epic_id": "E04",
+      "title": "Zbuduj ręczny kreator zestawów",
+      "description": "Wybór ubrań, kolaż, zapis, nazwa, edycja i ulubione. Zestaw nie zmienia wcześniejszych zapisów noszenia; archiwalny element ma widoczne ostrzeżenie.",
+      "acceptance_criteria": [
+        "Wybór ubrań, kolaż, zapis, nazwa, edycja i ulubione.",
+        "Zestaw nie zmienia wcześniejszych zapisów noszenia; archiwalny element ma widoczne ostrzeżenie.."
+      ],
+      "depends_on": [
+        "T022"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E04",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T027",
+      "epic_id": "E05",
+      "title": "Zbuduj adapter dostawcy AI",
+      "description": "Konfiguracja modelu na serwerze, analiza obrazu i rekomendacje jako oddzielne operacje. Sekrety nie trafiają do binary, są timeouty, pomiar użycia i deterministyczne mocki testowe.",
+      "acceptance_criteria": [
+        "Konfiguracja modelu na serwerze, analiza obrazu i rekomendacje jako oddzielne operacje.",
+        "Sekrety nie trafiają do binary, są timeouty, pomiar użycia i deterministyczne mocki testowe.."
+      ],
+      "depends_on": [
+        "T010",
+        "T015"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T028",
+      "epic_id": "E05",
+      "title": "Zaimplementuj rozpoznawanie ubrań",
+      "description": "Schema metadanych, walidacja enumów, pewność i multiple_items. Nie zgaduj ceny, daty ani marki. Niska pewność wymaga korekty; wynik pozostaje draftem do zatwierdzenia.",
+      "acceptance_criteria": [
+        "Schema metadanych, walidacja enumów, pewność i multiple_items.",
+        "Nie zgaduj ceny, daty ani marki.",
+        "Niska pewność wymaga korekty; wynik pozostaje draftem do zatwierdzenia.."
+      ],
+      "depends_on": [
+        "T027",
+        "T021"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T029",
+      "epic_id": "E05",
+      "title": "Zbuduj selekcję kandydatów",
+      "description": "Filtrowanie własności i dostępności, reprezentacja kategorii, preferencje, okazja oraz przypięte ubranie. Test szafy 1000 rzeczy nie wysyła wszystkich obrazów do modelu.",
+      "acceptance_criteria": [
+        "Filtrowanie własności i dostępności, reprezentacja kategorii, preferencje, okazja oraz przypięte ubranie.",
+        "Test szafy 1000 rzeczy nie wysyła wszystkich obrazów do modelu.."
+      ],
+      "depends_on": [
+        "T023",
+        "T027"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T030",
+      "epic_id": "E05",
+      "title": "Zaimplementuj generowanie zestawów",
+      "description": "Zwracaj 1–10 propozycji, domyślnie 3, tylko z istniejących ID. JSON, kontrola kompletności, deduplikacja i maksymalnie jedna próba naprawy; mniejsza liczba propozycji ma wyjaśnienie.",
+      "acceptance_criteria": [
+        "Zwracaj 1–10 propozycji, domyślnie 3, tylko z istniejących ID.",
+        "JSON, kontrola kompletności, deduplikacja i maksymalnie jedna próba naprawy; mniejsza liczba propozycji ma wyjaśnienie.."
+      ],
+      "depends_on": [
+        "T029"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T031",
+      "epic_id": "E05",
+      "title": "Zbuduj ekran propozycji i zamianę elementu",
+      "description": "Kolaże realnych zdjęć, powód dopasowania, zapis, noszenie i zamiana jednej rzeczy z zachowaniem pozostałych. Ręczna zamiana dostępna przy awarii AI.",
+      "acceptance_criteria": [
+        "Kolaże realnych zdjęć, powód dopasowania, zapis, noszenie i zamiana jednej rzeczy z zachowaniem pozostałych.",
+        "Ręczna zamiana dostępna przy awarii AI.."
+      ],
+      "depends_on": [
+        "T030",
+        "T026"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T032",
+      "epic_id": "E05",
+      "title": "Dodaj preferencje i feedback",
+      "description": "Lubię/nie lubię z opcjonalnym powodem, wykluczenia oraz reset personalizacji. Rekomendacje respektują twarde wykluczenia; feedback nie zmienia historii noszenia.",
+      "acceptance_criteria": [
+        "Lubię/nie lubię z opcjonalnym powodem, wykluczenia oraz reset personalizacji.",
+        "Rekomendacje respektują twarde wykluczenia; feedback nie zmienia historii noszenia.."
+      ],
+      "depends_on": [
+        "T031",
+        "T014"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T033",
+      "epic_id": "E05",
+      "title": "Zbuduj zestaw ewaluacyjny AI",
+      "description": "Co najmniej 100 przypadków prawidłowo oznaczonych i legalnych zdjęć/kontekstów, w tym mała szafa, brak butów, zima, konflikty preferencji i wstrzyknięte instrukcje. Raport porównuje wersje promptów bez wycieku danych.",
+      "acceptance_criteria": [
+        "Co najmniej 100 przypadków prawidłowo oznaczonych i legalnych zdjęć/kontekstów, w tym mała szafa, brak butów, zima, konflikty preferencji i wstrzyknięte instrukcje.",
+        "Raport porównuje wersje promptów bez wycieku danych.."
+      ],
+      "depends_on": [
+        "T028",
+        "T030"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T034",
+      "epic_id": "E05",
+      "title": "Dodaj limity kosztów i ochronę AI",
+      "description": "Per-user quota, globalny budżet, rezerwacja/rozliczenie, ograniczone retry i kill switch. Failed job zwalnia rezerwację; dostawca bez idempotencji nie ma deklaracji exactly-once przy utracie odpowiedzi.",
+      "acceptance_criteria": [
+        "Per-user quota, globalny budżet, rezerwacja/rozliczenie, ograniczone retry i kill switch.",
+        "Failed job zwalnia rezerwację; dostawca bez idempotencji nie ma deklaracji exactly-once przy utracie odpowiedzi.."
+      ],
+      "depends_on": [
+        "T027",
+        "T033"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E05",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T035",
+      "epic_id": "E06",
+      "title": "Zaimplementuj zapis i edycję noszenia",
+      "description": "Oddzielne wear_events i lista rzeczy, lokalna data oraz strefa. Idempotencja i atomowość, przyszłe daty odrzucone; dwa zestawy jednego dnia nie podwajają licznika wspólnej rzeczy.",
+      "acceptance_criteria": [
+        "Oddzielne wear_events i lista rzeczy, lokalna data oraz strefa.",
+        "Idempotencja i atomowość, przyszłe daty odrzucone; dwa zestawy jednego dnia nie podwajają licznika wspólnej rzeczy.."
+      ],
+      "depends_on": [
+        "T026",
+        "T012"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E06",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T036",
+      "epic_id": "E06",
+      "title": "Zbuduj silnik CPW",
+      "description": "Cena w groszach / unikalne dni noszenia, zaokrąglenie przy wyświetleniu. Testy 0, null, brak dni, cofnięcie, współdzielone rzeczy i edycja ceny. LLM nie liczy statystyk.",
+      "acceptance_criteria": [
+        "Cena w groszach / unikalne dni noszenia, zaokrąglenie przy wyświetleniu.",
+        "Testy 0, null, brak dni, cofnięcie, współdzielone rzeczy i edycja ceny.",
+        "LLM nie liczy statystyk.."
+      ],
+      "depends_on": [
+        "T035"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E06",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T037",
+      "epic_id": "E06",
+      "title": "Dodaj historię początkową ubrania",
+      "description": "Opcjonalna estymacja noszeń sprzed rozpoczęcia dziennika i data graniczna. CPW estymowane oznaczone, dni dziennika po granicy nie dublują bazowych noszeń; zmiana granicy wymaga jawnego rozstrzygnięcia nakładania.",
+      "acceptance_criteria": [
+        "Opcjonalna estymacja noszeń sprzed rozpoczęcia dziennika i data graniczna.",
+        "CPW estymowane oznaczone, dni dziennika po granicy nie dublują bazowych noszeń; zmiana granicy wymaga jawnego rozstrzygnięcia nakładania.."
+      ],
+      "depends_on": [
+        "T036"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E06",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T038",
+      "epic_id": "E06",
+      "title": "Zbuduj kalendarz historii",
+      "description": "Przegląd dat, dodanie, edycja i cofnięcie wpisu z undo. Zmiana strefy nie przesuwa istniejących dni; aktualizacja zestawu nie zmienia historycznej listy rzeczy.",
+      "acceptance_criteria": [
+        "Przegląd dat, dodanie, edycja i cofnięcie wpisu z undo.",
+        "Zmiana strefy nie przesuwa istniejących dni; aktualizacja zestawu nie zmienia historycznej listy rzeczy.."
+      ],
+      "depends_on": [
+        "T035"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E06",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T039",
+      "epic_id": "E06",
+      "title": "Zbuduj statystyki szafy",
+      "description": "Wartość znanych cen z liczbą brakujących, rankingi CPW, najczęściej noszone, nigdy nienoszone i nieużywane 90 dni. Filtrowanie dat dotyczy aktywności; lifetime CPW jest podpisane i nie zmienia mianownika na okresowy.",
+      "acceptance_criteria": [
+        "Wartość znanych cen z liczbą brakujących, rankingi CPW, najczęściej noszone, nigdy nienoszone i nieużywane 90 dni.",
+        "Filtrowanie dat dotyczy aktywności; lifetime CPW jest podpisane i nie zmienia mianownika na okresowy.."
+      ],
+      "depends_on": [
+        "T036",
+        "T037"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E06",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T040",
+      "epic_id": "E06",
+      "title": "Dodaj listę rzeczy do przeglądu",
+      "description": "Użytkownik widzi rzadko noszone rzeczy z opcją przypomnij zestaw, zachowaj lub archiwizuj. Nie deklaruj oszczędności ani wpływu środowiskowego bez danych.",
+      "acceptance_criteria": [
+        "Użytkownik widzi rzadko noszone rzeczy z opcją przypomnij zestaw, zachowaj lub archiwizuj.",
+        "Nie deklaruj oszczędności ani wpływu środowiskowego bez danych.."
+      ],
+      "depends_on": [
+        "T039"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E06",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T041",
+      "epic_id": "E07",
+      "title": "Zbuduj planer stylizacji",
+      "description": "Plan na przyszły dzień jest oddzielny od noszenia. Przenoszenie i usuwanie planu nie zmienia CPW; dopiero jawne potwierdzenie tworzy wear_event.",
+      "acceptance_criteria": [
+        "Plan na przyszły dzień jest oddzielny od noszenia.",
+        "Przenoszenie i usuwanie planu nie zmienia CPW; dopiero jawne potwierdzenie tworzy wear_event.."
+      ],
+      "depends_on": [
+        "T026",
+        "T038"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E07",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T042",
+      "epic_id": "E07",
+      "title": "Dodaj pogodę i miasto",
+      "description": "Ręczny wybór miasta lub opcjonalna lokalizacja tylko podczas użycia. Prognoza ma czas aktualizacji, strefę miasta i fallback ręczny; brak zgody nie blokuje propozycji.",
+      "acceptance_criteria": [
+        "Ręczny wybór miasta lub opcjonalna lokalizacja tylko podczas użycia.",
+        "Prognoza ma czas aktualizacji, strefę miasta i fallback ręczny; brak zgody nie blokuje propozycji.."
+      ],
+      "depends_on": [
+        "T015",
+        "T030"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E07",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T043",
+      "epic_id": "E07",
+      "title": "Zbuduj pakowanie na wyjazd",
+      "description": "Daty, miejsce, okazje i ograniczenie liczby rzeczy; lista pakowania i zestawy na dni. Każda rzecz jest z własnej szafy, powtórki są celowe, brakujące kategorie jawne; odhaczenie pakowania nie liczy noszenia.",
+      "acceptance_criteria": [
+        "Daty, miejsce, okazje i ograniczenie liczby rzeczy; lista pakowania i zestawy na dni.",
+        "Każda rzecz jest z własnej szafy, powtórki są celowe, brakujące kategorie jawne; odhaczenie pakowania nie liczy noszenia.."
+      ],
+      "depends_on": [
+        "T041",
+        "T042"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E07",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T044",
+      "epic_id": "E07",
+      "title": "Dodaj sprawdzenie rzeczy przed zakupem",
+      "description": "Zdjęcie potencjalnego zakupu tworzy odrębny tymczasowy obiekt; AI pokazuje dopasowania do własnej szafy. Dopiero potwierdzenie zakupu dodaje ubranie; bez prognozowania przyszłego CPW jako faktu.",
+      "acceptance_criteria": [
+        "Zdjęcie potencjalnego zakupu tworzy odrębny tymczasowy obiekt; AI pokazuje dopasowania do własnej szafy.",
+        "Dopiero potwierdzenie zakupu dodaje ubranie; bez prognozowania przyszłego CPW jako faktu.."
+      ],
+      "depends_on": [
+        "T028",
+        "T030"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E07",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T045",
+      "epic_id": "E07",
+      "title": "Dodaj przypomnienia",
+      "description": "Opt-in lokalne powiadomienia o planie i zapisie noszenia; quiet hours, strefy, anulowanie i deep link. Odmowa powiadomień nie ogranicza aplikacji.",
+      "acceptance_criteria": [
+        "Opt-in lokalne powiadomienia o planie i zapisie noszenia; quiet hours, strefy, anulowanie i deep link.",
+        "Odmowa powiadomień nie ogranicza aplikacji.."
+      ],
+      "depends_on": [
+        "T041",
+        "T015"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E07",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T046",
+      "epic_id": "E07",
+      "title": "Zbuduj widget i skrót noszenia",
+      "description": "WidgetKit pokazuje plan/dzisiaj z ochroną prywatności; App Intent otwiera potwierdzenie noszenia. Brak tokenów w współdzielonym magazynie; wylogowanie czyści widget.",
+      "acceptance_criteria": [
+        "WidgetKit pokazuje plan/dzisiaj z ochroną prywatności; App Intent otwiera potwierdzenie noszenia.",
+        "Brak tokenów w współdzielonym magazynie; wylogowanie czyści widget.."
+      ],
+      "depends_on": [
+        "T035",
+        "T041"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E07",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T047",
+      "epic_id": "E07",
+      "title": "Dodaj eksport kolażu zestawu",
+      "description": "Systemowy share sheet eksportuje wyłącznie wybrany kolaż i tekst bez prywatnych cen/identyfikatorów. Brak automatycznej publikacji i publicznego profilu.",
+      "acceptance_criteria": [
+        "Systemowy share sheet eksportuje wyłącznie wybrany kolaż i tekst bez prywatnych cen/identyfikatorów.",
+        "Brak automatycznej publikacji i publicznego profilu.."
+      ],
+      "depends_on": [
+        "T026"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E07",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T048",
+      "epic_id": "E08",
+      "title": "Zdefiniuj ofertę Free i Plus",
+      "description": "Propozycja: Free ręczna szafa/historia/CPW, Plus rozszerzone AI, planer wyjazdu i zakupy. Ceny, trial i limity wymagają decyzji właściciela po pomiarze kosztów; macierz i fallback zapisane przed konfiguracją produktów.",
+      "acceptance_criteria": [
+        "Propozycja: Free ręczna szafa/historia/CPW, Plus rozszerzone AI, planer wyjazdu i zakupy.",
+        "Ceny, trial i limity wymagają decyzji właściciela po pomiarze kosztów; macierz i fallback zapisane przed konfiguracją produktów.."
+      ],
+      "depends_on": [
+        "T001",
+        "T034"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E08",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T049",
+      "epic_id": "E08",
+      "title": "Zaimplementuj zakupy StoreKit",
+      "description": "Produkty miesięczny/roczny z jednej grupy, lokalizowane ceny ze sklepu, pending/cancel/success i brak internetu. Transakcje weryfikowane; żadnych cen wpisanych na sztywno.",
+      "acceptance_criteria": [
+        "Produkty miesięczny/roczny z jednej grupy, lokalizowane ceny ze sklepu, pending/cancel/success i brak internetu.",
+        "Transakcje weryfikowane; żadnych cen wpisanych na sztywno.."
+      ],
+      "depends_on": [
+        "T048",
+        "T013"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E08",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T050",
+      "epic_id": "E08",
+      "title": "Zbuduj serwer uprawnień",
+      "description": "Weryfikacja Apple i powiadomienia serwerowe, deduplikacja, sandbox/prod, odnowienie, wygaśnięcie, grace period, refund i revoke. Zmiana zegara/patch klienta nie odblokowuje AI.",
+      "acceptance_criteria": [
+        "Weryfikacja Apple i powiadomienia serwerowe, deduplikacja, sandbox/prod, odnowienie, wygaśnięcie, grace period, refund i revoke.",
+        "Zmiana zegara/patch klienta nie odblokowuje AI.."
+      ],
+      "depends_on": [
+        "T049",
+        "T009"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E08",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T051",
+      "epic_id": "E08",
+      "title": "Dodaj paywall i zarządzanie zakupami",
+      "description": "Jasne okresy, cena, trial jeśli skonfigurowany, linki polityk, restore i manage subscriptions. Można zamknąć paywall, utrata Plus nie usuwa danych ani nie blokuje eksportu.",
+      "acceptance_criteria": [
+        "Jasne okresy, cena, trial jeśli skonfigurowany, linki polityk, restore i manage subscriptions.",
+        "Można zamknąć paywall, utrata Plus nie usuwa danych ani nie blokuje eksportu.."
+      ],
+      "depends_on": [
+        "T049",
+        "T050"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E08",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T052",
+      "epic_id": "E08",
+      "title": "Przetestuj cały cykl subskrypcji",
+      "description": "StoreKit tests i sandbox na urządzeniu: kupno, restore, drugie urządzenie, refund, revoke, billing retry, reinstall oraz konto usuwane z aktywną subskrypcją. Ostrzeżenie: usunięcie konta samo nie anuluje płatności Apple.",
+      "acceptance_criteria": [
+        "StoreKit tests i sandbox na urządzeniu: kupno, restore, drugie urządzenie, refund, revoke, billing retry, reinstall oraz konto usuwane z aktywną subskrypcją.",
+        "Ostrzeżenie: usunięcie konta samo nie anuluje płatności Apple.."
+      ],
+      "depends_on": [
+        "T051",
+        "T017"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E08",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T053",
+      "epic_id": "E09",
+      "title": "Dodaj monitoring i metryki produktu",
+      "description": "Crash reporting z symbolami, latencje, błędy synchronizacji, skuteczność zadań i koszt AI. Zdarzenia aktywacji bez zdjęć i treści szafy; respektuj wybory analityki.",
+      "acceptance_criteria": [
+        "Crash reporting z symbolami, latencje, błędy synchronizacji, skuteczność zadań i koszt AI.",
+        "Zdarzenia aktywacji bez zdjęć i treści szafy; respektuj wybory analityki.."
+      ],
+      "depends_on": [
+        "T009",
+        "T034"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T054",
+      "epic_id": "E09",
+      "title": "Zbuduj minimalny panel operacyjny",
+      "description": "Role, MFA i audit log; status usług, kolejki, koszty, feature flags i obsługa zgłoszeń. Domyślnie bez dostępu do prywatnych zdjęć i impersonacji; każda zmiana konfiguracji audytowana.",
+      "acceptance_criteria": [
+        "Role, MFA i audit log; status usług, kolejki, koszty, feature flags i obsługa zgłoszeń.",
+        "Domyślnie bez dostępu do prywatnych zdjęć i impersonacji; każda zmiana konfiguracji audytowana.."
+      ],
+      "depends_on": [
+        "T053"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T055",
+      "epic_id": "E09",
+      "title": "Zaimplementuj backup i odtwarzanie",
+      "description": "Backup bazy oraz strategia zdjęć, ćwiczenie restore na odizolowanym środowisku. Proponowane cele RPO 24 h i RTO 8 h zweryfikowane pomiarem; ponownie zastosuj usunięcia po restore.",
+      "acceptance_criteria": [
+        "Backup bazy oraz strategia zdjęć, ćwiczenie restore na odizolowanym środowisku.",
+        "Proponowane cele RPO 24 h i RTO 8 h zweryfikowane pomiarem; ponownie zastosuj usunięcia po restore.."
+      ],
+      "depends_on": [
+        "T008",
+        "T011"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T056",
+      "epic_id": "E09",
+      "title": "Przeprowadź test bezpieczeństwa",
+      "description": "Test IDOR, storage, relacji cross-tenant, uploadów, limitów, tokenów i prompt injection; skan zależności. Krytyczne/wysokie problemy rozwiązane lub release pozostaje zablokowany.",
+      "acceptance_criteria": [
+        "Test IDOR, storage, relacji cross-tenant, uploadów, limitów, tokenów i prompt injection; skan zależności.",
+        "Krytyczne/wysokie problemy rozwiązane lub release pozostaje zablokowany.."
+      ],
+      "depends_on": [
+        "T017",
+        "T024",
+        "T050",
+        "T054"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T057",
+      "epic_id": "E09",
+      "title": "Przeprowadź testy dostępności i języków",
+      "description": "VoiceOver pełnych przepływów, największy wspierany tekst, kontrast, Reduce Motion, PL/EN i dark mode na urządzeniu. Brak zasłoniętych krytycznych akcji.",
+      "acceptance_criteria": [
+        "VoiceOver pełnych przepływów, największy wspierany tekst, kontrast, Reduce Motion, PL/EN i dark mode na urządzeniu.",
+        "Brak zasłoniętych krytycznych akcji.."
+      ],
+      "depends_on": [
+        "T003",
+        "T031",
+        "T039",
+        "T051"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T058",
+      "epic_id": "E09",
+      "title": "Przeprowadź testy offline i konfliktów",
+      "description": "Dwa urządzenia, równoczesna edycja, tombstone kontra stary outbox, utrata sieci w uploadzie i wylogowanie. Brak utraty noszeń, wskrzeszania danych i cudzych cache.",
+      "acceptance_criteria": [
+        "Dwa urządzenia, równoczesna edycja, tombstone kontra stary outbox, utrata sieci w uploadzie i wylogowanie.",
+        "Brak utraty noszeń, wskrzeszania danych i cudzych cache.."
+      ],
+      "depends_on": [
+        "T012",
+        "T035",
+        "T041"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T059",
+      "epic_id": "E09",
+      "title": "Zmierz wydajność i niezawodność",
+      "description": "Test 1000 rzeczy i 5 lat historii. Proponowane bramki: warm launch p95 <=2 s na wskazanym urządzeniu, tekstowe API p95 <=800 ms bez AI/upload, AI p95 <=30 s; opisz warunki i popraw przekroczenia.",
+      "acceptance_criteria": [
+        "Test 1000 rzeczy i 5 lat historii.",
+        "Proponowane bramki: warm launch p95 <=2 s na wskazanym urządzeniu, tekstowe API p95 <=800 ms bez AI/upload, AI p95 <=30 s; opisz warunki i popraw przekroczenia.."
+      ],
+      "depends_on": [
+        "T022",
+        "T030",
+        "T053"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T060",
+      "epic_id": "E09",
+      "title": "Przeprowadź pełne testy regresji",
+      "description": "Prawdziwy backend i AI na staging, kluczowe scenariusze E2E, build release bez debug funkcji. Wszystkie P0/P1 zamknięte, raport wskazuje testy faktycznie wykonane.",
+      "acceptance_criteria": [
+        "Prawdziwy backend i AI na staging, kluczowe scenariusze E2E, build release bez debug funkcji.",
+        "Wszystkie P0/P1 zamknięte, raport wskazuje testy faktycznie wykonane.."
+      ],
+      "depends_on": [
+        "T043",
+        "T044",
+        "T046",
+        "T047",
+        "T052",
+        "T056",
+        "T057",
+        "T058",
+        "T059"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E09",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T061",
+      "epic_id": "E10",
+      "title": "Przygotuj konto wydawcy i podpisywanie",
+      "description": "Właściciel zapewnia Apple Developer/App Store Connect, bundle ID, role, umowy i dane podatkowe gdy potrzebne. Certyfikaty i profile działają w CI, brak ujawnionych kluczy.",
+      "acceptance_criteria": [
+        "Właściciel zapewnia Apple Developer/App Store Connect, bundle ID, role, umowy i dane podatkowe gdy potrzebne.",
+        "Certyfikaty i profile działają w CI, brak ujawnionych kluczy.."
+      ],
+      "depends_on": [
+        "T001"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T062",
+      "epic_id": "E10",
+      "title": "Przeprowadź betę TestFlight",
+      "description": "Zbierz realny feedback przez minimum 7 dni od co najmniej 10 zaproszonych testerów; raportuj faktyczną aktywność. Cel >=99,5% sesji bez crashy przy podanej próbie; mała próba wymaga jawnej oceny, nie fikcyjnego wyniku.",
+      "acceptance_criteria": [
+        "Zbierz realny feedback przez minimum 7 dni od co najmniej 10 zaproszonych testerów; raportuj faktyczną aktywność.",
+        "Cel >=99,5% sesji bez crashy przy podanej próbie; mała próba wymaga jawnej oceny, nie fikcyjnego wyniku.."
+      ],
+      "depends_on": [
+        "T060",
+        "T061",
+        "T004"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T063",
+      "epic_id": "E10",
+      "title": "Przygotuj stronę sklepu i materiały",
+      "description": "Finalna nazwa po weryfikacji dostępności, ikona, PL/EN, screenshots z rzeczywistego buildu, opis, słowa kluczowe, support/privacy URL. Materiały nie obiecują funkcji spoza wydania.",
+      "acceptance_criteria": [
+        "Finalna nazwa po weryfikacji dostępności, ikona, PL/EN, screenshots z rzeczywistego buildu, opis, słowa kluczowe, support/privacy URL.",
+        "Materiały nie obiecują funkcji spoza wydania.."
+      ],
+      "depends_on": [
+        "T003",
+        "T018",
+        "T061"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T064",
+      "epic_id": "E10",
+      "title": "Wypełnij zgodność App Store",
+      "description": "Sprawdź aktualne reguły Apple, privacy labels, SDK manifests/required-reason APIs, age rating, export compliance i dane wydawcy. Formularze odpowiadają realnemu buildowi i wymagają prawdziwych danych właściciela.",
+      "acceptance_criteria": [
+        "Sprawdź aktualne reguły Apple, privacy labels, SDK manifests/required-reason APIs, age rating, export compliance i dane wydawcy.",
+        "Formularze odpowiadają realnemu buildowi i wymagają prawdziwych danych właściciela.."
+      ],
+      "depends_on": [
+        "T015",
+        "T018",
+        "T052",
+        "T056",
+        "T063"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T065",
+      "epic_id": "E10",
+      "title": "Przygotuj release candidate i instrukcję review",
+      "description": "Archive waliduje się, produkcyjny backend działa, konto review/ścieżka dostępu działa bez prywatnych OTP właściciela. Opisz AI, zgody i zakupy; żadnych placeholderów ani niedostępnych funkcji.",
+      "acceptance_criteria": [
+        "Archive waliduje się, produkcyjny backend działa, konto review/ścieżka dostępu działa bez prywatnych OTP właściciela.",
+        "Opisz AI, zgody i zakupy; żadnych placeholderów ani niedostępnych funkcji.."
+      ],
+      "depends_on": [
+        "T062",
+        "T064"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T066",
+      "epic_id": "E10",
+      "title": "Wyślij aplikację do App Review",
+      "description": "Uprawniony wydawca wysyła dokładnie zweryfikowany build i produkty IAP. Zapisz numer buildu oraz faktyczny status review; nie oznaczaj jako opublikowane po samym uploadzie.",
+      "acceptance_criteria": [
+        "Uprawniony wydawca wysyła dokładnie zweryfikowany build i produkty IAP.",
+        "Zapisz numer buildu oraz faktyczny status review; nie oznaczaj jako opublikowane po samym uploadzie.."
+      ],
+      "depends_on": [
+        "T065"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T067",
+      "epic_id": "E10",
+      "title": "Obsłuż uwagi App Review",
+      "description": "Udziel zgodnych z prawdą wyjaśnień, popraw zgłoszone problemy, wykonaj regresję i ponownie wyślij w razie potrzeby. Zamknij po akceptacji lub potwierdzeniu braku uwag.",
+      "acceptance_criteria": [
+        "Udziel zgodnych z prawdą wyjaśnień, popraw zgłoszone problemy, wykonaj regresję i ponownie wyślij w razie potrzeby.",
+        "Zamknij po akceptacji lub potwierdzeniu braku uwag.."
+      ],
+      "depends_on": [
+        "T066"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T068",
+      "epic_id": "E10",
+      "title": "Opublikuj i zweryfikuj produkcję",
+      "description": "Wydawca wykonuje release, sprawdza publiczny listing i wersję z App Store, logowanie, AI, noszenie, CPW i zakup. Zachowaj procedurę zatrzymania rollout i wyłączenia wadliwej funkcji.",
+      "acceptance_criteria": [
+        "Wydawca wykonuje release, sprawdza publiczny listing i wersję z App Store, logowanie, AI, noszenie, CPW i zakup.",
+        "Zachowaj procedurę zatrzymania rollout i wyłączenia wadliwej funkcji.."
+      ],
+      "depends_on": [
+        "T067",
+        "T055"
+      ],
+      "priority": 1,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T069",
+      "epic_id": "E10",
+      "title": "Monitoruj wydanie i przygotuj poprawki",
+      "description": "Przez pierwsze 72 h monitoruj awarie, koszty, zakupy i support; przypisz dyżur. Krytyczne błędy mają hotfix i plan komunikacji; nie zakładaj możliwości natychmiastowego rollback binarnego.",
+      "acceptance_criteria": [
+        "Przez pierwsze 72 h monitoruj awarie, koszty, zakupy i support; przypisz dyżur.",
+        "Krytyczne błędy mają hotfix i plan komunikacji; nie zakładaj możliwości natychmiastowego rollback binarnego.."
+      ],
+      "depends_on": [
+        "T068",
+        "T053"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    },
+    {
+      "external_id": "T070",
+      "epic_id": "E10",
+      "title": "Przekaż dokumentację utrzymania",
+      "description": "Repo, runbook, migracje, backup, alarmy, wydania, rotacja sekretów i obsługa prywatności mają właściciela. Lista otwartych drobnych problemów oraz terminy aktualizacji są jawne.",
+      "acceptance_criteria": [
+        "Repo, runbook, migracje, backup, alarmy, wydania, rotacja sekretów i obsługa prywatności mają właściciela.",
+        "Lista otwartych drobnych problemów oraz terminy aktualizacji są jawne.."
+      ],
+      "depends_on": [
+        "T069"
+      ],
+      "priority": 2,
+      "status": "Backlog",
+      "labels": [
+        "E10",
+        "ios",
+        "release-1.0"
+      ],
+      "milestone": "App Store 1.0",
+      "estimate": null
+    }
+  ]
+}

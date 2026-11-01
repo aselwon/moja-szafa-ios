@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate harness backlog
+        run: node scripts/harness-check.mjs
+      - name: Build and test iOS app when present
+        shell: bash
+        run: |
+          if [[ -d MojaSzafa.xcodeproj ]]; then
+            xcodebuild test \
+              -project MojaSzafa.xcodeproj \
+              -scheme MojaSzafa \
+              -sdk iphonesimulator \
+              -destination 'platform=iOS Simulator,name=iPhone 16'
+          else
+            echo 'Projekt Xcode powstanie w T005; walidacja backlogu jest zielona.'
+          fi
