@@ -31,3 +31,9 @@ node scripts/harness-check.mjs
 
 Po utworzeniu projektu Xcode CI dodatkowo buduje i testuje schemat `MojaSzafa`
 na symulatorze iOS.
+
+Schemat T008, reguły własności i procedurę migracji opisuje
+[kontrakt bazy](docs/architecture/T008-schema.md). Migracje znajdują się w
+`backend/migrations`; `bash scripts/test-database.sh` sprawdza pustą bazę i
+aktualizację v1 na lokalnym PostgreSQL 15+. Harness sprawdza jedynie strukturę
+plików SQL; wykonanie migracji jest osobną bramką CI.
