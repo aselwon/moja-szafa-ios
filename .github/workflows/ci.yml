@@ -35,3 +35,32 @@ jobs:
           else
             echo 'Projekt Xcode powstanie w T005; walidacja backlogu jest zielona.'
           fi
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test backend migrations when present
+        shell: bash
+        run: |
+          if [[ -f backend/tests/run-tests.sh ]]; then
+            bash backend/tests/run-tests.sh
+          else
+            echo 'Testy migracji powstaną w T008 (backend/tests/run-tests.sh).'
+          fi

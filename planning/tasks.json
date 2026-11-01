@@ -166,7 +166,7 @@
     {
       "id": "T008",
       "title": "Zaimplementuj schemat i migracje",
-      "description": "Utwórz tabele opisane w briefie, indeksy, relacje własności, constraints i polityki dostępu. Migracja na pustej bazie i aktualizacja poprzedniej wersji przechodzą testy.",
+      "description": "Utwórz tabele opisane w briefie, indeksy, relacje własności, constraints i polityki dostępu. Migracja na pustej bazie i aktualizacja poprzedniej wersji przechodzą testy. CI ma już job `postgres` (PostgreSQL 15, PGHOST=127.0.0.1, PGUSER=postgres), który uruchamia `bash backend/tests/run-tests.sh`, gdy plik istnieje. NIE zmieniaj plików w .github/workflows (token harnessu nie ma uprawnienia workflow); testy migracji umieść w backend/tests/run-tests.sh.",
       "acceptance": [
         "Utwórz tabele opisane w briefie, indeksy, relacje własności, constraints i polityki dostępu.",
         "Migracja na pustej bazie i aktualizacja poprzedniej wersji przechodzą testy.."
@@ -175,7 +175,7 @@
         "T007"
       ],
       "tier": "planner",
-      "status": "blocked",
+      "status": "todo",
       "epicId": "E02",
       "priority": 1,
       "milestone": "App Store 1.0",
