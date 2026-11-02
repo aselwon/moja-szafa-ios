@@ -19,7 +19,7 @@
         "Zachowaj niezmienione, już zastosowane migracje i dostarcz poprawkę jako migrację forward-only.",
         "Uruchom lokalne kontrole statyczne i pozostaw test PostgreSQL jako wymagany check przed scaleniem."
       ],
-      "status": "review",
+      "status": "done",
       "priority": "high",
       "tier": "worker",
       "acceptance": [
