@@ -17,6 +17,11 @@
       "status": "todo",
       "priority": "high",
       "tier": "worker",
+      "acceptance": [
+        "CI na main jest zielone (wszystkie joby, które padły: postgres; validate).",
+        "`node scripts/harness-check.mjs` przechodzi lokalnie.",
+        "Bez zmian funkcjonalności i bez usuwania testów."
+      ],
       "harnessFixMain": true,
       "dependsOn": []
     },
