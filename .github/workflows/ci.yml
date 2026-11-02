@@ -22,7 +22,7 @@ jobs:
 
   ios:
     needs: validate
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS, ios]
     timeout-minutes: 30
     strategy:
       fail-fast: false
