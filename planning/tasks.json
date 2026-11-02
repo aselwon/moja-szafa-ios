@@ -300,7 +300,7 @@
         "T009"
       ],
       "tier": "planner",
-      "status": "review",
+      "status": "done",
       "epicId": "E02",
       "priority": 1,
       "milestone": "App Store 1.0",
