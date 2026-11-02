@@ -145,3 +145,12 @@ bounded recovery and owner-scoped status discovery. The runner now defaults to
 The SQL test runner includes queue concurrency and restart recovery; the harness
 runs dependency-free worker tests. A real provider adapter and staging deployment
 remain external feature/infrastructure work, not a default mock implementation.
+
+## T011 private images extension
+
+Migration `007_images.sql` adds the private image inventory and server-only lifecycle
+command. The migration runner now defaults to 007 (explicit targets 001–007).
+See [T011 pipeline, HTTP contract and deployment prerequisites](../docs/architecture/T011-private-images.md).
+The harness includes image orchestration/storage tests, PostgreSQL CI includes
+image lifecycle tests and macOS CI runs the real ImageIO codec suite. Staging
+Auth/storage integration and the approved worker host remain unverified.

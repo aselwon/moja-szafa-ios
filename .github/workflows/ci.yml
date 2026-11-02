@@ -33,6 +33,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test private image codec
+        run: bash backend/tests/image-codec.sh
       - name: Show toolchain
         run: xcodebuild -version
       - name: Build and test environment
