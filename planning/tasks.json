@@ -45,18 +45,13 @@
       "title": "Napraw czerwony main (34075ae)",
       "description": "CI na main @ 34075ae jest czerwone: CI: failure. Odtwórz błąd lokalnie (`node scripts/harness-check.mjs` oraz kroki z .github/workflows) i napraw go minimalną zmianą: formatowanie (np. prettier --write na zmienionych plikach), autofix lintu, zepsuty test lub konfiguracja CI. Nie zmieniaj funkcjonalności i nie usuwaj testów.",
       "acceptance": [
-        "Napraw źródłową przyczynę czerwonego CI bez osłabiania walidacji ani usuwania testów.",
-        "Zachowaj niezmienione, już zastosowane migracje i dostarcz poprawkę jako migrację forward-only.",
-        "Uruchom lokalne kontrole statyczne i pozostaw test PostgreSQL jako wymagany check przed scaleniem."
-      ],
-      "status": "done",
-      "priority": "high",
-      "tier": "worker",
-      "acceptance": [
         "CI na main jest zielone (wszystkie joby, które padły: postgres; validate).",
         "`node scripts/harness-check.mjs` przechodzi lokalnie.",
         "Bez zmian funkcjonalności i bez usuwania testów."
       ],
+      "status": "done",
+      "priority": "high",
+      "tier": "worker",
       "harnessFixMain": true,
       "dependsOn": []
     },
@@ -476,7 +471,7 @@
         "T011"
       ],
       "tier": "planner",
-      "status": "review",
+      "status": "done",
       "epicId": "E04",
       "priority": 2,
       "milestone": "App Store 1.0",
@@ -657,7 +652,7 @@
         "T015"
       ],
       "tier": "planner",
-      "status": "review",
+      "status": "done",
       "epicId": "E05",
       "priority": 2,
       "milestone": "App Store 1.0",
