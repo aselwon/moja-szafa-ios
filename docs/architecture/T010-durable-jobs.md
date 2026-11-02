@@ -2,7 +2,7 @@
 
 ## Implemented boundary
 
-Migration `004_jobs.sql`, the dependency-free Node worker and the Swift status
+Migration `006_jobs.sql`, the dependency-free Node worker and the Swift status
 client implement durable scheduling. No worker has been deployed and no AI
 provider is configured. T007 staging access is still required. Actual image
 analysis, provider selection, consent enforcement and budget admission belong

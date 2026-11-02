@@ -66,6 +66,7 @@ for database in "$fresh" "$upgrade"; do
     bash "$root/migrate.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/schema.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/api.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/offline-sync.sql"
     bash "$root/tests/api-concurrency.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/jobs.sql"
     bash "$root/tests/jobs-concurrency.sh" "$database"

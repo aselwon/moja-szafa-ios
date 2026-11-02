@@ -129,7 +129,7 @@ T007 is authorized. The harness check is not a substitute for executing SQL.
 Migration `003_api.sql` adds the versioned garment list/save RPCs and a private
 transactional replay ledger. Migration `005_fix_save_garment.sql` fixes the RPC's
 operation-ID lookup without changing the checksum of an applied migration. The
-migration runner defaults to 005. The table and
+migration runner applies the latest available migration by default. The table and
 API boundaries above describe the T008 baseline; direct client table writes
 remain denied. See [T009 contract and verification](../docs/architecture/T009-api-contract.md)
 and [OpenAPI v1](api/openapi-v1.json) for the implemented surface, configuration,
@@ -138,9 +138,9 @@ populated v002 upgrade and concurrent/post-commit mutation replay as well.
 
 ## T010 durable jobs extension
 
-Migration `004_jobs.sql` adds transactional enqueue, fenced claim/completion,
+Migration `006_jobs.sql` adds transactional enqueue, fenced claim/completion,
 bounded recovery and owner-scoped status discovery. The runner now defaults to
-004 and accepts explicit targets 001–004. See
+006 and accepts explicit targets 001–006. See
 [T010 architecture, worker contract and verification](../docs/architecture/T010-durable-jobs.md).
 The SQL test runner includes queue concurrency and restart recovery; the harness
 runs dependency-free worker tests. A real provider adapter and staging deployment
