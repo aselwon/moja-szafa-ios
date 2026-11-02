@@ -4371,6 +4371,142 @@
           }
         }
       }
+    },
+    "deletion.start": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń konto — potwierdź tożsamość"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account — verify identity"
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
+    },
+    "deletion.confirm": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń konto i dane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account and data"
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
+    },
+    "deletion.explanation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie jest nieodwracalne. Usuniemy ubrania, zdjęcia, historię, plany i preferencje. Wymagane jest połączenie z internetem i kod wysłany na zweryfikowany adres konta, także Apple private relay."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion is irreversible. We will remove garments, photos, history, plans and preferences. An internet connection and a code sent to your verified account address, including Apple private relay, are required."
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
+    },
+    "deletion.subscription": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie konta nie anuluje subskrypcji Apple. Możesz nią zarządzać osobno; nie jest to warunek usunięcia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting your account does not cancel your Apple subscription. You can manage it separately; this is not required for deletion."
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
+    },
+    "deletion.manageSubscription": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zarządzaj subskrypcją Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Apple subscription"
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
+    },
+    "deletion.sent": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz kod potwierdzający usunięcie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the code to confirm deletion."
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
+    },
+    "deletion.accepted": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przyjęto usunięcie konta. Trwa sprzątanie danych i zdjęć."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account deletion accepted. Data and photo cleanup is in progress."
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
+    },
+    "deletion.cleanupError": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wyczyścić danych lokalnych. Ponów usuwanie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local data cleanup failed. Retry deletion."
+          }
+        }
+      },
+      "comment": "Account deletion: confirmation, reauthorization and durable cleanup status."
     }
   },
   "version": "1.0"

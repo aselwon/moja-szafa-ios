@@ -5,6 +5,8 @@ struct AuthenticationView: View {
     @Bindable var model: AuthenticationModel
     @State private var email = ""
     @State private var code = ""
+    @State private var confirmDeletion = false
+    @State private var deletionCode = ""
     @State private var confirmLink = false
     @State private var linkConfirmed = false
 
@@ -37,6 +39,20 @@ struct AuthenticationView: View {
                     Text("auth.signedIn")
                     if linkConfirmed { appleButton }
                     else { Button("auth.link") { confirmLink = true }.disabled(model.busy) }
+                    Section {
+                        Text("deletion.explanation")
+                        Text("deletion.subscription")
+                        Link("deletion.manageSubscription", destination: URL(string: "https://apps.apple.com/account/subscriptions")!)
+                        Button("deletion.start", role: .destructive) { Task { await model.startDeletion() } }
+                            .disabled(model.busy)
+                        if model.deletionChallengeID != nil {
+                            SecureField("auth.code", text: $deletionCode)
+                                .textContentType(.oneTimeCode)
+                                .keyboardType(.numberPad)
+                            Button("deletion.confirm", role: .destructive) { confirmDeletion = true }
+                                .disabled(model.busy || deletionCode.isEmpty)
+                        }
+                    }
                     Button("auth.logout", role: .destructive) {
                         Task { await model.logout(); linkConfirmed = false }
                     }.disabled(model.busy)
@@ -49,6 +65,12 @@ struct AuthenticationView: View {
             }
         }
         .navigationTitle("auth.title")
+        .confirmationDialog("deletion.confirm", isPresented: $confirmDeletion, titleVisibility: .visible) {
+            Button("deletion.confirm", role: .destructive) {
+                Task { await model.deleteAccount(code: deletionCode); deletionCode = "" }
+            }
+            Button("auth.cancel", role: .cancel) {}
+        } message: { Text("deletion.explanation") }
         .confirmationDialog("auth.linkTitle", isPresented: $confirmLink, titleVisibility: .visible) {
             Button("auth.linkConfirm") { linkConfirmed = true }
             Button("auth.cancel", role: .cancel) {}
@@ -99,7 +121,11 @@ struct AuthenticationGateView: View {
         self.dependencies = dependencies
         _model = State(initialValue: AuthenticationModel(
             service: dependencies.authentication,
-            store: KeychainSessionStore(service: Bundle.main.bundleIdentifier ?? "pl.mojaszafa.app")))
+            store: KeychainSessionStore(service: Bundle.main.bundleIdentifier ?? "pl.mojaszafa.app"),
+            clearAccountData: { owner in
+                try await dependencies.offline?.invalidateAccount()
+                try ProfileStore.local.remove(accountID: owner)
+            }))
     }
 
     var body: some View {
@@ -108,6 +134,8 @@ struct AuthenticationGateView: View {
                 WelcomeView { welcomeSeen = true }
             } else if !model.restored {
                 ProgressView().accessibilityLabel(Text("auth.loading"))
+            } else if model.session != nil && model.deletionPending {
+                NavigationStack { AuthenticationView(model: model) }
             } else if let session = model.session {
                 ProfileGateView(dependencies: dependencies.authenticated(using: model), accountID: session.userID)
                     .id(session.userID)

@@ -26,6 +26,8 @@ protocol AuthenticationService: Sendable {
     func apple(identityToken: String, nonce: String, linkingToken: String?) async throws -> AuthSession
     func refresh(_ token: String) async throws -> AuthSession
     func revoke(_ token: String) async throws
+    func deletionChallenge(bearer: String, operationID: UUID) async throws -> UUID
+    func deleteAccount(bearer: String, operationID: UUID, challengeID: UUID, code: String) async throws -> UUID
 }
 
 struct UnconfiguredAuthenticationService: AuthenticationService {
@@ -71,6 +73,18 @@ struct AuthenticationClient: AuthenticationService {
     func revoke(_ token: String) async throws {
         let _: Empty = try await call("logout", body: ["refreshToken": token])
     }
+    func deletionChallenge(bearer: String, operationID: UUID) async throws -> UUID {
+        let result: Challenge = try await call("deletion/challenge", body: ["operationID": operationID.uuidString], bearer: bearer)
+        return result.challengeID
+    }
+    private struct DeletionReceipt: Decodable, Sendable { let jobID: UUID; let status: String }
+    func deleteAccount(bearer: String, operationID: UUID, challengeID: UUID, code: String) async throws -> UUID {
+        let result: DeletionReceipt = try await call("deletion", body: [
+            "operationID": operationID.uuidString, "challengeID": challengeID.uuidString, "code": code
+        ], bearer: bearer)
+        guard result.status == "queued" || result.status == "succeeded" else { throw AuthError.invalidResponse }
+        return result.jobID
+    }
     private func session(_ path: String, body: [String: String], bearer: String? = nil) async throws -> AuthSession {
         let result: AuthSession = try await call(path, body: body, bearer: bearer)
         try result.validate()
@@ -98,4 +112,10 @@ struct AuthenticationClient: AuthenticationService {
         do { return try decoder.decode(T.self, from: data) }
         catch { throw AuthError.invalidResponse }
     }
+}
+
+// Fail closed for unconfigured services and existing auth implementations.
+extension AuthenticationService {
+    func deletionChallenge(bearer: String, operationID: UUID) async throws -> UUID { throw AuthError.notConfigured }
+    func deleteAccount(bearer: String, operationID: UUID, challengeID: UUID, code: String) async throws -> UUID { throw AuthError.notConfigured }
 }

@@ -25,6 +25,11 @@ struct ProfileStore {
         directory.appendingPathComponent(accountID.uuidString).appendingPathExtension("json")
     }
 
+    func remove(accountID: UUID) throws {
+        let file = url(for: accountID)
+        if FileManager.default.fileExists(atPath: file.path) { try FileManager.default.removeItem(at: file) }
+    }
+
     func load(accountID: UUID) throws -> ProfilePreferences {
         let file = url(for: accountID)
         guard FileManager.default.fileExists(atPath: file.path) else { return ProfilePreferences() }

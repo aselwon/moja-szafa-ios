@@ -161,3 +161,7 @@ operations, required model configuration, bounded HTTP, safe failures and usage
 telemetry. It plugs into the T010 worker through an executable and mandatory
 trusted runtime hooks; no provider or mock is enabled by default. See
 [T027 protocol, configuration, integration and verification](../docs/architecture/T027-ai-provider.md).
+
+Account deletion (T017): apply migration 009 with the existing migration runner.
+See [implementation and deployment gates](../docs/privacy/T017-account-deletion.md)
+for the gateway contract, worker adapters, backup retention blocker and verification.

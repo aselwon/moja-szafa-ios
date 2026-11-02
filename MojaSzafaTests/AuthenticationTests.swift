@@ -3,6 +3,85 @@ import XCTest
 
 @MainActor
 final class AuthenticationTests: XCTestCase {
+    func testDeletionRequiresChallengeAndRetriesSameOperation() async throws {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let store = MemorySessionStore(value: makeSession())
+        let owner = store.value!.userID
+        let service = DeletionAuthStub()
+        var cleared: [UUID] = []
+        let model = AuthenticationModel(service: service, store: store, deletionDefaults: defaults,
+                                        clearAccountData: { cleared.append($0) })
+        await model.restore()
+        await model.deleteAccount(code: "123456")
+        let before = await service.operations
+        XCTAssertTrue(before.isEmpty)
+        await model.startDeletion()
+        await model.deleteAccount(code: "123456") // Ambiguous timeout preserves intent.
+        XCTAssertNotNil(model.session)
+        XCTAssertTrue(cleared.isEmpty)
+        await model.deleteAccount(code: "123456")
+        let operations = await service.operations
+        XCTAssertEqual(operations.count, 2)
+        XCTAssertEqual(operations.first, operations.last)
+        XCTAssertEqual(cleared, [owner])
+        XCTAssertNil(model.session)
+        XCTAssertNil(store.value)
+        XCTAssertEqual(model.message, "deletion.accepted")
+    }
+
+    func testDeletionReceiptRetriesLocalCleanupAfterRestartWithoutNetwork() async throws {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let store = MemorySessionStore(value: makeSession())
+        let service = DeletionAuthStub(failFirst: false)
+        let first = AuthenticationModel(service: service, store: store, deletionDefaults: defaults,
+                                       clearAccountData: { _ in throw AuthError.storage })
+        await first.restore()
+        await first.startDeletion()
+        await first.deleteAccount(code: "123456")
+        XCTAssertNotNil(store.value)
+        do { _ = try await first.accessToken(); XCTFail("Accepted deletion must fence API access") } catch {}
+        var cleaned = false
+        let restored = AuthenticationModel(service: service, store: store, deletionDefaults: defaults,
+                                          clearAccountData: { _ in cleaned = true })
+        await restored.restore()
+        XCTAssertTrue(cleaned)
+        XCTAssertNil(store.value)
+        let operations = await service.operations
+        XCTAssertEqual(operations.count, 1)
+    }
+
+    func testPendingDeletionSurvivesRelaunchAndRejectsLate401() async {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let store = MemorySessionStore(value: makeSession())
+        let service = DeletionAuthStub()
+        let model = AuthenticationModel(service: service, store: store, deletionDefaults: defaults)
+        await model.restore()
+        await model.startDeletion()
+        await model.deleteAccount(code: "123456")
+        let restored = AuthenticationModel(service: service, store: store, deletionDefaults: defaults)
+        await restored.restore()
+        XCTAssertTrue(restored.deletionPending)
+        XCTAssertNotNil(restored.session)
+        restored.rejectSession(accessToken: "test-access")
+        XCTAssertNotNil(restored.session)
+        do { _ = try await restored.accessToken(); XCTFail("Pending deletion must fence API access") } catch {}
+    }
+
+    func testDeletionClientUsesAuthenticatedContract() async throws {
+        let job = UUID()
+        let transport = AuthTransport(status: 202, data: Data("{\"jobID\":\"\(job)\",\"status\":\"queued\"}".utf8))
+        let client = try AuthenticationClient(baseURL: URL(string: "https://auth.example.invalid")!, transport: transport)
+        let operation = UUID(), challenge = UUID()
+        let result = try await client.deleteAccount(bearer: "synthetic", operationID: operation, challengeID: challenge, code: "123456")
+        XCTAssertEqual(result, job)
+        let request = await transport.lastRequest
+        XCTAssertEqual(request?.url?.path, "/auth/v1/deletion")
+        XCTAssertEqual(request?.value(forHTTPHeaderField: "Authorization"), "Bearer synthetic")
+        let body = try JSONSerialization.jsonObject(with: XCTUnwrap(request?.httpBody)) as? [String: String]
+        XCTAssertEqual(body?["operationID"], operation.uuidString)
+        XCTAssertEqual(body?["challengeID"], challenge.uuidString)
+    }
+
     func testEmailChallengeAndSessionArePersisted() async {
         let store = MemorySessionStore()
         let service = AuthStub()
@@ -254,5 +333,22 @@ private actor SuspendedRefresh: AuthenticationService {
     func startEmail(_ email: String) async throws -> UUID { throw AuthError.rejected }
     func verifyEmail(challenge: UUID, code: String) async throws -> AuthSession { throw AuthError.rejected }
     func apple(identityToken: String, nonce: String, linkingToken: String?) async throws -> AuthSession { throw AuthError.rejected }
+    func revoke(_ token: String) async throws {}
+}
+
+private actor DeletionAuthStub: AuthenticationService {
+    private(set) var operations: [UUID] = []
+    let failFirst: Bool
+    init(failFirst: Bool = true) { self.failFirst = failFirst }
+    func deletionChallenge(bearer: String, operationID: UUID) async throws -> UUID { UUID() }
+    func deleteAccount(bearer: String, operationID: UUID, challengeID: UUID, code: String) async throws -> UUID {
+        operations.append(operationID)
+        if failFirst && operations.count == 1 { throw URLError(.timedOut) }
+        return UUID()
+    }
+    func startEmail(_ email: String) async throws -> UUID { throw AuthError.rejected }
+    func verifyEmail(challenge: UUID, code: String) async throws -> AuthSession { throw AuthError.rejected }
+    func apple(identityToken: String, nonce: String, linkingToken: String?) async throws -> AuthSession { throw AuthError.rejected }
+    func refresh(_ token: String) async throws -> AuthSession { throw AuthError.rejected }
     func revoke(_ token: String) async throws {}
 }
