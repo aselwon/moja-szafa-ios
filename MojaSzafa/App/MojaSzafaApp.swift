@@ -6,7 +6,7 @@ struct MojaSzafaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppRootView(dependencies: dependencies)
+            AuthenticationGateView(dependencies: dependencies)
                 .tint(Color("accent"))
         }
     }

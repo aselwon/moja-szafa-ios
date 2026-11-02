@@ -12,3 +12,5 @@ CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution
 DEVELOPMENT_TEAM =
 PROVISIONING_PROFILE_SPECIFIER =
 #include? "Signing/Production.local.xcconfig"
+
+CODE_SIGN_ENTITLEMENTS = Configuration/MojaSzafa.entitlements

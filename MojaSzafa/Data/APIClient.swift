@@ -126,8 +126,10 @@ struct APIClient: Sendable {
     private let publicAPIKey: String?
     private let transport: any APITransport
     private let accessToken: @Sendable () async throws -> String
+    private let unauthorized: @Sendable (String) async -> Void
 
     init(baseURL: URL, transport: any APITransport, publicAPIKey: String? = nil,
+         unauthorized: @escaping @Sendable (String) async -> Void = { _ in },
          accessToken: @escaping @Sendable () async throws -> String) throws {
         guard baseURL.scheme == "https", baseURL.host != nil,
               baseURL.user == nil, baseURL.password == nil,
@@ -141,6 +143,7 @@ struct APIClient: Sendable {
         self.baseURL = baseURL
         self.transport = transport
         self.accessToken = accessToken
+        self.unauthorized = unauthorized
     }
 
     func saveGarment(_ operation: APIv1.SaveGarment) async throws -> APIv1.Success<APIv1.GarmentDTO> {
@@ -185,6 +188,7 @@ struct APIClient: Sendable {
         request.httpBody = try encoder.encode(Arguments(request: input))
         let (data, response) = try await transport.send(request)
         try Task.checkCancellation()
+        if response.statusCode == 401 { await unauthorized(token) }
         let decoder = JSONDecoder()
         if let error = try? decoder.decode(ErrorEnvelope.self, from: data) { throw error.error }
         guard (200...299).contains(response.statusCode) else {
