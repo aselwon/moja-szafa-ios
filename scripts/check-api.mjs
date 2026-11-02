@@ -12,6 +12,7 @@ function visit(value) {
 }
 visit(contract);
 const sql = await read('backend/migrations/003_api.sql');
+const fixSql = await read('backend/migrations/005_fix_save_garment.sql');
 const swift = await read('MojaSzafa/Data/APIClient.swift');
 for (const route of Object.values(contract.paths)) {
   const operation = route.post.operationId;
@@ -29,4 +30,7 @@ assert.equal(schemas.SaveGarment.additionalProperties, false);
 assert(sql.includes('PRIMARY KEY (user_id, operation_id)'));
 assert(sql.includes('ON CONFLICT DO NOTHING'));
 assert(sql.includes('previous.request <> request'));
+assert(fixSql.includes('CREATE OR REPLACE FUNCTION app.api_v1_save_garment(request jsonb)'));
+assert(fixSql.includes('v_operation_id uuid'));
+assert(!fixSql.includes('api_v1_save_garment.operation_id'));
 console.log('OK: T009 OpenAPI references, RPC/Swift surface and replay contract (structural; not runtime tests)');

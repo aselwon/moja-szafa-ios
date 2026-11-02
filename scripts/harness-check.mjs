@@ -5,7 +5,7 @@ import "./check-api.mjs";
 import "./check-environments.mjs";
 import "./check-secrets.mjs";
 
-const required = ["id", "title", "description", "dependsOn", "tier", "status"];
+const required = ["id", "title", "description", "acceptance", "dependsOn", "tier", "status"];
 const allowedStatuses = new Set(["todo", "in_progress", "review", "done", "blocked"]);
 const allowedTiers = new Set(["planner", "worker"]);
 
@@ -17,10 +17,7 @@ for (const task of source.tasks) {
   for (const field of required) if (!(field in task)) throw new Error(`${task.id ?? "?"}: brak pola ${field}`);
   if (ids.has(task.id)) throw new Error(`duplikat ID: ${task.id}`);
   ids.add(task.id);
-  // Harness repair tasks are injected into the canonical backlog with a smaller schema.
-  if (!task.harnessFixMain && (!Array.isArray(task.acceptance) || task.acceptance.length === 0)) {
-    throw new Error(`${task.id}: brak kryteriow odbioru`);
-  }
+  if (!Array.isArray(task.acceptance) || task.acceptance.length === 0) throw new Error(`${task.id}: brak kryteriow odbioru`);
   if (!Array.isArray(task.dependsOn)) throw new Error(`${task.id}: dependsOn nie jest lista`);
   if (!allowedStatuses.has(task.status)) throw new Error(`${task.id}: nieznany status ${task.status}`);
   if (!allowedTiers.has(task.tier)) throw new Error(`${task.id}: nieznany tier ${task.tier}`);
