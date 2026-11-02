@@ -38,3 +38,5 @@ await import('../backend/tests/worker.test.mjs');
 await import('../backend/tests/images.test.mjs');
 const { execFileSync } = await import('node:child_process');
 execFileSync('python3', ['-B', 'backend/tests/test_image_decoder.py'], { stdio: 'inherit' });
+
+await import('../backend/tests/ai-provider.test.mjs');
