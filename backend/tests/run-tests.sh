@@ -49,6 +49,7 @@ psql -X -v ON_ERROR_STOP=1 -d "$upgrade" <<'SQL'
 INSERT INTO app.garments(user_id,name,category,price_grosz)
 SELECT user_id,'v002 garment','top',12345 FROM app.profiles WHERE display_name = 'Upgrade fixture';
 SQL
+bash "$root/migrate.sh" "$upgrade" 003
 bash "$root/migrate.sh" "$upgrade"
 psql -X -v ON_ERROR_STOP=1 -d "$upgrade" <<'SQL'
 DO $$ BEGIN
@@ -67,6 +68,8 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/api.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/offline-sync.sql"
     bash "$root/tests/api-concurrency.sh" "$database"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/jobs.sql"
+    bash "$root/tests/jobs-concurrency.sh" "$database"
     # PostgreSQL clients may emit a randomly generated \restrict token.
     pg_dump --schema-only --schema=app --schema=api_private --no-owner --no-privileges "$database" | sed '/^\\restrict /d; /^\\unrestrict /d' > "$artifacts/${database}.sql"
 done

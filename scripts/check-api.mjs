@@ -11,7 +11,11 @@ function visit(value) {
   for (const child of Object.values(value)) visit(child);
 }
 visit(contract);
-const sql = await read('backend/migrations/003_api.sql') + await read('backend/migrations/004_offline_sync.sql');
+const sql = (
+  await Promise.all(
+    ['003_api.sql', '004_offline_sync.sql', '006_jobs.sql'].map(name => read(`backend/migrations/${name}`)),
+  )
+).join('\n');
 const swift = await read('MojaSzafa/Data/APIClient.swift') + await read('MojaSzafa/Data/OfflineStore.swift');
 const fixSql = await read('backend/migrations/005_fix_save_garment.sql');
 for (const route of Object.values(contract.paths)) {

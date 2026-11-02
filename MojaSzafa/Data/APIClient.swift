@@ -87,6 +87,30 @@ enum APIv1 {
         let nextCursor: UUID?
         enum CodingKeys: String, CodingKey { case items; case nextCursor = "next_cursor" }
     }
+    enum JobStatus: String, Decodable, Sendable {
+        case queued, running, succeeded, failed, cancelled
+        case deadLetter = "dead_letter"
+    }
+    enum JobKind: String, Decodable, Sendable {
+        case imageAnalysis = "image_analysis", outfitGeneration = "outfit_generation"
+        case replacement, trip, purchaseFit = "purchase_fit"
+    }
+    struct JobDTO: Decodable, Sendable {
+        let id: UUID
+        let kind: JobKind
+        let status: JobStatus
+        let attempts: Int
+        let errorCode: String?
+        enum CodingKeys: String, CodingKey {
+            case id, kind, status, attempts
+            case errorCode = "error_code"
+        }
+    }
+    struct JobPage: Decodable, Sendable {
+        let items: [JobDTO]
+        let nextCursor: UUID?
+        enum CodingKeys: String, CodingKey { case items; case nextCursor = "next_cursor" }
+    }
     struct Failure: Decodable, Error, Sendable, Equatable {
         let code: String
         let message: String
@@ -163,6 +187,20 @@ struct APIClient: Sendable {
               page.nextCursor == nil || (page.items.count == limit && page.nextCursor == page.items.last?.id),
               page.nextCursor == nil || page.nextCursor != cursor else { throw APIClientError.invalidResponse }
         for item in page.items { try item.validate() }
+        return result
+    }
+
+    /// Start with a nil cursor on every relaunch/refresh; status lives on the
+    /// server and does not depend on retaining a job ID in process memory.
+    func jobs(limit: Int = 50, cursor: UUID? = nil) async throws -> APIv1.Success<APIv1.JobPage> {
+        guard (1...100).contains(limit) else { throw APIClientError.invalidRequest }
+        let result: APIv1.Success<APIv1.JobPage> = try await call(
+            "api_v1_list_jobs", APIv1.PageRequest(limit: limit, cursor: cursor))
+        let page = result.data
+        guard page.items.count <= limit, Set(page.items.map(\.id)).count == page.items.count,
+              page.items.allSatisfy({ $0.attempts >= 0 }),
+              page.nextCursor == nil || (page.items.count == limit && page.nextCursor == page.items.last?.id),
+              page.nextCursor == nil || page.nextCursor != cursor else { throw APIClientError.invalidResponse }
         return result
     }
 
