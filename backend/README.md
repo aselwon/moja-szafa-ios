@@ -145,3 +145,11 @@ bounded recovery and owner-scoped status discovery. The runner now defaults to
 The SQL test runner includes queue concurrency and restart recovery; the harness
 runs dependency-free worker tests. A real provider adapter and staging deployment
 remain external feature/infrastructure work, not a default mock implementation.
+
+## T011 private images extension
+
+Migration `008_images.sql` adds a private durable upload/cleanup ledger and fenced
+publication of normalized images. The migration runner now defaults to 008.
+See [T011 pipeline, HTTP contract and verification](../docs/architecture/T011-private-images.md)
+for decoder prerequisites, authenticated signed URLs, persistent storage and the
+cleanup worker integration. No storage service has been provisioned or deployed.

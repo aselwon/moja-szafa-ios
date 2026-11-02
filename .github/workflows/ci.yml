@@ -17,6 +17,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Provision image decoder for tests
+        run: python3 -m pip install -r backend/images/requirements.txt
       - name: Validate repository, environment guards and secrets
         run: node scripts/harness-check.mjs
 
