@@ -11,6 +11,21 @@
   },
   "tasks": [
     {
+      "id": "FIXMAIN-4a569ce",
+      "title": "Napraw czerwony main (4a569ce)",
+      "description": "CI na main @ 4a569ce jest czerwone: CI: failure. Odtwórz błąd lokalnie (`node scripts/harness-check.mjs` oraz kroki z .github/workflows) i napraw go minimalną zmianą: formatowanie (np. prettier --write na zmienionych plikach), autofix lintu, zepsuty test lub konfiguracja CI. Nie zmieniaj funkcjonalności i nie usuwaj testów.",
+      "acceptance": [
+        "CI na main jest zielone (wszystkie joby, które padły: CI: failure).",
+        "`node scripts/harness-check.mjs` przechodzi lokalnie.",
+        "Bez zmian funkcjonalności i bez usuwania testów."
+      ],
+      "status": "todo",
+      "priority": "high",
+      "tier": "worker",
+      "harnessFixMain": true,
+      "dependsOn": []
+    },
+    {
       "id": "FIXMAIN-3eec6a3",
       "title": "Napraw czerwony main (3eec6a3)",
       "description": "CI na main @ 3eec6a3 jest czerwone: CI: failure. Odtwórz błąd lokalnie (`node scripts/harness-check.mjs` oraz kroki z .github/workflows) i napraw go minimalną zmianą: formatowanie (np. prettier --write na zmienionych plikach), autofix lintu, zepsuty test lub konfiguracja CI. Nie zmieniaj funkcjonalności i nie usuwaj testów.",
