@@ -84,11 +84,13 @@ struct ProfileEditorView: View {
 
 struct ProfileGateView: View {
     let dependencies: AppDependencies
+    private let accountID: UUID
     @State private var model: ProfileModel
     @State private var showProfile = false
 
     init(dependencies: AppDependencies, accountID: UUID) {
         self.dependencies = dependencies
+        self.accountID = accountID
         _model = State(initialValue: ProfileModel(accountID: accountID))
     }
 
@@ -104,7 +106,7 @@ struct ProfileGateView: View {
             } else if !model.saved.onboardingCompleted {
                 NavigationStack { ProfileEditorView(model: model, onboarding: true) }
             } else {
-                AppRootView(dependencies: dependencies)
+                AppRootView(dependencies: dependencies, accountID: accountID)
                     .safeAreaInset(edge: .top) {
                         Button("profile.title") { showProfile = true }.padding(8)
                     }
