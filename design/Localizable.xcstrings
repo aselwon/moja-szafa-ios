@@ -470,22 +470,22 @@
       }
     },
     "onboarding.title": {
-      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Twoja szafa, gotowe zestawy"
+            "value": "Po Twojemu"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your wardrobe, outfits ready to wear"
+            "value": "Make it yours"
           }
         }
-      }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
     },
     "onboarding.example": {
       "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
@@ -542,22 +542,22 @@
       }
     },
     "onboarding.skip": {
-      "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pomiń wprowadzenie"
+            "value": "Pomiń"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skip introduction"
+            "value": "Skip"
           }
         }
-      }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
     },
     "onboarding.preferences": {
       "comment": "T003: onboarding; tekst interfejsu, nie dane użytkownika.",
@@ -3271,6 +3271,582 @@
         }
       },
       "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "welcome.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoja szafa, nowe możliwości"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe, new possibilities"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poznaj swoją szafę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get to know your wardrobe"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.wardrobe": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zbierz swoje ubrania w jednym miejscu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep your clothes in one place."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.outfits": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Łącz własne rzeczy w zestawy i planuj dni."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combine your own clothes into outfits and plan your days."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisuj noszenie i poznaj koszt jednego użycia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log what you wear and discover cost per wear."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.exampleTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przykład — nie Twoje dane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Example — not your data"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.example": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sweter za 800 zł noszony przez 100 dni: 8 zł za dzień noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A sweater costing PLN 800 worn on 100 days: PLN 8 per day worn."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.exampleDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisanie zestawu lub planu nie zwiększa liczby noszeń."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving an outfit or a plan does not increase wear counts."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.free": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ręczna szafa, historia i koszt noszenia należą do Free. Wybór preferencji nie wymaga zakupu ani zgody na AI."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual wardrobe, history and cost per wear are part of Free. Choosing preferences requires neither a purchase nor AI consent."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "welcome.continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przejdź do logowania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to sign in"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "onboarding.finish": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz i przejdź dalej"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and continue"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil i preferencje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile and preferences"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.optional": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystkie wybory są opcjonalne. Możesz je zmienić lub usunąć później w profilu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every choice is optional. You can change or clear them later in your profile."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.local": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferencje są zapisane tylko na tym urządzeniu dla tego konta. Nie są jeszcze synchronizowane ani wysyłane do AI."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferences are saved only on this device for this account. They are not yet synced or sent to AI."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.styles": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Styles"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.colors": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulubione kolory"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite colors"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.priorities": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co jest dla Ciebie ważne?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What matters to you?"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spróbuj ponownie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.loadError": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odczytać profilu. Spróbuj ponownie; zapisane dane nie zostały zmienione."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read your profile. Try again; saved data has not been changed."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.saveError": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać preferencji. Twoje wybory pozostają na ekranie. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save preferences. Your choices remain on screen. Try again."
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.styles.casual": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codzienny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Casual"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.styles.classic": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasyczny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classic"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.styles.sporty": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sportowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sporty"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.styles.minimal": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimalistyczny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimal"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.colors.neutral": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutralne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutrals"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.colors.bright": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyraziste"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bright"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.colors.pastel": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pastelowe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pastels"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.colors.dark": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciemne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.priorities.comfort": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wygoda"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comfort"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.priorities.layers": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubieranie warstwowe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layering"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "profile.priorities.repeat": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponowne noszenie ulubionych zestawów"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rewearing favorite outfits"
+          }
+        }
+      },
+      "comment": "T014: onboarding and optional account profile; device-local preferences."
     }
   },
   "version": "1.0"
