@@ -14,7 +14,7 @@
       "id": "FIXMAIN-34075ae",
       "title": "Napraw czerwony main (34075ae)",
       "description": "CI na main @ 34075ae jest czerwone: CI: failure. Odtwórz błąd lokalnie (`node scripts/harness-check.mjs` oraz kroki z .github/workflows) i napraw go minimalną zmianą: formatowanie (np. prettier --write na zmienionych plikach), autofix lintu, zepsuty test lub konfiguracja CI. Nie zmieniaj funkcjonalności i nie usuwaj testów.",
-      "status": "todo",
+      "status": "review",
       "priority": "high",
       "tier": "worker",
       "harnessFixMain": true,
