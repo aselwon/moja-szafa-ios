@@ -686,8 +686,7 @@
       }
     },
     "import.camera": {
-      "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
+      "comment": "T019 photo import: camera",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -4117,6 +4116,261 @@
         }
       },
       "comment": "T015: privacy settings and external AI consent."
+    },
+    "import.title": {
+      "comment": "T019 photo import: title",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj zdjęcia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add photos"
+          }
+        }
+      }
+    },
+    "import.library": {
+      "comment": "T019 photo import: library",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz zdjęcia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose photos"
+          }
+        }
+      }
+    },
+    "import.explanation": {
+      "comment": "T019 photo import: explanation",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPEG lub HEIC, do 10 MB na zdjęcie. Maksymalnie 20 zdjęć na partię. Drafty są zapisane na tym urządzeniu; nie są jeszcze ubraniami w szafie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPEG or HEIC, up to 10 MB per photo. Up to 20 photos per batch. Drafts are saved on this device; they are not wardrobe garments yet."
+          }
+        }
+      }
+    },
+    "import.cameraDenied": {
+      "comment": "T019 photo import: cameraDenied",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak dostępu do aparatu. Możesz wybrać zdjęcia lub zmienić dostęp w Ustawieniach."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera access denied. Choose photos or change access in Settings."
+          }
+        }
+      }
+    },
+    "import.settings": {
+      "comment": "T019 photo import: settings",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz Ustawienia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        }
+      }
+    },
+    "import.cameraUnavailable": {
+      "comment": "T019 photo import: cameraUnavailable",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aparat jest niedostępny. Wybierz zdjęcia z biblioteki."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera unavailable. Choose photos from your library."
+          }
+        }
+      }
+    },
+    "import.storageFailed": {
+      "comment": "T019 photo import: storageFailed",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać lub zapisać draftów na urządzeniu. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read or save drafts on this device. Try again."
+          }
+        }
+      }
+    },
+    "import.preview": {
+      "comment": "T019 photo import: preview",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podgląd zdjęcia ubrania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garment photo preview"
+          }
+        }
+      }
+    },
+    "import.remove": {
+      "comment": "T019 photo import: remove",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń draft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove draft"
+          }
+        }
+      }
+    },
+    "import.ready": {
+      "comment": "T019 photo import: ready",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie gotowe — zapisano draft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo ready — draft saved"
+          }
+        }
+      }
+    },
+    "import.waiting": {
+      "comment": "T019 photo import: waiting",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oczekuje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting"
+          }
+        }
+      }
+    },
+    "import.processing": {
+      "comment": "T019 photo import: processing",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przetwarzanie zdjęcia…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing photo…"
+          }
+        }
+      }
+    },
+    "import.cancelled": {
+      "comment": "T019 photo import: cancelled",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anulowano — wybierz zdjęcie ponownie, aby spróbować jeszcze raz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled — select the photo again to retry"
+          }
+        }
+      }
+    },
+    "import.tooLarge": {
+      "comment": "T019 photo import: tooLarge",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie przekracza limit 10 MB"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo exceeds the 10 MB limit"
+          }
+        }
+      }
+    },
+    "import.failed": {
+      "comment": "T019 photo import: failed",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import nie powiódł się. Sprawdź miejsce na urządzeniu i połączenie z iCloud, a następnie wybierz zdjęcie JPEG lub HEIC ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import failed. Check device storage and iCloud connectivity, then select a JPEG or HEIC photo again."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

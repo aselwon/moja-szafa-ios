@@ -2,15 +2,19 @@ import SwiftUI
 
 struct WardrobeView: View {
     @StateObject private var model: WardrobeModel
+    @StateObject private var imports: PhotoImportModel
     @State private var reloadID = 0
 
-    init(repository: any WardrobeRepository) {
+    init(repository: any WardrobeRepository, accountID: UUID) {
+        _imports = StateObject(wrappedValue: PhotoImportModel(directory: URL.applicationSupportDirectory
+            .appendingPathComponent("PhotoDrafts").appendingPathComponent(accountID.uuidString)))
         _model = StateObject(wrappedValue: WardrobeModel(repository: repository))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                NavigationLink("import.title") { PhotoImportView(model: imports) }
                 switch model.state {
                 case .idle, .loading:
                     ProgressView("common.loading")
