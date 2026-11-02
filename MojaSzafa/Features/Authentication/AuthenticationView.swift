@@ -92,6 +92,7 @@ struct AuthenticationGateView: View {
     let dependencies: AppDependencies
     @State private var model: AuthenticationModel
     @State private var showAccount = false
+    @AppStorage("welcome.seen.v1") private var welcomeSeen = false
     @Environment(\.scenePhase) private var scenePhase
 
     init(dependencies: AppDependencies) {
@@ -103,10 +104,12 @@ struct AuthenticationGateView: View {
 
     var body: some View {
         Group {
-            if !model.restored {
+            if !welcomeSeen {
+                WelcomeView { welcomeSeen = true }
+            } else if !model.restored {
                 ProgressView().accessibilityLabel(Text("auth.loading"))
             } else if let session = model.session {
-                AppRootView(dependencies: dependencies.authenticated(using: model))
+                ProfileGateView(dependencies: dependencies.authenticated(using: model), accountID: session.userID)
                     .id(session.userID)
                     .safeAreaInset(edge: .top) {
                         Button("auth.account") { showAccount = true }
