@@ -578,7 +578,7 @@
       }
     },
     "auth.signIn": {
-      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T013: authentication interface; never display raw provider errors or credentials.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -596,7 +596,6 @@
       }
     },
     "auth.email": {
-      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -611,10 +610,11 @@
             "value": "Email address"
           }
         }
-      }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
     },
     "auth.sendLink": {
-      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T013: authentication interface; never display raw provider errors or credentials.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -632,7 +632,7 @@
       }
     },
     "auth.checkEmail": {
-      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T013: authentication interface; never display raw provider errors or credentials.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -650,7 +650,6 @@
       }
     },
     "auth.expired": {
-      "comment": "T003: auth; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -662,10 +661,11 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your session expired. Sign in again."
+            "value": "Your session expired. Please sign in again."
           }
         }
-      }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
     },
     "import.photos": {
       "comment": "T003: import; tekst interfejsu, nie dane użytkownika.",
@@ -2857,6 +2857,420 @@
           }
         }
       }
+    },
+    "auth.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się, aby korzystać ze swojej szafy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to access your wardrobe."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.send": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij kod"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send code"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.code": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kod z wiadomości email"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email verification code"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.verify": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się kodem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with code"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmień email lub wyślij ponownie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change email or resend"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.signedIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zalogowano"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.link": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połącz z Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link Apple identity"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.logout": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyloguj się"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logowanie w toku"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication in progress"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.linkTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączyć tożsamość Apple?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link your Apple identity?"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.linkConfirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdzam, kontynuuj z Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and continue with Apple"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.linkExplanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdzisz tożsamość w Apple. Łączenie wymaga aktywnej sesji i nie przenosi danych z innego konta. Sam zgodny adres email nie łączy kont."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You will verify your identity with Apple. Linking requires an active session and does not transfer another account’s data. Matching email addresses do not link accounts."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anuluj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.apple": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się przez Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamknij"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.sent": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeśli można użyć tego adresu, otrzymasz kod. Wróć tutaj i wpisz go."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If this address can be used, you will receive a code. Return here to enter it."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.error": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zalogować. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in failed. Please try again."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.unconfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logowanie nie jest jeszcze skonfigurowane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication has not been configured yet."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Połącz się z internetem i spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are offline. Connect to the internet and try again."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.storage": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zaktualizować bezpiecznego zapisu sesji. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure session storage could not be updated. Please try again."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
+    },
+    "auth.revocationPending": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wylogowano na tym urządzeniu. Nie udało się unieważnić sesji na serwerze."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed out on this device. The server session could not be revoked."
+          }
+        }
+      },
+      "comment": "T013: authentication interface; never display raw provider errors or credentials."
     }
   },
   "version": "1.0"
