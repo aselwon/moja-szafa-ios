@@ -19,7 +19,7 @@
         "`node scripts/harness-check.mjs` przechodzi lokalnie.",
         "Bez zmian funkcjonalności i bez usuwania testów."
       ],
-      "status": "review",
+      "status": "done",
       "priority": "high",
       "tier": "worker",
       "harnessFixMain": true,
