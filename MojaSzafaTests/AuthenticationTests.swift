@@ -3,6 +3,61 @@ import XCTest
 
 @MainActor
 final class AuthenticationTests: XCTestCase {
+    func testDeletionClientSendsPurposeProofAndStableOperation() async throws {
+        let transport = AuthTransport(status: 200, data: Data("{\"jobID\":\"00000000-0000-0000-0000-000000000017\",\"status\":\"queued\"}".utf8))
+        let client = try AuthenticationClient(baseURL: URL(string: "https://example.invalid")!, transport: transport)
+        let operation = UUID()
+        try await client.deleteAccount(bearer: "synthetic", operationID: operation,
+                                       proof: ["method": "email", "code": "123456"])
+        let request = await transport.lastRequest
+        XCTAssertEqual(request?.url?.path, "/auth/v1/deletion")
+        XCTAssertEqual(request?.value(forHTTPHeaderField: "Authorization"), "Bearer synthetic")
+        let body = try XCTUnwrap(request?.httpBody)
+        let json = try JSONDecoder().decode([String: String].self, from: body)
+        XCTAssertEqual(json["operationID"], operation.uuidString)
+        XCTAssertEqual(json["method"], "email")
+    }
+
+    func testDeletionAcceptanceClearsLocalSessionAndRunsCleanup() async {
+        let store = MemorySessionStore(value: makeSession())
+        let service = AuthStub()
+        let model = AuthenticationModel(service: service, store: store)
+        var cleaned = false
+        model.deletionCleanup = { _ in cleaned = true }
+        await model.restore()
+        await model.startDeletionEmail()
+        await model.deleteWithEmail(code: "123456")
+        XCTAssertTrue(cleaned)
+        XCTAssertNil(store.value)
+        XCTAssertNil(model.session)
+        XCTAssertEqual(model.message, "deletion.accepted")
+    }
+
+    func testUnconfiguredDeletionPreservesSession() async {
+        let store = MemorySessionStore(value: makeSession())
+        let model = AuthenticationModel(service: UnconfiguredAuthenticationService(), store: store)
+        await model.restore()
+        await model.startDeletionEmail()
+        XCTAssertNotNil(model.session)
+        XCTAssertNil(model.deletionChallenge)
+        XCTAssertEqual(model.message, "auth.unconfigured")
+    }
+
+    func testAcceptedDeletionRetriesLocalCleanupWithoutServerOrRefresh() async {
+        let current = makeSession()
+        let store = MemorySessionStore(value: current)
+        let model = AuthenticationModel(service: AuthStub(), store: store)
+        model.deletionCleanup = { _ in throw AuthError.storage }
+        await model.restore()
+        await model.startDeletionEmail()
+        await model.deleteWithEmail(code: "123456")
+        XCTAssertEqual(model.message, "auth.storage")
+        let restored = AuthenticationModel(service: UnconfiguredAuthenticationService(), store: store)
+        await restored.restore()
+        XCTAssertNil(restored.session)
+        XCTAssertNil(store.value)
+    }
+
     func testEmailChallengeAndSessionArePersisted() async {
         let store = MemorySessionStore()
         let service = AuthStub()
@@ -188,6 +243,8 @@ private actor AuthStub: AuthenticationService {
         self.result = result
         self.refreshError = refreshError
     }
+    func deletionChallenge(bearer: String) async throws -> UUID { UUID() }
+    func deleteAccount(bearer: String, operationID: UUID, proof: [String: String]) async throws {}
     func startEmail(_ email: String) async throws -> UUID { UUID() }
     func verifyEmail(challenge: UUID, code: String) async throws -> AuthSession { result }
     func apple(identityToken: String, nonce: String, linkingToken: String?) async throws -> AuthSession {

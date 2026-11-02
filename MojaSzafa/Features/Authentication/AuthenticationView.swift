@@ -7,6 +7,8 @@ struct AuthenticationView: View {
     @State private var code = ""
     @State private var confirmLink = false
     @State private var linkConfirmed = false
+    @State private var deleting = false
+    @State private var confirmDeletion = false
 
     var body: some View {
         Form {
@@ -35,7 +37,21 @@ struct AuthenticationView: View {
             } else {
                 Section {
                     Text("auth.signedIn")
-                    if linkConfirmed { appleButton }
+                    Button("deletion.title", role: .destructive) { confirmDeletion = true }.disabled(model.busy)
+                    if deleting {
+                        Text("deletion.reauthenticate")
+                        Link("deletion.subscriptions", destination: URL(string: "https://apps.apple.com/account/subscriptions")!)
+                        Button("deletion.email") { Task { await model.startDeletionEmail() } }.disabled(model.busy)
+                        if model.deletionChallenge != nil {
+                            SecureField("auth.code", text: $code).textContentType(.oneTimeCode)
+                            Button("deletion.confirm", role: .destructive) {
+                                Task { await model.deleteWithEmail(code: code); code = "" }
+                            }.disabled(code.isEmpty || model.busy)
+                        }
+                        appleButton
+                        Button("auth.cancel", role: .cancel) { deleting = false; code = "" }.disabled(model.busy)
+                    }
+                    if linkConfirmed && !deleting { appleButton }
                     else { Button("auth.link") { confirmLink = true }.disabled(model.busy) }
                     Button("auth.logout", role: .destructive) {
                         Task { await model.logout(); linkConfirmed = false }
@@ -49,6 +65,10 @@ struct AuthenticationView: View {
             }
         }
         .navigationTitle("auth.title")
+        .confirmationDialog("deletion.title", isPresented: $confirmDeletion, titleVisibility: .visible) {
+            Button("deletion.confirm", role: .destructive) { deleting = true; linkConfirmed = false }
+            Button("auth.cancel", role: .cancel) {}
+        } message: { Text("deletion.explanation") }
         .confirmationDialog("auth.linkTitle", isPresented: $confirmLink, titleVisibility: .visible) {
             Button("auth.linkConfirm") { linkConfirmed = true }
             Button("auth.cancel", role: .cancel) {}
@@ -60,7 +80,7 @@ struct AuthenticationView: View {
     private var appleButton: some View {
         SignInWithAppleButton(.signIn) { request in
             do {
-                let challenge = try model.prepareApple(linkingConfirmed: linkConfirmed)
+                let challenge = try model.prepareApple(linkingConfirmed: linkConfirmed, deleting: deleting)
                 request.requestedScopes = [.email]
                 request.nonce = challenge.nonceHash
                 request.state = challenge.state
@@ -77,7 +97,8 @@ struct AuthenticationView: View {
                 }
                 // Apple may omit email on subsequent authorizations. Neither it nor
                 // the private relay address is used for local identity matching.
-                Task { await model.finishApple(identityToken: token, state: credential.state) }
+                Task { await model.finishApple(identityToken: token, state: credential.state,
+                    authorizationCode: credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }) }
             case .failure(let error):
                 model.cancelApple(failed: (error as? ASAuthorizationError)?.code != .canceled)
             }
@@ -108,6 +129,11 @@ struct AuthenticationGateView: View {
                 WelcomeView { welcomeSeen = true }
             } else if !model.restored {
                 ProgressView().accessibilityLabel(Text("auth.loading"))
+            } else if model.deletionPendingCleanup {
+                VStack {
+                    Text("deletion.cleanup")
+                    Button("profile.retry") { Task { await model.restoreOrRefresh() } }
+                }
             } else if let session = model.session {
                 ProfileGateView(dependencies: dependencies.authenticated(using: model), accountID: session.userID)
                     .id(session.userID)
@@ -125,7 +151,10 @@ struct AuthenticationGateView: View {
                 NavigationStack { AuthenticationView(model: model) }
             }
         }
-        .task { await model.restore() }
+        .task {
+            model.deletionCleanup = { _ in try await dependencies.offline?.invalidateAccount() }
+            await model.restore()
+        }
         .onChange(of: model.session?.userID) { _, _ in showAccount = false }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await model.restoreOrRefresh() } }

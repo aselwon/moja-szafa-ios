@@ -26,6 +26,16 @@ protocol AuthenticationService: Sendable {
     func apple(identityToken: String, nonce: String, linkingToken: String?) async throws -> AuthSession
     func refresh(_ token: String) async throws -> AuthSession
     func revoke(_ token: String) async throws
+    func deletionChallenge(bearer: String) async throws -> UUID
+    func deleteAccount(bearer: String, operationID: UUID, proof: [String: String]) async throws
+}
+
+// Fail closed for installations without the deletion gateway.
+extension AuthenticationService {
+    func deletionChallenge(bearer: String) async throws -> UUID { throw AuthError.notConfigured }
+    func deleteAccount(bearer: String, operationID: UUID, proof: [String: String]) async throws {
+        throw AuthError.notConfigured
+    }
 }
 
 struct UnconfiguredAuthenticationService: AuthenticationService {
@@ -70,6 +80,18 @@ struct AuthenticationClient: AuthenticationService {
     }
     func revoke(_ token: String) async throws {
         let _: Empty = try await call("logout", body: ["refreshToken": token])
+    }
+    func deletionChallenge(bearer: String) async throws -> UUID {
+        let result: Challenge = try await call("deletion/challenge", body: [:], bearer: bearer)
+        return result.challengeID
+    }
+    func deleteAccount(bearer: String, operationID: UUID, proof: [String: String]) async throws {
+        struct Receipt: Decodable, Sendable { let jobID: UUID; let status: String }
+        // Flattened wire proof is exclusively for the deletion gateway, not login.
+        var body = proof
+        body["operationID"] = operationID.uuidString
+        let result: Receipt = try await call("deletion", body: body, bearer: bearer)
+        guard result.status == "queued" || result.status == "succeeded" else { throw AuthError.invalidResponse }
     }
     private func session(_ path: String, body: [String: String], bearer: String? = nil) async throws -> AuthSession {
         let result: AuthSession = try await call(path, body: body, bearer: bearer)

@@ -153,3 +153,7 @@ publication of normalized images. The migration runner now defaults to 008.
 See [T011 pipeline, HTTP contract and verification](../docs/architecture/T011-private-images.md)
 for decoder prerequisites, authenticated signed URLs, persistent storage and the
 cleanup worker integration. No storage service has been provisioned or deployed.
+
+T017 adds migration 009 and a server-only account-deletion queue. Gateway/provider
+contracts, worker setup, backup-policy blockers and verification steps are in
+[the account deletion runbook](../docs/privacy/T017-account-deletion.md).

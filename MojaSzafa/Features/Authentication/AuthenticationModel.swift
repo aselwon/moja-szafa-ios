@@ -14,6 +14,10 @@ final class AuthenticationModel {
     private let store: any SessionStore
     private var generation = UUID()
     private var refreshTask: Task<AuthSession, Error>?
+    private var deletingWithApple = false
+    private(set) var deletionPendingCleanup = false
+    private(set) var deletionChallenge: UUID?
+    var deletionCleanup: (@MainActor (UUID) async throws -> Void)?
     private var pendingApple: (nonce: String, state: String, linking: Bool)?
 
     init(service: any AuthenticationService, store: any SessionStore) {
@@ -26,13 +30,15 @@ final class AuthenticationModel {
         restored = true
         do {
             session = try store.read()
-            if session != nil { _ = try await accessToken() }
+            if let current = session, UserDefaults.standard.bool(forKey: "accountDeletion.accepted." + current.userID.uuidString) {
+                try await finishLocalDeletion(current.userID)
+            } else if session != nil { _ = try await accessToken() }
         } catch { show(error) }
     }
 
     func rejectSession(accessToken: String) {
         // A delayed 401 from a previous account must not clear a newer session.
-        guard session?.accessToken == accessToken else { return }
+        guard !deletionPendingCleanup, session?.accessToken == accessToken else { return }
         generation = UUID()
         refreshTask?.cancel()
         refreshTask = nil
@@ -43,12 +49,16 @@ final class AuthenticationModel {
 
     func restoreOrRefresh() async {
         if !restored { await restore(); return }
-        guard session != nil else { return }
-        do { _ = try await accessToken() } catch { show(error) }
+        guard let current = session else { return }
+        do {
+            if UserDefaults.standard.bool(forKey: "accountDeletion.accepted." + current.userID.uuidString) {
+                try await finishLocalDeletion(current.userID)
+            } else { _ = try await accessToken() }
+        } catch { show(error) }
     }
 
     func accessToken() async throws -> String {
-        guard let current = session else { throw AuthError.expired }
+        guard !deletionPendingCleanup, let current = session else { throw AuthError.expired }
         if current.expiresAt.timeIntervalSinceNow > 60 { return current.accessToken }
         let operation = generation
         let task: Task<AuthSession, Error>
@@ -106,22 +116,30 @@ final class AuthenticationModel {
 
     /// Linking is armed only by the confirmation dialog; server must independently
     /// require proof of the new identity and a recent authenticated session.
-    func prepareApple(linkingConfirmed: Bool) throws -> (nonceHash: String, state: String) {
-        guard !busy, (session == nil || linkingConfirmed) else { throw AuthError.rejected }
+    func prepareApple(linkingConfirmed: Bool, deleting: Bool = false) throws -> (nonceHash: String, state: String) {
+        guard !busy, (session == nil || linkingConfirmed || deleting) else { throw AuthError.rejected }
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { throw AuthError.rejected }
         let nonce = Data(bytes).base64EncodedString()
         let state = UUID().uuidString
+        deletingWithApple = deleting
         pendingApple = (nonce, state, session != nil)
         busy = true
         return (SHA256.hash(data: Data(nonce.utf8)).map { String(format: "%02x", $0) }.joined(), state)
     }
 
-    func finishApple(identityToken: String, state: String?) async {
+    func finishApple(identityToken: String, state: String?, authorizationCode: String? = nil) async {
         guard let pending = pendingApple else { return }
         pendingApple = nil
         defer { busy = false }
         guard state == pending.state else { message = "auth.error"; return }
+        if deletingWithApple {
+            deletingWithApple = false
+            guard let authorizationCode else { message = "auth.error"; return }
+            await submitDeletion(proof: ["method": "apple", "identityToken": identityToken,
+                                        "nonce": pending.nonce, "authorizationCode": authorizationCode])
+            return
+        }
         let operation = generation
         let previousUser = session?.userID
         do {
@@ -161,6 +179,55 @@ final class AuthenticationModel {
             catch { message = "auth.revocationPending" }
         }
     }
+    func startDeletionEmail() async {
+        guard !busy, session != nil else { return }
+        busy = true
+        defer { busy = false }
+        do { deletionChallenge = try await service.deletionChallenge(bearer: accessToken()) }
+        catch { show(error) }
+    }
+
+    func deleteWithEmail(code: String) async {
+        guard !busy, let deletionChallenge else { return }
+        busy = true
+        defer { busy = false }
+        await submitDeletion(proof: ["method": "email", "challengeID": deletionChallenge.uuidString, "code": code])
+    }
+
+    private func submitDeletion(proof: [String: String]) async {
+        guard let current = session else { return }
+        let operation = generation
+        let key = "accountDeletion.operation." + current.userID.uuidString
+        let operationID = UserDefaults.standard.string(forKey: key).flatMap(UUID.init(uuidString:)) ?? UUID()
+        UserDefaults.standard.set(operationID.uuidString, forKey: key)
+        do {
+            try await service.deleteAccount(bearer: accessToken(), operationID: operationID, proof: proof)
+            guard operation == generation else { return }
+            UserDefaults.standard.set(true, forKey: "accountDeletion.accepted." + current.userID.uuidString)
+            try await finishLocalDeletion(current.userID)
+        } catch { if session?.userID == current.userID { show(error) } }
+    }
+
+    private func finishLocalDeletion(_ owner: UUID) async throws {
+        deletionPendingCleanup = true
+        generation = UUID()
+        refreshTask?.cancel()
+        refreshTask = nil
+        try await deletionCleanup?(owner)
+        try ProfileStore.local.remove(accountID: owner)
+        try store.clear()
+        generation = UUID()
+        refreshTask?.cancel()
+        refreshTask = nil
+        session = nil
+        challenge = nil
+        deletionChallenge = nil
+        deletionPendingCleanup = false
+        message = "deletion.accepted"
+        UserDefaults.standard.removeObject(forKey: "accountDeletion.operation." + owner.uuidString)
+        UserDefaults.standard.removeObject(forKey: "accountDeletion.accepted." + owner.uuidString)
+    }
+
     private func save(_ value: AuthSession) throws {
         try value.validate()
         try store.write(value)

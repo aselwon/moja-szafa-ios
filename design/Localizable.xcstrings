@@ -4117,6 +4117,142 @@
         }
       },
       "comment": "T015: privacy settings and external AI consent."
+    },
+    "deletion.title": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
+          }
+        }
+      },
+      "comment": "T017 account deletion confirmation, reauthentication and queued cleanup status."
+    },
+    "deletion.confirm": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń konto trwale"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently delete account"
+          }
+        }
+      },
+      "comment": "T017 account deletion confirmation, reauthentication and queued cleanup status."
+    },
+    "deletion.explanation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuniemy zdjęcia, szafę, historię, plany i preferencje. Tej operacji nie można cofnąć. Usunięcie konta nie anuluje subskrypcji Apple. Możesz zarządzać nią w ustawieniach App Store. Subskrypcja nie blokuje usunięcia konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We will delete your photos, wardrobe, history, plans and preferences. This cannot be undone. Account deletion does not cancel your Apple subscription. Manage it in App Store settings. A subscription does not prevent account deletion."
+          }
+        }
+      },
+      "comment": "T017 account deletion confirmation, reauthentication and queued cleanup status."
+    },
+    "deletion.reauthenticate": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź tożsamość przez Apple lub kod wysłany na zweryfikowany adres konta. Wymagane połączenie z internetem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm your identity with Apple or a code sent to your verified account email. An internet connection is required."
+          }
+        }
+      },
+      "comment": "T017 account deletion confirmation, reauthentication and queued cleanup status."
+    },
+    "deletion.email": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij kod potwierdzający usunięcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send deletion confirmation code"
+          }
+        }
+      },
+      "comment": "T017 account deletion confirmation, reauthentication and queued cleanup status."
+    },
+    "deletion.accepted": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przyjęto usunięcie konta. Trwa usuwanie zdjęć i unieważnianie dostępu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account deletion accepted. Photo cleanup and access revocation are in progress."
+          }
+        }
+      },
+      "comment": "T017 account deletion confirmation, reauthentication and queued cleanup status."
+    },
+    "deletion.cleanup": {
+      "comment": "T017 account deletion recovery and subscription management.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie przyjęto. Dokończ czyszczenie danych na urządzeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion accepted. Finish clearing data on this device."
+          }
+        }
+      }
+    },
+    "deletion.subscriptions": {
+      "comment": "T017 account deletion recovery and subscription management.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zarządzaj subskrypcjami Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Apple subscriptions"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

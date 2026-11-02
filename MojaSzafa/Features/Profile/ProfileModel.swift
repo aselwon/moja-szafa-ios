@@ -31,6 +31,11 @@ struct ProfileStore {
         return try JSONDecoder().decode(ProfilePreferences.self, from: Data(contentsOf: file))
     }
 
+    func remove(accountID: UUID) throws {
+        let file = url(for: accountID)
+        if FileManager.default.fileExists(atPath: file.path) { try FileManager.default.removeItem(at: file) }
+    }
+
     func save(_ preferences: ProfilePreferences, accountID: UUID) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try JSONEncoder().encode(preferences).write(to: url(for: accountID), options: [.atomic, .completeFileProtection])
