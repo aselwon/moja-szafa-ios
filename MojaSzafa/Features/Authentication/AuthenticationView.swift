@@ -92,6 +92,8 @@ struct AuthenticationGateView: View {
     let dependencies: AppDependencies
     @State private var model: AuthenticationModel
     @State private var showAccount = false
+    @State private var accountDependencies: AppDependencies?
+    @State private var dependencyAccountID: UUID?
     @AppStorage("welcome.seen.v1") private var welcomeSeen = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -108,8 +110,8 @@ struct AuthenticationGateView: View {
                 WelcomeView { welcomeSeen = true }
             } else if !model.restored {
                 ProgressView().accessibilityLabel(Text("auth.loading"))
-            } else if let session = model.session {
-                ProfileGateView(dependencies: dependencies.authenticated(using: model), accountID: session.userID)
+            } else if let session = model.session, dependencyAccountID == session.userID, let accountDependencies {
+                ProfileGateView(dependencies: accountDependencies, accountID: session.userID)
                     .id(session.userID)
                     .safeAreaInset(edge: .top) {
                         Button("auth.account") { showAccount = true }
@@ -121,11 +123,18 @@ struct AuthenticationGateView: View {
                                 .toolbar { Button("auth.close") { showAccount = false } }
                         }
                     }
+            } else if model.session != nil {
+                ProgressView()
             } else {
                 NavigationStack { AuthenticationView(model: model) }
             }
         }
         .task { await model.restore() }
+        .task(id: model.session?.userID) {
+            // Retain exactly one offline store per signed-in account.
+            dependencyAccountID = model.session?.userID
+            accountDependencies = model.session == nil ? nil : dependencies.authenticated(using: model)
+        }
         .onChange(of: model.session?.userID) { _, _ in showAccount = false }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await model.restoreOrRefresh() } }

@@ -46,7 +46,11 @@ struct AppDependencies: Sendable {
                                        unauthorized: { token in await model.rejectSession(accessToken: token) }) {
                 try await model.accessToken()
             }
-            var result = AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
+            guard let accountID = model.session?.userID else { return self }
+            let database = OfflineDatabase(url: URL.applicationSupportDirectory.appendingPathComponent("Wardrobe")
+                .appendingPathComponent(accountID.uuidString).appendingPathExtension("sqlite"))
+            let store = try OfflineStore(accountID: accountID, database: database, remote: client)
+            var result = AppDependencies(wardrobe: store, authentication: authentication)
             result.aiConsent = client
             return result
         } catch { return AppDependencies(wardrobe: UnconfiguredWardrobeRepository(), authentication: authentication) }

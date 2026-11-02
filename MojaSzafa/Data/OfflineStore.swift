@@ -179,6 +179,10 @@ actor OfflineStore: WardrobeRepository {
         return state.garments.filter { !$0.deleted }.map { Garment(id: $0.id, name: $0.fields.name) }
     }
 
+    func saveForm(id: UUID, fields: APIv1.GarmentFields) async throws {
+        try saveGarment(id: id, fields: fields)
+    }
+
     @discardableResult
     func saveGarment(id: UUID = UUID(), fields: APIv1.GarmentFields) throws -> UUID {
         try requireActive()
@@ -286,7 +290,7 @@ actor OfflineStore: WardrobeRepository {
                         var next = state
                         next.garments.removeAll { $0.id == dto.id }
                         next.garments.append(SyncGarment(id: dto.id, version: dto.version, deleted: false,
-                            fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability)))
+                            fields: dto.fields))
                         next.outbox.removeAll { $0.id == id }
                         try commit(next)
                     } else if let operation = pending.wear {

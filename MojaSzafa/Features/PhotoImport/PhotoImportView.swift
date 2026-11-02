@@ -14,6 +14,7 @@ private struct ImportedPhoto: Transferable, Sendable {
 
 struct PhotoImportView: View {
     @ObservedObject var model: PhotoImportModel
+    let repository: any WardrobeRepository
     @State private var selection: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var requestingCamera = false
@@ -50,6 +51,11 @@ struct PhotoImportView: View {
                             .accessibilityLabel(Text("import.preview"))
                     }
                     Text(LocalizedStringKey(draft.status))
+                    if draft.file != nil {
+                        NavigationLink("garment.title") {
+                            GarmentFormView(id: draft.id, repository: repository) { model.markSaved(draft.id) }
+                        }.disabled(model.running || draft.status == "garment.saved")
+                    }
                     Button("import.remove", role: .destructive) { model.remove(draft.id) }
                         .disabled(model.running)
                 }

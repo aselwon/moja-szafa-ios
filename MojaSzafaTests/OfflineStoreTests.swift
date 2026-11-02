@@ -8,6 +8,25 @@ final class OfflineStoreTests: XCTestCase {
     }
     private let fields = APIv1.GarmentFields(name: "Shirt", category: .top, priceGrosz: 80000, availability: .available)
 
+    func testCompleteFormSurvivesRestartAndSynchronization() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let fields = APIv1.GarmentFields(name: "Dress", category: .dress, priceGrosz: 0, availability: .available,
+            colors: ["blue"], pattern: "plain", seasons: ["summer"], formality: 3, brand: "Brand", purchasedOn: "2024-02-29")
+        let id = UUID()
+        try await store.saveForm(id: id, fields: fields)
+        let restored = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let local = await restored.status()
+        XCTAssertEqual(local.garments.first?.fields, fields)
+        XCTAssertEqual(local.outbox.first?.garment?.garment, fields)
+        try await restored.synchronize()
+        let synced = await restored.status()
+        XCTAssertEqual(synced.garments.first?.fields, fields)
+        XCTAssertTrue(synced.outbox.isEmpty)
+    }
+
     func testOfflineCreateEditWearSurviveRestartAndSyncWithoutDuplicateDays() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
@@ -208,7 +227,9 @@ private actor SyncTestRemote: OfflineRemote {
         let old = garments.first { $0.id == operation.garmentID }
         guard old?.version == operation.baseVersion else { throw failure("version_conflict") }
         let dto = APIv1.GarmentDTO(id: operation.garmentID, version: (old?.version ?? 0) + 1, name: operation.garment.name,
-            category: operation.garment.category, priceGrosz: operation.garment.priceGrosz, availability: operation.garment.availability)
+            category: operation.garment.category, priceGrosz: operation.garment.priceGrosz, availability: operation.garment.availability,
+            colors: operation.garment.colors, pattern: operation.garment.pattern, seasons: operation.garment.seasons,
+            formality: operation.garment.formality, brand: operation.garment.brand, purchasedOn: operation.garment.purchasedOn)
         replay[operation.operationID] = dto
         garments.removeAll { $0.id == dto.id }
         garments.append(SyncGarment(id: dto.id, version: dto.version, deleted: false, fields: operation.garment))

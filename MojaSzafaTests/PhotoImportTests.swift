@@ -116,6 +116,22 @@ final class PhotoImportTests: XCTestCase {
         XCTAssertEqual(PhotoImportModel(directory: directory).drafts.count, 1)
     }
 
+    func testSavedFormMarkerSurvivesReopenWithoutDeletingPhoto() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = PhotoImportModel(directory: directory)
+        let photo = try fixture()
+        model.start([{ photo }])
+        await finish(model)
+        let draft = try XCTUnwrap(model.drafts.first)
+        model.markSaved(draft.id)
+        let reopened = PhotoImportModel(directory: directory)
+        XCTAssertEqual(reopened.drafts.first?.status, "garment.saved")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: try XCTUnwrap(draft.file).path))
+        reopened.remove(draft.id)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: directory.path).isEmpty)
+    }
+
     private func finish(_ model: PhotoImportModel) async {
         let deadline = Date().addingTimeInterval(10)
         while model.running && Date() < deadline {

@@ -64,7 +64,7 @@ final class PhotoImportModel: ObservableObject {
                 .filter { $0.pathExtension == "jpg" }
                 .compactMap { url in
                     UUID(uuidString: url.deletingPathExtension().lastPathComponent).map {
-                        Draft(id: $0, status: "import.ready", file: url)
+                        Draft(id: $0, status: FileManager.default.fileExists(atPath: url.appendingPathExtension("saved").path) ? "garment.saved" : "import.ready", file: url)
                     }
                 }
         } catch { message = "import.storageFailed" }
@@ -105,12 +105,24 @@ final class PhotoImportModel: ObservableObject {
         }
     }
 
+    func markSaved(_ id: UUID) {
+        guard let index = drafts.firstIndex(where: { $0.id == id }), let file = drafts[index].file else { return }
+        do {
+            try Data().write(to: file.appendingPathExtension("saved"), options: [.atomic, .completeFileProtection])
+            drafts[index].status = "garment.saved"
+        } catch { message = "import.storageFailed" }
+    }
+
     func cancel() { task?.cancel() }
 
     func remove(_ id: UUID) {
         guard !running, let draft = drafts.first(where: { $0.id == id }) else { return }
         do {
-            if let file = draft.file { try FileManager.default.removeItem(at: file) }
+            if let file = draft.file {
+                let marker = file.appendingPathExtension("saved")
+                if FileManager.default.fileExists(atPath: marker.path) { try FileManager.default.removeItem(at: marker) }
+                try FileManager.default.removeItem(at: file)
+            }
             drafts.removeAll { $0.id == id }
         } catch { message = "import.storageFailed" }
     }

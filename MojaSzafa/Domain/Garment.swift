@@ -7,9 +7,16 @@ struct Garment: Identifiable, Equatable, Sendable {
 }
 
 protocol WardrobeRepository: Sendable {
+    func saveForm(id: UUID, fields: APIv1.GarmentFields) async throws
     func garments() async throws -> [Garment]
 }
 
 enum RepositoryError: Error, Equatable {
     case backendNotConfigured
+}
+
+extension WardrobeRepository {
+    func saveForm(id: UUID, fields: APIv1.GarmentFields) async throws {
+        throw RepositoryError.backendNotConfigured
+    }
 }

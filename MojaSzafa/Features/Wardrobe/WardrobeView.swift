@@ -4,8 +4,10 @@ struct WardrobeView: View {
     @StateObject private var model: WardrobeModel
     @StateObject private var imports: PhotoImportModel
     @State private var reloadID = 0
+    private let repository: any WardrobeRepository
 
     init(repository: any WardrobeRepository, accountID: UUID) {
+        self.repository = repository
         _imports = StateObject(wrappedValue: PhotoImportModel(directory: URL.applicationSupportDirectory
             .appendingPathComponent("PhotoDrafts").appendingPathComponent(accountID.uuidString)))
         _model = StateObject(wrappedValue: WardrobeModel(repository: repository))
@@ -14,7 +16,7 @@ struct WardrobeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                NavigationLink("import.title") { PhotoImportView(model: imports) }
+                NavigationLink("import.title") { PhotoImportView(model: imports, repository: repository) }
                 switch model.state {
                 case .idle, .loading:
                     ProgressView("common.loading")

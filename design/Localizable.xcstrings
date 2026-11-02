@@ -991,22 +991,22 @@
       }
     },
     "garment.pattern": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wzór"
+            "value": "Wzór (opcjonalnie)"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pattern"
+            "value": "Pattern (optional)"
           }
         }
-      }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
     },
     "garment.seasons": {
       "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
@@ -1081,22 +1081,22 @@
       }
     },
     "garment.price": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cena zakupu (PLN)"
+            "value": "Cena w PLN (opcjonalnie)"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Purchase price (PLN)"
+            "value": "Price in PLN (optional)"
           }
         }
-      }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
     },
     "garment.unknownPrice": {
       "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
@@ -4371,6 +4371,816 @@
           }
         }
       }
+    },
+    "garment.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opis ubrania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garment details"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa (wymagana)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name (required)"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.purchase": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakup"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.priceHelp": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puste pole oznacza brak ceny. 0 oznacza zakup bez kosztu. Wpisz maksymalnie dwie cyfry po przecinku."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty means unknown price. 0 means no cost. Enter at most two decimal places."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.hasDate": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znam datę zakupu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I know the purchase date"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.date": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data zakupu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase date"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz ubranie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save garment"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubranie zapisane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garment saved"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.offlineHelp": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapis działa offline. Dane zostaną wysłane przy kolejnej synchronizacji szafy. Zdjęcie pozostaje lokalnym szkicem do przesłania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving works offline. Details will be sent on the next wardrobe sync. The photo remains a local draft pending upload."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.aiReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To sugestie AI. Sprawdź i popraw dowolne pole przed zapisem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are AI suggestions. Review and edit any field before saving."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.error.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz nazwę od 1 do 200 znaków."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a name of 1–200 characters."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.error.price": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz nieujemną cenę z maksymalnie dwiema cyframi po przecinku, bez separatorów tysięcy. Kwota nie może przekroczyć 92233720368547758,07 PLN."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a nonnegative price with at most two decimals and no grouping separators. Maximum: PLN 92233720368547758.07."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.error.date": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz poprawną datę zakupu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a valid purchase date."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.error.metadata": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź kolory (do 20, każdy do 50 znaków), wzór (do 100 znaków), markę (do 200 znaków), sezony i formalność."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check colors (up to 20, each up to 50 characters), pattern (up to 100 characters), brand (up to 200 characters), seasons and formality."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.error.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać. Dane formularza pozostały na ekranie. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save. Your form is still here. Try again."
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.top": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Góra"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.bottom": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dół"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.shoes": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buty"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoes"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.dress": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sukienka"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dress"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.jumpsuit": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kombinezon"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jumpsuit"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.outerwear": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okrycie wierzchnie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outerwear"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.accessory": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodatek"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessory"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.category.other": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.black": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czarny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Black"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.white": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biały"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "White"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.gray": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szary"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gray"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.beige": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beżowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beige"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.brown": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brązowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brown"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.red": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czerwony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Red"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.orange": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomarańczowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orange"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.yellow": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żółty"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yellow"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.green": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zielony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Green"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.blue": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niebieski"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blue"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.purple": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fioletowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purple"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.color.pink": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Różowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pink"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.season.spring": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiosna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spring"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.season.summer": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lato"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summer"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.season.autumn": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jesień"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autumn"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.season.winter": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zima"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Winter"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.formality.0": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie określono"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unspecified"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.formality.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 — swobodna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 — casual"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.formality.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 — codzienna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 — everyday"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.formality.3": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 — smart casual"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 — smart casual"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.formality.4": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4 — formalna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4 — formal"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
+    },
+    "garment.formality.5": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 — wieczorowa"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 — evening"
+          }
+        }
+      },
+      "comment": "T021: garment form label, choice, validation or save state; not user data."
     }
   },
   "version": "1.0"

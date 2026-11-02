@@ -12,15 +12,32 @@ enum APIv1 {
         let category: Category
         let priceGrosz: Int64?
         let availability: Availability
+        var colors: [String]? = nil
+        var pattern: String? = nil
+        var seasons: [String]? = nil
+        var formality: Int? = nil
+        var brand: String? = nil
+        var purchasedOn: String? = nil
 
         enum CodingKeys: String, CodingKey {
             case name, category, availability
+            case colors, pattern, seasons, formality, brand
+            case purchasedOn = "purchased_on"
             case priceGrosz = "price_grosz"
         }
         func validate() throws {
             guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   name.unicodeScalars.count <= 200,
-                  priceGrosz.map({ $0 >= 0 }) ?? true else { throw APIClientError.invalidRequest }
+                  priceGrosz.map({ $0 >= 0 }) ?? true,
+                  (colors ?? []).count <= 20,
+                  (colors ?? []).allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.unicodeScalars.count <= 50 }),
+                  Set(colors ?? []).count == (colors ?? []).count,
+                  Set(seasons ?? []).isSubset(of: ["spring", "summer", "autumn", "winter"]),
+                  Set(seasons ?? []).count == (seasons ?? []).count,
+                  formality.map({ (1...5).contains($0) }) ?? true,
+                  pattern.map({ $0.unicodeScalars.count <= 100 }) ?? true,
+                  brand.map({ $0.unicodeScalars.count <= 200 }) ?? true,
+                  purchasedOn.map({ GarmentFormValues.validDay($0) }) ?? true else { throw APIClientError.invalidRequest }
         }
         func encode(to encoder: any Encoder) throws {
             var c = encoder.container(keyedBy: CodingKeys.self)
@@ -28,6 +45,16 @@ enum APIv1 {
             try c.encode(category, forKey: .category)
             try c.encode(priceGrosz, forKey: .priceGrosz)
             try c.encode(availability, forKey: .availability)
+            // Missing colors identifies legacy outbox payloads: keep their bytes
+            // stable for idempotent replay. New forms send the complete metadata.
+            if let colors {
+                try c.encode(colors, forKey: .colors)
+                try c.encode(pattern, forKey: .pattern)
+                try c.encode(seasons ?? [], forKey: .seasons)
+                try c.encode(formality, forKey: .formality)
+                try c.encode(brand, forKey: .brand)
+                try c.encode(purchasedOn, forKey: .purchasedOn)
+            }
         }
     }
     struct GarmentDTO: Decodable, Sendable, Equatable {
@@ -37,15 +64,27 @@ enum APIv1 {
         let category: Category
         let priceGrosz: Int64?
         let availability: Availability
+        var colors: [String]? = nil
+        var pattern: String? = nil
+        var seasons: [String]? = nil
+        var formality: Int? = nil
+        var brand: String? = nil
+        var purchasedOn: String? = nil
         enum CodingKeys: String, CodingKey {
             case id, version, name, category, availability
+            case colors, pattern, seasons, formality, brand
+            case purchasedOn = "purchased_on"
             case priceGrosz = "price_grosz"
+        }
+        var fields: GarmentFields {
+            GarmentFields(name: name, category: category, priceGrosz: priceGrosz, availability: availability,
+                          colors: colors, pattern: pattern, seasons: seasons, formality: formality,
+                          brand: brand, purchasedOn: purchasedOn)
         }
         func validate() throws {
             guard version > 0 else { throw APIClientError.invalidResponse }
             do {
-                try GarmentFields(name: name, category: category, priceGrosz: priceGrosz,
-                                  availability: availability).validate()
+                try fields.validate()
             } catch { throw APIClientError.invalidResponse }
         }
     }
