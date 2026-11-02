@@ -4371,6 +4371,261 @@
           }
         }
       }
+    },
+    "edit.title": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit photo"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Edit photo"
+    },
+    "edit.originalPreserved": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oryginał importu pozostaje bez zmian. Dopasuj kadr suwakami, a potem wybierz podgląd z tłem lub bez tła."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The imported original stays unchanged. Adjust the crop using the sliders, then preview with or without the background."
+          }
+        }
+      },
+      "comment": "T020 photo editor: The imported original stays unchanged. Adjust the crop using the sliders, then preview with or without the background."
+    },
+    "edit.before": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przed — oryginał i kadr"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before — original and crop"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Before — original and crop"
+    },
+    "edit.after": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Po — podgląd do akceptacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After — preview to accept"
+          }
+        }
+      },
+      "comment": "T020 photo editor: After — preview to accept"
+    },
+    "edit.width": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szerokość kadru"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop width"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Crop width"
+    },
+    "edit.height": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wysokość kadru"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crop height"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Crop height"
+    },
+    "edit.horizontal": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Położenie w poziomie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontal position"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Horizontal position"
+    },
+    "edit.vertical": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Położenie w pionie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical position"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Vertical position"
+    },
+    "edit.reset": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywróć pełny kadr"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset to full photo"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Reset to full photo"
+    },
+    "edit.keepBackground": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podgląd z tłem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview with background"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Preview with background"
+    },
+    "edit.removeBackground": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń tło i pokaż podgląd"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove background and preview"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Remove background and preview"
+    },
+    "edit.processing": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przetwarzanie zdjęcia…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing photo…"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Processing photo…"
+    },
+    "edit.accept": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akceptuj zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept photo"
+          }
+        }
+      },
+      "comment": "T020 photo editor: Accept photo"
+    },
+    "edit.segmentationFailed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się usunąć tła. Możesz zaakceptować kadr z tłem lub spróbować ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background removal failed. You can accept the crop with its background or try again."
+          }
+        }
+      },
+      "comment": "T020 photo editor: Background removal failed. You can accept the crop with its background or try again."
+    },
+    "edit.failed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się przygotować zdjęcia. Spróbuj ponownie lub wróć do importu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not prepare the photo. Try again or return to import."
+          }
+        }
+      },
+      "comment": "T020 photo editor: Could not prepare the photo. Try again or return to import."
     }
   },
   "version": "1.0"
