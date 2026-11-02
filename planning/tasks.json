@@ -19,7 +19,7 @@
         "`node scripts/harness-check.mjs` przechodzi lokalnie.",
         "Bez zmian funkcjonalności i bez usuwania testów."
       ],
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "tier": "worker",
       "harnessFixMain": true,
@@ -300,7 +300,7 @@
         "T009"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "done",
       "epicId": "E02",
       "priority": 1,
       "milestone": "App Store 1.0",

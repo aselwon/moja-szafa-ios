@@ -191,6 +191,130 @@
           }
         }
       }
+    },
+    "/rest/v1/rpc/api_v1_save_wear": {
+      "post": {
+        "operationId": "api_v1_save_wear",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/SaveWear"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application success OR structured domain error; inspect error before data. Replay returns original response including request_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SyncWearSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Gateway or infrastructure HTTP failure; may not contain application JSON. Preserve X-Request-ID if present."
+          }
+        }
+      }
+    },
+    "/rest/v1/rpc/api_v1_sync_snapshot": {
+      "post": {
+        "operationId": "api_v1_sync_snapshot",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/SnapshotRequest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application success OR structured domain error; inspect error before data. Replay returns original response including request_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SyncSnapshotSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Gateway or infrastructure HTTP failure; may not contain application JSON. Preserve X-Request-ID if present."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -558,6 +682,174 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/JobPage"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SyncGarment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "deleted",
+          "fields"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/GarmentFields"
+          }
+        }
+      },
+      "SyncWear": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "deleted",
+          "wornOn",
+          "timezone",
+          "garmentIDs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "wornOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "garmentIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true,
+            "maxItems": 100
+          }
+        }
+      },
+      "SaveWear": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operationID",
+          "wear"
+        ],
+        "properties": {
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wear": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SyncWear"
+              },
+              {
+                "properties": {
+                  "version": {
+                    "const": 0
+                  },
+                  "deleted": {
+                    "const": false
+                  },
+                  "garmentIDs": {
+                    "minItems": 1
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "SyncSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "garments",
+          "wears",
+          "accountID"
+        ],
+        "properties": {
+          "garments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncGarment"
+            }
+          },
+          "wears": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncWear"
+            }
+          },
+          "accountID": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SnapshotRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [],
+        "properties": {}
+      },
+      "SyncWearSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SyncWear"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SyncSnapshotSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SyncSnapshot"
           },
           "request_id": {
             "type": "string",

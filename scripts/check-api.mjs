@@ -11,9 +11,10 @@ function visit(value) {
   for (const child of Object.values(value)) visit(child);
 }
 visit(contract);
-const sql = (await Promise.all(['003_api.sql', '004_jobs.sql'].map(name => read(`backend/migrations/${name}`)))).join('\n');
+const migrations = ['003_api.sql', '004_jobs.sql', '004_offline_sync.sql'];
+const sql = (await Promise.all(migrations.map(name => read(`backend/migrations/${name}`)))).join('\n');
+const swift = await read('MojaSzafa/Data/APIClient.swift') + await read('MojaSzafa/Data/OfflineStore.swift');
 const fixSql = await read('backend/migrations/005_fix_save_garment.sql');
-const swift = await read('MojaSzafa/Data/APIClient.swift');
 for (const route of Object.values(contract.paths)) {
   const operation = route.post.operationId;
   assert(sql.includes(`CREATE FUNCTION app.${operation}(request jsonb)`));
@@ -33,4 +34,4 @@ assert(sql.includes('previous.request <> request'));
 assert(fixSql.includes('CREATE OR REPLACE FUNCTION app.api_v1_save_garment(request jsonb)'));
 assert(fixSql.includes('v_operation_id uuid'));
 assert(!fixSql.includes('api_v1_save_garment.operation_id'));
-console.log('OK: T009 OpenAPI references, RPC/Swift surface and replay contract (structural; not runtime tests)');
+console.log('OK: OpenAPI references, RPC/Swift surface and replay contract (structural; not runtime tests)');
