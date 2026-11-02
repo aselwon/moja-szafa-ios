@@ -11,8 +11,8 @@ function visit(value) {
   for (const child of Object.values(value)) visit(child);
 }
 visit(contract);
-const sql = await read('backend/migrations/003_api.sql');
-const swift = await read('MojaSzafa/Data/APIClient.swift');
+const sql = await read('backend/migrations/003_api.sql') + await read('backend/migrations/004_offline_sync.sql');
+const swift = await read('MojaSzafa/Data/APIClient.swift') + await read('MojaSzafa/Data/OfflineStore.swift');
 for (const route of Object.values(contract.paths)) {
   const operation = route.post.operationId;
   assert(sql.includes(`CREATE FUNCTION app.${operation}(request jsonb)`));
