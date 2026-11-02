@@ -11,6 +11,16 @@
   },
   "tasks": [
     {
+      "id": "FIXMAIN-34075ae",
+      "title": "Napraw czerwony main (34075ae)",
+      "description": "CI na main @ 34075ae jest czerwone: CI: failure. Odtwórz błąd lokalnie (`node scripts/harness-check.mjs` oraz kroki z .github/workflows) i napraw go minimalną zmianą: formatowanie (np. prettier --write na zmienionych plikach), autofix lintu, zepsuty test lub konfiguracja CI. Nie zmieniaj funkcjonalności i nie usuwaj testów.",
+      "status": "todo",
+      "priority": "high",
+      "tier": "worker",
+      "harnessFixMain": true,
+      "dependsOn": []
+    },
+    {
       "id": "T001",
       "title": "Zatwierdź specyfikację produktu 1.0",
       "description": "Spisz kompletną macierz funkcji Free/Plus, kraj startowy Polska, języki PL/EN, walutę PLN oraz decyzje właściciela. Nie wpisuj fikcyjnych cen ani danych prawnych. Lista decyzji ma właściciela i blokowane zadania.",
