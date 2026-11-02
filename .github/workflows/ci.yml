@@ -44,14 +44,30 @@ jobs:
           SIMULATOR_ID="$(xcrun simctl list devices available -j \
             | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).devices;for(const k of Object.keys(r).filter(k=>k.includes("iOS")).sort().reverse()){const d=r[k].find(x=>x.isAvailable!==false&&x.name.startsWith("iPhone"));if(d){console.log(d.udid);return}}process.exit(1)})')"
           echo "Using simulator $SIMULATOR_ID"
-          xcodebuild test \
-            -project MojaSzafa.xcodeproj -scheme MojaSzafa \
-            -configuration "$BUILD_CONFIGURATION" \
-            -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            -resultBundlePath "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult" \
-            CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
+          # A shared self-hosted Mac reuses one simulator across jobs; start each job from a freshly booted,
+          # fully ready device, otherwise SpringBoard rejects the test host launch as "Busy" (preflight checks).
+          xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
+          xcrun simctl boot "$SIMULATOR_ID"
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          run_tests() {
+            xcodebuild test \
+              -project MojaSzafa.xcodeproj -scheme MojaSzafa \
+              -configuration "$BUILD_CONFIGURATION" \
+              -sdk iphonesimulator \
+              -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+              -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+              -resultBundlePath "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult" \
+              CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
+          }
+          if ! run_tests 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"; then
+            grep -q 'Application failed preflight checks\|failed to launch' "$RUNNER_TEMP/xcodebuild.log" || exit 1
+            echo "Simulator launch flake; rebooting simulator and retrying once"
+            rm -rf "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult"
+            xcrun simctl shutdown "$SIMULATOR_ID" || true
+            xcrun simctl boot "$SIMULATOR_ID"
+            xcrun simctl bootstatus "$SIMULATOR_ID" -b
+            run_tests
+          fi
       - name: Build production without testability override
         if: matrix.configuration == 'Release'
         run: |
