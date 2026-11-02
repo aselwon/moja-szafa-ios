@@ -116,6 +116,116 @@ final class PhotoImportTests: XCTestCase {
         XCTAssertEqual(PhotoImportModel(directory: directory).drafts.count, 1)
     }
 
+    func testCropDimensionsAndInvalidBounds() async throws {
+        let original = try await PhotoProcessor().normalize(fixture())
+        let processor = PhotoEditorProcessor()
+        let crop = PhotoCrop(width: 0.5, height: 0.5, horizontal: 1, vertical: 1)
+        let output = try await processor.crop(original, to: crop)
+        let source = try XCTUnwrap(CGImageSourceCreateWithData(output as CFData, nil))
+        let image = try XCTUnwrap(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        XCTAssertEqual(image.width, 800)
+        XCTAssertEqual(image.height, 400)
+        XCTAssertEqual(CGImageSourceGetType(source) as String?, UTType.png.identifier)
+        // The right half of the fixture is blue: verify crop position, not only dimensions.
+        let pixel = UnsafeMutablePointer<UInt8>.allocate(capacity: 4)
+        defer { pixel.deallocate() }
+        let context = try XCTUnwrap(CGContext(data: pixel, width: 1, height: 1,
+            bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        XCTAssertGreaterThan(pixel[2], 200)
+        XCTAssertLessThan(pixel[0], 30)
+        XCTAssertThrowsError(try PhotoCrop(width: 0).rect(width: 100, height: 100))
+        XCTAssertThrowsError(try PhotoCrop(horizontal: .nan).rect(width: 100, height: 100))
+    }
+
+    func testSegmentationFailureKeepsCroppedFallbackAndCropChangeInvalidatesPreview() async throws {
+        let original = try await PhotoProcessor().normalize(fixture())
+        let editor = PhotoEditorModel(original: original, segment: { _ in
+            throw PhotoImportError.invalidImage
+        })
+        editor.crop.width = 0.5
+        await editor.render(removeBackground: true)
+        XCTAssertEqual(editor.message, "edit.segmentationFailed")
+        let expected = try await PhotoEditorProcessor().crop(original, to: editor.crop)
+        XCTAssertEqual(editor.preview, expected)
+        XCTAssertFalse(editor.running)
+        editor.crop.horizontal = 0
+        XCTAssertNil(editor.preview)
+        await editor.render(removeBackground: false)
+        XCTAssertNotNil(editor.preview)
+        XCTAssertNil(editor.message)
+    }
+
+    func testAcceptReopenReplaceAndRemovePreserveOriginal() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = PhotoImportModel(directory: directory)
+        let input = try fixture()
+        model.start([{ input }])
+        await finish(model)
+        let draft = try XCTUnwrap(model.drafts.first)
+        let originalURL = try XCTUnwrap(draft.file)
+        let original = try Data(contentsOf: originalURL)
+        let editor = PhotoEditorModel(original: original, segment: { data in data })
+        await editor.render(removeBackground: true)
+        XCTAssertNil(editor.message)
+        XCTAssertTrue(model.acceptEdit(try XCTUnwrap(editor.preview), for: draft.id))
+        editor.crop.width = 0.5
+        await editor.render(removeBackground: false)
+        let selected = try XCTUnwrap(editor.preview)
+        XCTAssertTrue(model.acceptEdit(selected, for: draft.id))
+        XCTAssertEqual(try Data(contentsOf: originalURL), original)
+        let reopened = PhotoImportModel(directory: directory)
+        let restored = try XCTUnwrap(reopened.drafts.first)
+        XCTAssertEqual(reopened.drafts.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(restored.displayFile)), selected)
+        reopened.remove(draft.id)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: directory.path).isEmpty)
+    }
+
+    func testAcceptedTransparentResultAndFailedReplacement() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = PhotoImportModel(directory: directory)
+        let input = try fixture()
+        model.start([{ input }])
+        await finish(model)
+        let draft = try XCTUnwrap(model.drafts.first)
+        let originalURL = try XCTUnwrap(draft.file)
+        let original = try Data(contentsOf: originalURL)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let transparent = try XCTUnwrap(UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20), format: format)
+            .image { context in
+                UIColor.blue.setFill()
+                context.fill(CGRect(x: 5, y: 5, width: 10, height: 10))
+            }.pngData())
+        let editor = PhotoEditorModel(original: original, segment: { _ in transparent })
+        await editor.render(removeBackground: true)
+        XCTAssertEqual(editor.preview, transparent)
+        XCTAssertTrue(model.acceptEdit(try XCTUnwrap(editor.preview), for: draft.id))
+        let selectedURL = try XCTUnwrap(model.drafts.first?.displayFile)
+        XCTAssertEqual(try Data(contentsOf: selectedURL), transparent)
+        // An obstructed destination simulates a filesystem failure without permission assumptions.
+        try FileManager.default.removeItem(at: selectedURL)
+        try FileManager.default.createDirectory(at: selectedURL, withIntermediateDirectories: false)
+        XCTAssertFalse(model.acceptEdit(transparent, for: draft.id))
+        XCTAssertEqual(model.message, "import.storageFailed")
+        XCTAssertEqual(try Data(contentsOf: originalURL), original)
+    }
+
+    func testCancelledEditorDoesNotPublishResult() async throws {
+        let original = try await PhotoProcessor().normalize(fixture())
+        let editor = PhotoEditorModel(original: original)
+        let task = Task { await editor.render(removeBackground: false) }
+        task.cancel()
+        await task.value
+        XCTAssertNil(editor.preview)
+        XCTAssertFalse(editor.running)
+    }
+
     private func finish(_ model: PhotoImportModel) async {
         let deadline = Date().addingTimeInterval(10)
         while model.running && Date() < deadline {

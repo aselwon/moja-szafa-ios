@@ -1,4 +1,6 @@
 import Combine
+import CoreImage
+import Vision
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
@@ -48,6 +50,8 @@ final class PhotoImportModel: ObservableObject {
         let id: UUID
         var status: String
         var file: URL?
+        var editedFile: URL?
+        var displayFile: URL? { editedFile ?? file }
     }
     @Published private(set) var drafts: [Draft] = []
     @Published private(set) var running = false
@@ -64,7 +68,9 @@ final class PhotoImportModel: ObservableObject {
                 .filter { $0.pathExtension == "jpg" }
                 .compactMap { url in
                     UUID(uuidString: url.deletingPathExtension().lastPathComponent).map {
-                        Draft(id: $0, status: "import.ready", file: url)
+                        Draft(id: $0, status: "import.ready", file: url,
+                              editedFile: FileManager.default.fileExists(atPath: url.deletingPathExtension().appendingPathExtension("png").path)
+                                ? url.deletingPathExtension().appendingPathExtension("png") : nil)
                     }
                 }
         } catch { message = "import.storageFailed" }
@@ -107,11 +113,130 @@ final class PhotoImportModel: ObservableObject {
 
     func cancel() { task?.cancel() }
 
+    /// Atomic replacement leaves the previous selection intact if storage fails.
+    func acceptEdit(_ data: Data, for id: UUID) -> Bool {
+        guard !running, let index = drafts.firstIndex(where: { $0.id == id }),
+              let original = drafts[index].file else { return false }
+        let destination = original.deletingPathExtension().appendingPathExtension("png")
+        do {
+            try data.write(to: destination, options: [.atomic, .completeFileProtection])
+            drafts[index].editedFile = destination
+            return true
+        } catch {
+            message = "import.storageFailed"
+            return false
+        }
+    }
+
     func remove(_ id: UUID) {
         guard !running, let draft = drafts.first(where: { $0.id == id }) else { return }
         do {
+            if let edited = draft.editedFile { try FileManager.default.removeItem(at: edited) }
             if let file = draft.file { try FileManager.default.removeItem(at: file) }
             drafts.removeAll { $0.id == id }
         } catch { message = "import.storageFailed" }
+    }
+}
+
+/// Fractions of the upright, metadata-free original; position spans the remaining space.
+struct PhotoCrop: Equatable, Sendable {
+    var width: Double = 1
+    var height: Double = 1
+    var horizontal: Double = 0.5
+    var vertical: Double = 0.5
+
+    func rect(width pixelsWide: Int, height pixelsHigh: Int) throws -> CGRect {
+        guard [width, height, horizontal, vertical].allSatisfy({ $0.isFinite }),
+              (0.1...1).contains(width), (0.1...1).contains(height),
+              (0...1).contains(horizontal), (0...1).contains(vertical) else {
+            throw PhotoImportError.invalidImage
+        }
+        return CGRect(x: horizontal * (1 - width) * Double(pixelsWide),
+                      y: vertical * (1 - height) * Double(pixelsHigh),
+                      width: width * Double(pixelsWide), height: height * Double(pixelsHigh)).integral
+            .intersection(CGRect(x: 0, y: 0, width: pixelsWide, height: pixelsHigh))
+    }
+}
+
+actor PhotoEditorProcessor {
+    func crop(_ data: Data, to crop: PhotoCrop) throws -> Data {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil),
+              let cropped = image.cropping(to: try crop.rect(width: image.width, height: image.height)) else {
+            throw PhotoImportError.invalidImage
+        }
+        return try Self.png(cropped)
+    }
+
+    func removeBackground(_ data: Data) throws -> Data {
+        let handler = VNImageRequestHandler(data: data)
+        let request = VNGenerateForegroundInstanceMaskRequest()
+        try handler.perform([request])
+        guard let result = request.results?.first, !result.allInstances.isEmpty else {
+            throw PhotoImportError.invalidImage
+        }
+        let buffer = try result.generateMaskedImage(ofInstances: result.allInstances,
+                                                   from: handler, croppedToInstancesExtent: false)
+        let image = CIImage(cvPixelBuffer: buffer)
+        guard let output = CIContext().createCGImage(image, from: image.extent) else {
+            throw PhotoImportError.invalidImage
+        }
+        return try Self.png(output)
+    }
+
+    private static func png(_ image: CGImage) throws -> Data {
+        let data = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else {
+            throw PhotoImportError.invalidImage
+        }
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination) else { throw PhotoImportError.invalidImage }
+        return data as Data
+    }
+}
+
+@MainActor
+final class PhotoEditorModel: ObservableObject {
+    @Published var crop = PhotoCrop() { didSet { preview = nil; message = nil } }
+    @Published private(set) var preview: Data?
+    @Published private(set) var running = false
+    @Published private(set) var message: String?
+    private let original: Data
+    private let processor = PhotoEditorProcessor()
+    private let segment: @Sendable (Data) async throws -> Data
+
+    init(original: Data, segment: @escaping @Sendable (Data) async throws -> Data = {
+        try await PhotoEditorProcessor().removeBackground($0)
+    }) {
+        self.original = original
+        self.segment = segment
+    }
+
+    func render(removeBackground: Bool) async {
+        guard !running else { return }
+        running = true
+        message = nil
+        let requestedCrop = crop
+        defer { running = false }
+        do {
+            let cropped = try await processor.crop(original, to: requestedCrop)
+            try Task.checkCancellation()
+            guard crop == requestedCrop else { return }
+            preview = cropped
+            if removeBackground {
+                do {
+                    let cleaned = try await segment(cropped)
+                    try Task.checkCancellation()
+                    guard crop == requestedCrop else { return }
+                    preview = cleaned
+                } catch {
+                    guard !Task.isCancelled, crop == requestedCrop else { preview = nil; return }
+                    message = "edit.segmentationFailed"
+                }
+            }
+        } catch {
+            preview = nil
+            if !Task.isCancelled { message = "edit.failed" }
+        }
     }
 }
