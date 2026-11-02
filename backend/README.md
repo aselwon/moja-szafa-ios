@@ -153,3 +153,12 @@ publication of normalized images. The migration runner now defaults to 008.
 See [T011 pipeline, HTTP contract and verification](../docs/architecture/T011-private-images.md)
 for decoder prerequisites, authenticated signed URLs, persistent storage and the
 cleanup worker integration. No storage service has been provisioned or deployed.
+
+## T055 backup and restore
+
+See the [backup/recovery runbook](../docs/operations/T055-backup-restore.md) for
+coordinated database/image recovery, the independent deletion-journal requirement,
+retention proposals and the isolated exercise/evidence procedure. CI runs
+`backend/recovery/drill.mjs --synthetic-local-only` on its dedicated PostgreSQL
+cluster. Synthetic timings do not establish production RPO/RTO; operational backup
+configuration, journal integration and the representative exercise remain unverified.

@@ -111,6 +111,9 @@ jobs:
       PGUSER: postgres
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Test backend migrations when present
         shell: bash
         run: |
@@ -119,3 +122,5 @@ jobs:
           else
             echo 'Testy migracji powstaną w T008 (backend/tests/run-tests.sh).'
           fi
+      - name: Restore synthetic database and images, then replay deletions
+        run: node backend/recovery/drill.mjs --synthetic-local-only
