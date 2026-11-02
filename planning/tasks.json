@@ -122,7 +122,7 @@
     {
       "id": "T006",
       "title": "Przygotuj środowiska i CI",
-      "description": "Oddziel dev/staging/prod, konfigurację i podpisywanie. CI na macOS uruchamia build i testy; skan sekretów przechodzi; release nie łączy się ze stagingiem.",
+      "description": "Oddziel dev/staging/prod, konfigurację i podpisywanie. CI na macOS uruchamia build i testy; skan sekretów przechodzi; release nie łączy się ze stagingiem. Workflow CI (.github/workflows/ci.yml) wdrożony ręcznie razem z pracą harnessu (bez przypinania Xcode, dynamiczny symulator); NIE zmieniaj .github/workflows.",
       "acceptance": [
         "Oddziel dev/staging/prod, konfigurację i podpisywanie.",
         "CI na macOS uruchamia build i testy; skan sekretów przechodzi; release nie łączy się ze stagingiem.."
@@ -131,7 +131,7 @@
         "T005"
       ],
       "tier": "planner",
-      "status": "blocked",
+      "status": "done",
       "epicId": "E02",
       "priority": 2,
       "milestone": "App Store 1.0",

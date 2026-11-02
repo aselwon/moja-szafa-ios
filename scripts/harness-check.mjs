@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import "./check-design.mjs";
 import "./check-ios.mjs";
 import "./check-api.mjs";
+import "./check-environments.mjs";
+import "./check-secrets.mjs";
 
 const required = ["id", "title", "description", "acceptance", "dependsOn", "tier", "status"];
 const allowedStatuses = new Set(["todo", "in_progress", "review", "done", "blocked"]);

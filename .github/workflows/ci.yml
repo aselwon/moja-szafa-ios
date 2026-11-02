@@ -10,31 +10,65 @@ permissions:
 
 jobs:
   validate:
-    runs-on: macos-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate harness backlog
+      - name: Validate repository, environment guards and secrets
         run: node scripts/harness-check.mjs
-      - name: Build and test iOS app when present
-        shell: bash
+
+  ios:
+    needs: validate
+    runs-on: macos-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Staging, Release]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Show toolchain
+        run: xcodebuild -version
+      - name: Build and test environment
+        env:
+          BUILD_CONFIGURATION: ${{ matrix.configuration }}
         run: |
-          if [[ -d MojaSzafa.xcodeproj ]]; then
-            # Runner images rotate simulators (e.g. iPhone 16 -> 17), so pick the first available iPhone.
-            SIMULATOR_ID="$(xcrun simctl list devices available -j \
-              | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).devices;for(const k of Object.keys(r).filter(k=>k.includes("iOS")).sort().reverse()){const d=r[k].find(x=>x.isAvailable!==false&&x.name.startsWith("iPhone"));if(d){console.log(d.udid);return}}process.exit(1)})')"
-            echo "Using simulator $SIMULATOR_ID"
-            xcodebuild test \
-              -project MojaSzafa.xcodeproj \
-              -scheme MojaSzafa \
-              -sdk iphonesimulator \
-              -destination "platform=iOS Simulator,id=$SIMULATOR_ID"
-          else
-            echo 'Projekt Xcode powstanie w T005; walidacja backlogu jest zielona.'
-          fi
+          set -euo pipefail
+          # Runner images rotate Xcode and simulators, so use the default Xcode and the first available iPhone.
+          SIMULATOR_ID="$(xcrun simctl list devices available -j \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).devices;for(const k of Object.keys(r).filter(k=>k.includes("iOS")).sort().reverse()){const d=r[k].find(x=>x.isAvailable!==false&&x.name.startsWith("iPhone"));if(d){console.log(d.udid);return}}process.exit(1)})')"
+          echo "Using simulator $SIMULATOR_ID"
+          xcodebuild test \
+            -project MojaSzafa.xcodeproj -scheme MojaSzafa \
+            -configuration "$BUILD_CONFIGURATION" \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult" \
+            CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
+      - name: Build production without testability override
+        if: matrix.configuration == 'Release'
+        run: |
+          set -euo pipefail
+          xcodebuild build \
+            -project MojaSzafa.xcodeproj -scheme MojaSzafa -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/ProductionBuild" \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Preserve XCTest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-${{ matrix.configuration }}
+          path: ${{ runner.temp }}/${{ matrix.configuration }}.xcresult
+          if-no-files-found: warn
+          retention-days: 14
 
   postgres:
     runs-on: ubuntu-latest
