@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import "./check-design.mjs";
 import "./check-ios.mjs";
+import "./check-api.mjs";
 import "./check-environments.mjs";
 import "./check-secrets.mjs";
 

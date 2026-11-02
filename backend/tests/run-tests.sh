@@ -44,11 +44,19 @@ psql -X -v ON_ERROR_STOP=1 -d "$rollback" -f "$root/tests/schema.sql"
 bash "$root/migrate.sh" "$fresh"
 bash "$root/migrate.sh" "$upgrade" 001
 psql -X -v ON_ERROR_STOP=1 -d "$upgrade" -f "$root/tests/previous-version.sql"
+bash "$root/migrate.sh" "$upgrade" 002
+psql -X -v ON_ERROR_STOP=1 -d "$upgrade" <<'SQL'
+INSERT INTO app.garments(user_id,name,category,price_grosz)
+SELECT user_id,'v002 garment','top',12345 FROM app.profiles WHERE display_name = 'Upgrade fixture';
+SQL
 bash "$root/migrate.sh" "$upgrade"
 psql -X -v ON_ERROR_STOP=1 -d "$upgrade" <<'SQL'
 DO $$ BEGIN
     IF NOT EXISTS (SELECT FROM app.profiles WHERE display_name = 'Upgrade fixture' AND language = 'en' AND city = 'Warsaw' AND version = 1) THEN
         RAISE EXCEPTION 'Upgrade lost or changed existing data';
+    END IF;
+    IF NOT EXISTS (SELECT FROM app.garments WHERE name = 'v002 garment' AND price_grosz = 12345 AND version = 1) THEN
+        RAISE EXCEPTION 'v003 lost v002 garment';
     END IF;
 END $$;
 SQL
@@ -56,8 +64,10 @@ for database in "$fresh" "$upgrade"; do
     # Replay must skip applied migrations, not recreate tables or change data.
     bash "$root/migrate.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/schema.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/api.sql"
+    bash "$root/tests/api-concurrency.sh" "$database"
     # PostgreSQL clients may emit a randomly generated \restrict token.
-    pg_dump --schema-only --schema=app --no-owner --no-privileges "$database" | sed '/^\\restrict /d; /^\\unrestrict /d' > "$artifacts/${database}.sql"
+    pg_dump --schema-only --schema=app --schema=api_private --no-owner --no-privileges "$database" | sed '/^\\restrict /d; /^\\unrestrict /d' > "$artifacts/${database}.sql"
 done
 diff -u "$artifacts/${fresh}.sql" "$artifacts/${upgrade}.sql"
 # Corrupt only a disposable database's ledger: never modify a migration file.

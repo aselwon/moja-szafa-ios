@@ -2,9 +2,9 @@
 set -euo pipefail
 # Connection/authentication come from libpq configuration; never print credentials.
 root=$(cd "$(dirname "$0")" && pwd)
-database=${1:?Usage: bash backend/migrate.sh DATABASE [001|002]}
-target=${2:-002}
-[[ "$target" == 001 || "$target" == 002 ]] || { echo 'Unknown migration target' >&2; exit 1; }
+database=${1:?Usage: bash backend/migrate.sh DATABASE [001|002|003]}
+target=${2:-003}
+[[ "$target" == 001 || "$target" == 002 || "$target" == 003 ]] || { echo 'Unknown migration target' >&2; exit 1; }
 command -v psql >/dev/null || { echo 'PostgreSQL 15 psql is required' >&2; exit 1; }
 sql=$(mktemp)
 trap 'rm -f "$sql"' EXIT
