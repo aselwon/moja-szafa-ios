@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct WelcomeView: View {
     let continueAction: () -> Void
@@ -112,6 +113,7 @@ struct ProfileGateView: View {
                         NavigationStack {
                             List {
                                 NavigationLink("profile.title") { ProfileEditorView(model: model) }
+                                NavigationLink("export.title") { DataExportView(service: dependencies.dataExport) }
                                 NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
                             }.navigationTitle("profile.title")
                         }
@@ -168,5 +170,71 @@ struct AIPrivacyView: View {
         }
         .navigationTitle("privacy.title")
         .task { await model.load() }
+    }
+}
+
+struct ExportDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.gzip] }
+    var bytes: Data
+    init(bytes: Data) { self.bytes = bytes }
+    init(configuration: ReadConfiguration) throws { bytes = configuration.file.regularFileContents ?? Data() }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper { FileWrapper(regularFileWithContents: bytes) }
+}
+
+struct DataExportView: View {
+    let service: (any DataExportService)?
+    @State private var operationID = UUID()
+    @State private var receipt: DataExportReceipt?
+    @State private var document: ExportDocument?
+    @State private var saving = false
+    @State private var busy = false
+    @State private var message: String?
+    @State private var work: Task<Void, Never>?
+
+    var body: some View {
+        Form {
+            Text("export.description")
+            Text("export.local")
+            if service == nil { Text("export.unconfigured") }
+            if let receipt {
+                LabeledContent("export.expires", value: receipt.expires_at)
+            }
+            Button(receipt == nil ? "export.request" : "export.download") {
+                work = Task { @MainActor in
+                    busy = true
+                    message = nil
+                    defer { busy = false }
+                    do {
+                        guard let service else { return }
+                        if receipt == nil { receipt = try await service.requestExport(id: operationID) }
+                        try Task.checkCancellation()
+                        guard let receipt else { return }
+                        let data = try await service.downloadExport(id: receipt.id)
+                        try Task.checkCancellation()
+                        document = ExportDocument(bytes: data)
+                        saving = true
+                    } catch is CancellationError { }
+                    catch {
+                        message = "export.error"
+                    }
+                }
+            }.disabled(busy || service == nil)
+            if receipt != nil {
+                Button("export.new") { receipt = nil; operationID = UUID(); message = nil }
+                    .disabled(busy)
+            }
+            if busy { ProgressView() }
+            if let message { Text(LocalizedStringKey(message)) }
+        }
+        .navigationTitle("export.title")
+        .fileExporter(isPresented: $saving, document: document, contentType: .gzip,
+                      defaultFilename: "moja-szafa.tar.gz") { result in
+            document = nil
+            switch result {
+            case .success: message = "export.saved"
+            case .failure: message = "export.error"
+            }
+        }
+        .onDisappear { work?.cancel(); work = nil; document = nil; receipt = nil }
     }
 }

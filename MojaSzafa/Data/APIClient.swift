@@ -254,3 +254,45 @@ struct APIWardrobeRepository: WardrobeRepository {
         return result
     }
 }
+
+struct DataExportReceipt: Decodable, Sendable {
+    let id: UUID
+    let expires_at: String
+}
+
+protocol DataExportService: Sendable {
+    func requestExport(id: UUID) async throws -> DataExportReceipt
+    func downloadExport(id: UUID) async throws -> Data
+}
+
+extension APIClient: DataExportService {
+    private func exportRequest(id: UUID, download: Bool) async throws -> Data {
+        var url = baseURL.appendingPathComponent("v1/exports").appendingPathComponent(id.uuidString.lowercased())
+        if download { url.appendPathComponent("archive") }
+        var request = URLRequest(url: url)
+        request.httpMethod = download ? "GET" : "POST"
+        request.timeoutInterval = 120
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if let publicAPIKey { request.setValue(publicAPIKey, forHTTPHeaderField: "apikey") }
+        let (data, response) = try await transport.send(request)
+        try Task.checkCancellation()
+        if response.statusCode == 401 { await unauthorized(token) }
+        guard response.statusCode == 200 else {
+            throw APIClientError.http(status: response.statusCode, requestID: nil)
+        }
+        if download {
+            guard response.mimeType == "application/gzip", data.starts(with: [0x1f, 0x8b]) else {
+                throw APIClientError.invalidResponse
+            }
+        }
+        return data
+    }
+
+    func requestExport(id: UUID) async throws -> DataExportReceipt {
+        try JSONDecoder().decode(DataExportReceipt.self, from: await exportRequest(id: id, download: false))
+    }
+    func downloadExport(id: UUID) async throws -> Data { try await exportRequest(id: id, download: true) }
+}

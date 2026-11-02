@@ -1,0 +1,46 @@
+BEGIN;
+CREATE FUNCTION pg_temp.check_export(ok boolean) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'Export assertion failed'; END IF; END $$;
+INSERT INTO auth.users VALUES ('00000000-0000-0000-0000-000000000081'),('00000000-0000-0000-0000-000000000082');
+INSERT INTO app.profiles(id,user_id) SELECT id,id FROM auth.users WHERE id::text LIKE '%00000000008_';
+DO $$
+DECLARE a uuid := '00000000-0000-0000-0000-000000000081';
+    b uuid := '00000000-0000-0000-0000-000000000082';
+    g uuid := gen_random_uuid(); o uuid := gen_random_uuid(); w uuid := gen_random_uuid();
+    op uuid := gen_random_uuid(); req jsonb; payload jsonb; receipt jsonb;
+BEGIN
+    INSERT INTO app.garments(id,user_id,name,category,price_grosz) VALUES(g,a,'Owned','top',12345);
+    INSERT INTO app.garments(user_id,name,category) VALUES(b,'Foreign private data','top');
+    INSERT INTO app.outfits(id,user_id,name) VALUES(o,a,'My outfit');
+    INSERT INTO app.wear_events(id,user_id,worn_on,timezone,client_request_id) VALUES(w,a,current_date-1,'Europe/Warsaw',gen_random_uuid());
+    INSERT INTO app.wear_event_items(user_id,wear_event_id,garment_id) VALUES(a,w,g);
+    INSERT INTO app.planned_outfits(user_id,outfit_id,planned_on) VALUES(a,o,current_date+1);
+    req := jsonb_build_object('owner',a,'id',op);
+    receipt := app.exports_command(req || '{"action":"request"}');
+    PERFORM pg_temp.check_export(receipt->>'id'=op::text);
+    PERFORM pg_temp.check_export((receipt->>'expires_at')::timestamptz BETWEEN clock_timestamp()+interval '23 hours' AND clock_timestamp()+interval '24 hours');
+    PERFORM pg_temp.check_export(receipt=app.exports_command(req || '{"action":"request"}'));
+    PERFORM pg_temp.check_export(receipt=app.exports_command(req || jsonb_build_object('action','request','id',gen_random_uuid())));
+    payload := app.exports_command(req || '{"action":"read"}');
+    PERFORM pg_temp.check_export(jsonb_array_length(payload->'garments')=1);
+    PERFORM pg_temp.check_export(payload->'garments'->0->>'price_grosz'='12345');
+    PERFORM pg_temp.check_export(jsonb_array_length(payload->'wear_events')=1 AND jsonb_array_length(payload->'wear_event_items')=1);
+    PERFORM pg_temp.check_export(jsonb_array_length(payload->'planned_outfits')=1);
+    PERFORM pg_temp.check_export(NOT payload ?| ARRAY['auth','ai_jobs','sync_operations','operator_audit','subscription_events']);
+    PERFORM pg_temp.check_export(app.exports_command(req || jsonb_build_object('action','read','owner',b))='null');
+    PERFORM pg_temp.check_export(app.exports_command(req || jsonb_build_object('action','request','owner',b))='null');
+    UPDATE app.garments SET price_grosz=54321 WHERE id=g;
+    PERFORM pg_temp.check_export(app.exports_command(req || '{"action":"read"}')->'garments'->0->>'price_grosz'='12345');
+    UPDATE api_private.data_exports SET expires_at=clock_timestamp()-interval '1 second' WHERE id=op;
+    PERFORM pg_temp.check_export(app.exports_command(req || '{"action":"read"}')='null');
+    PERFORM app.exports_command('{"action":"sweep"}');
+    PERFORM pg_temp.check_export(NOT EXISTS (SELECT FROM api_private.data_exports WHERE id=op));
+    PERFORM app.exports_command(req || '{"action":"request"}');
+    UPDATE app.profiles SET deleted_at=now() WHERE user_id=a;
+    PERFORM pg_temp.check_export(app.exports_command(req || '{"action":"check"}')='null');
+    PERFORM app.exports_command('{"action":"sweep"}');
+    PERFORM pg_temp.check_export(NOT EXISTS (SELECT FROM api_private.data_exports WHERE id=op));
+END $$;
+SELECT pg_temp.check_export(NOT has_function_privilege('authenticated','app.exports_command(jsonb)','EXECUTE'));
+SELECT pg_temp.check_export(NOT has_table_privilege('authenticated','api_private.data_exports','SELECT'));
+ROLLBACK;

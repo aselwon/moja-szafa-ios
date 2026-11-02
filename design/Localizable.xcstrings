@@ -2504,8 +2504,6 @@
       }
     },
     "export.title": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -2516,13 +2514,14 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Data export"
+            "value": "Export data"
           }
         }
-      }
+      },
+      "comment": "Private data export in account settings: export.title"
     },
     "export.prepare": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Private data export in account settings: export.prepare",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -2540,25 +2539,24 @@
       }
     },
     "export.download": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pobierz eksport"
+            "value": "Ponów pobranie"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Download export"
+            "value": "Retry download"
           }
         }
-      }
+      },
+      "comment": "Private data export in account settings: export.download"
     },
     "export.working": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Private data export in account settings: export.working",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -4117,6 +4115,142 @@
         }
       },
       "comment": "T015: privacy settings and external AI consent."
+    },
+    "export.description": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pobierz JSON z historią, planami, cenami i preferencjami oraz zdjęcia w archiwum TAR.GZ. Dostęp jest prywatny i wygasa po 24 godzinach."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download JSON with history, plans, prices and preferences, plus photos in a TAR.GZ archive. Access is private and expires after 24 hours."
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.description"
+    },
+    "export.local": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport obejmuje dane zapisane na serwerze. Najpierw zsynchronizuj zmiany offline. Zapisana przez Ciebie kopia nie wygasa — wybierz bezpieczne miejsce."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The export includes server data. Sync offline changes first. Your saved copy does not expire — choose a safe location."
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.local"
+    },
+    "export.unconfigured": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport wymaga skonfigurowanej usługi i zalogowanego konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export requires a configured service and a signed-in account."
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.unconfigured"
+    },
+    "export.expires": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępny do"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available until"
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.expires"
+    },
+    "export.request": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamów i pobierz eksport"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request and download export"
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.request"
+    },
+    "export.new": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamów nowy eksport po wygaśnięciu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request a new export after expiry"
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.new"
+    },
+    "export.error": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się pobrać lub zapisać eksportu. Sprawdź połączenie i spróbuj ponownie. Jeśli dostęp wygasł, zamów nowy eksport."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not download or save the export. Check your connection and retry. If access expired, request a new export."
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.error"
+    },
+    "export.saved": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport zapisany."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export saved."
+          }
+        }
+      },
+      "comment": "Private data export in account settings: export.saved"
     }
   },
   "version": "1.0"

@@ -203,3 +203,55 @@ private actor JobStatusTransport: APITransport {
         return (try JSONSerialization.data(withJSONObject: ["data": page, "request_id": UUID().uuidString]), response(request))
     }
 }
+
+final class DataExportClientTests: XCTestCase {
+    func testRequestAndDownloadUseAuthenticatedPrivateRoutes() async throws {
+        let transport = ExportTransport()
+        let client = try APIClient(baseURL: XCTUnwrap(URL(string: "https://example.invalid")),
+                                   transport: transport, accessToken: { "fixture-session" })
+        let id = UUID()
+        let first = try await client.requestExport(id: id)
+        let retry = try await client.requestExport(id: id)
+        XCTAssertEqual(first.id, retry.id)
+        let archive = try await client.downloadExport(id: first.id)
+        XCTAssertTrue(archive.starts(with: [0x1f, 0x8b]))
+        let requests = await transport.requests
+        XCTAssertEqual(requests.map(\.httpMethod), ["POST", "POST", "GET"])
+        XCTAssertEqual(requests[0].url, requests[1].url)
+        XCTAssertEqual(requests[2].url?.path, "/v1/exports/\(id.uuidString.lowercased())/archive")
+        for request in requests {
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer fixture-session")
+            XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
+            XCTAssertNil(request.url?.query)
+        }
+    }
+
+    func testExpiredArchiveAndUnexpectedContentAreRejected() async throws {
+        for status in [403, 200] {
+            let client = try APIClient(baseURL: XCTUnwrap(URL(string: "https://example.invalid")),
+                                      transport: FixedTransport(body: Data("not an archive".utf8), status: status),
+                                      accessToken: { "fixture-session" })
+            do { _ = try await client.downloadExport(id: UUID()); XCTFail("Invalid archive accepted") }
+            catch let error as APIClientError {
+                if status == 403 { XCTAssertEqual(error, .http(status: 403, requestID: nil)) }
+                else { XCTAssertEqual(error, .invalidResponse) }
+            }
+        }
+    }
+}
+
+private actor ExportTransport: APITransport {
+    private(set) var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        requests.append(request)
+        let url = try XCTUnwrap(request.url)
+        let download = request.httpMethod == "GET"
+        let bytes: Data
+        if download { bytes = Data([0x1f, 0x8b, 0x00]) }
+        else {
+            bytes = try JSONSerialization.data(withJSONObject: ["id": url.lastPathComponent, "expires_at": "2026-11-03T00:00:00Z"])
+        }
+        return (bytes, try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil,
+                    headerFields: ["Content-Type": download ? "application/gzip" : "application/json"])))
+    }
+}

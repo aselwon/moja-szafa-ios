@@ -153,3 +153,8 @@ publication of normalized images. The migration runner now defaults to 008.
 See [T011 pipeline, HTTP contract and verification](../docs/architecture/T011-private-images.md)
 for decoder prerequisites, authenticated signed URLs, persistent storage and the
 cleanup worker integration. No storage service has been provisioned or deployed.
+
+Private data export (T016): migration 009, authenticated gateway handlers in
+`exports/`, and the separate `api/exports-v1.json` contract. Deployment, minute
+cleanup scheduling, size limits and remaining verification are documented in
+[`docs/privacy/T016-data-export.md`](../docs/privacy/T016-data-export.md).
