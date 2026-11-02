@@ -133,3 +133,13 @@ remain denied. See [T009 contract and verification](../docs/architecture/T009-ap
 and [OpenAPI v1](api/openapi-v1.json) for the implemented surface, configuration,
 error envelope and remaining feature endpoints. The test runner now verifies a
 populated v002 upgrade and concurrent/post-commit mutation replay as well.
+
+## T010 durable jobs extension
+
+Migration `004_jobs.sql` adds transactional enqueue, fenced claim/completion,
+bounded recovery and owner-scoped status discovery. The runner now defaults to
+004 and accepts explicit targets 001–004. See
+[T010 architecture, worker contract and verification](../docs/architecture/T010-durable-jobs.md).
+The SQL test runner includes queue concurrency and restart recovery; the harness
+runs dependency-free worker tests. A real provider adapter and staging deployment
+remain external feature/infrastructure work, not a default mock implementation.

@@ -11,6 +11,35 @@ final class APIClientTests: XCTestCase {
                       transport: transport, accessToken: { "test-only-token" })
     }
 
+    func testNewClientRecoversJobStatusWithoutRememberedJobID() async throws {
+        let id = UUID()
+        let transport = JobStatusTransport(id: id)
+        let beforeRestart = try await client(transport).jobs()
+        XCTAssertEqual(beforeRestart.data.items.first?.status, .running)
+        // A new client has no retained job IDs, polling cursor or running task.
+        let afterRestart = try await client(transport).jobs()
+        XCTAssertEqual(afterRestart.data.items.first?.id, id)
+        XCTAssertEqual(afterRestart.data.items.first?.status, .succeeded)
+        XCTAssertNil(afterRestart.data.nextCursor)
+    }
+
+    func testJobsRejectInvalidStatusAndNegativeAttempts() async throws {
+        for (status, attempts) in [("invented", 1), ("running", -1)] {
+            let item: [String: Any] = ["id": UUID().uuidString, "kind": "image_analysis",
+                                       "status": status, "attempts": attempts, "error_code": NSNull()]
+            let page: [String: Any] = ["items": [item], "next_cursor": NSNull()]
+            let envelope: [String: Any] = [
+                "request_id": UUID().uuidString,
+                "data": page
+            ]
+            let body = try JSONSerialization.data(withJSONObject: envelope)
+            do {
+                _ = try await client(FixedTransport(body: body, status: 200)).jobs()
+                XCTFail("Malformed job response accepted")
+            } catch let error as APIClientError { XCTAssertEqual(error, .invalidResponse) }
+        }
+    }
+
     func testTimeoutRetryPreservesOperationAndSerializedBody() async throws {
         let operation = operation(price: 80000)
         let transport = CommittedThenTimedOutTransport()
@@ -154,6 +183,23 @@ private actor PagingTransport: APITransport {
         if !isFirst { XCTAssertEqual(args["cursor"] as? String, first.uuidString) }
         let page: [String: Any] = ["items": [garment(isFirst ? first : second)],
                                     "next_cursor": isFirst ? first.uuidString as Any : NSNull()]
+        return (try JSONSerialization.data(withJSONObject: ["data": page, "request_id": UUID().uuidString]), response(request))
+    }
+}
+
+private actor JobStatusTransport: APITransport {
+    let id: UUID
+    var requests = 0
+    init(id: UUID) { self.id = id }
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        requests += 1
+        XCTAssertEqual(request.url?.path, "/rest/v1/rpc/api_v1_list_jobs")
+        let root = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+        let args = try XCTUnwrap(root["request"] as? [String: Any])
+        XCTAssertTrue(args["cursor"] is NSNull)
+        let page: [String: Any] = ["items": [["id": id.uuidString, "kind": "image_analysis",
+            "status": requests == 1 ? "running" : "succeeded", "attempts": 2, "error_code": NSNull()]],
+            "next_cursor": NSNull()]
         return (try JSONSerialization.data(withJSONObject: ["data": page, "request_id": UUID().uuidString]), response(request))
     }
 }
