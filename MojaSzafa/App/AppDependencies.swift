@@ -2,6 +2,7 @@ import Foundation
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var aiConsent: (any AIConsentService)?
     let wardrobe: any WardrobeRepository
     let authentication: any AuthenticationService
     var offline: OfflineStore? { wardrobe as? OfflineStore }
@@ -21,7 +22,9 @@ struct AppDependencies: Sendable {
     static func configured(client: APIClient, accountID: UUID, storageDirectory: URL) throws -> AppDependencies {
         let database = OfflineDatabase(url: storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathExtension("sqlite"))
         let store = try OfflineStore(accountID: accountID, database: database, remote: client)
-        return AppDependencies(wardrobe: store)
+        var result = AppDependencies(wardrobe: store)
+        result.aiConsent = client
+        return result
     }
 
     /// For the approved gateway deployment. live() intentionally remains locked
@@ -43,7 +46,9 @@ struct AppDependencies: Sendable {
                                        unauthorized: { token in await model.rejectSession(accessToken: token) }) {
                 try await model.accessToken()
             }
-            return AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
+            var result = AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
+            result.aiConsent = client
+            return result
         } catch { return AppDependencies(wardrobe: UnconfiguredWardrobeRepository(), authentication: authentication) }
     }
 

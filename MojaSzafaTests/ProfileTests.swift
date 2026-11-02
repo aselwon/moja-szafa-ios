@@ -89,3 +89,44 @@ final class ProfileTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: file), corrupt)
     }
 }
+
+private actor ConsentStub: AIConsentService {
+    var choices: [AIConsentChoice] = []
+    let disclosure = AIDisclosure(policy_version: "test-v1", recipient: "Test recipient",
+                                 data_description: "Thumbnails", purpose_description: "Classification")
+    func consent() async throws -> AIConsentSnapshot { AIConsentSnapshot(disclosure: disclosure, granted: false) }
+    func choose(_ choice: AIConsentChoice) async throws -> AIConsentSnapshot {
+        choices.append(choice)
+        if choices.count == 1 { throw URLError(.timedOut) }
+        return AIConsentSnapshot(disclosure: disclosure, granted: choice.granted)
+    }
+}
+
+@MainActor
+final class AIConsentTests: XCTestCase {
+    func testNoConfiguredServiceCannotGrant() async {
+        let model = AIConsentModel(service: nil)
+        await model.load()
+        await model.choose(true)
+        XCTAssertNil(model.snapshot)
+        XCTAssertEqual(model.message, "privacy.unconfigured")
+    }
+
+    func testTimeoutKeepsChoiceAndUUIDUntilServerConfirms() async {
+        let service = ConsentStub()
+        let model = AIConsentModel(service: service)
+        await model.load()
+        XCTAssertEqual(model.snapshot?.granted, false)
+        await model.choose(true)
+        XCTAssertEqual(model.snapshot?.granted, false)
+        XCTAssertNotNil(model.pending)
+        await model.choose(true)
+        XCTAssertEqual(model.snapshot?.granted, true)
+        XCTAssertNil(model.pending)
+        let choices = await service.choices
+        XCTAssertEqual(choices[0].operation_id, choices[1].operation_id)
+        XCTAssertEqual(choices[0].disclosure, choices[1].disclosure)
+        await model.choose(false)
+        XCTAssertEqual(model.snapshot?.granted, false)
+    }
+}

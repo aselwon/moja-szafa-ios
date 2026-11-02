@@ -3,6 +3,10 @@ CREATE FUNCTION pg_temp.assert_true(ok boolean, message text) RETURNS void LANGU
 BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'Assertion failed: %', message; END IF; END $$;
 INSERT INTO auth.users VALUES ('00000000-0000-0000-0000-000000000081'),('00000000-0000-0000-0000-000000000082');
 INSERT INTO app.profiles(id,user_id) SELECT id,id FROM auth.users WHERE id IN ('00000000-0000-0000-0000-000000000081','00000000-0000-0000-0000-000000000082');
+INSERT INTO api_private.ai_disclosure VALUES (true,'test-v1','Test recipient','Selected thumbnails and metadata','Classification and outfit suggestions') ON CONFLICT DO NOTHING;
+INSERT INTO app.consent_events(user_id,purpose,policy_version,recipient,granted,client_request_id,disclosure)
+SELECT p.user_id,'ai',d.policy_version,d.recipient,true,gen_random_uuid(),to_jsonb(d) - 'singleton'
+FROM app.profiles p CROSS JOIN api_private.ai_disclosure d WHERE p.user_id::text IN ('00000000-0000-0000-0000-000000000081','00000000-0000-0000-0000-000000000082');
 -- Inject a failure between result persistence and settlement to prove rollback.
 CREATE FUNCTION pg_temp.fail_settlement() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
