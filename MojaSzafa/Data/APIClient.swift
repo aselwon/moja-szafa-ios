@@ -169,7 +169,7 @@ struct APIClient: Sendable {
     private struct Arguments<Value: Encodable>: Encodable { let request: Value }
     private struct ErrorEnvelope: Decodable { let error: APIv1.Failure }
 
-    private func call<Input: Encodable, Output: Decodable & Sendable>(
+    func call<Input: Encodable, Output: Decodable & Sendable>(
         _ method: String, _ input: Input
     ) async throws -> APIv1.Success<Output> {
         try Task.checkCancellation()

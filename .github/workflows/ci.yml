@@ -47,7 +47,7 @@ jobs:
           # A shared self-hosted Mac reuses one simulator across jobs; start each job from a freshly booted,
           # fully ready device, otherwise SpringBoard rejects the test host launch as "Busy" (preflight checks).
           xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
-          xcrun simctl boot "$SIMULATOR_ID"
+          xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
           run_tests() {
             xcodebuild test \
@@ -63,8 +63,8 @@ jobs:
             grep -q 'Application failed preflight checks\|failed to launch' "$RUNNER_TEMP/xcodebuild.log" || exit 1
             echo "Simulator launch flake; rebooting simulator and retrying once"
             rm -rf "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult"
-            xcrun simctl shutdown "$SIMULATOR_ID" || true
-            xcrun simctl boot "$SIMULATOR_ID"
+            xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
+            xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
             xcrun simctl bootstatus "$SIMULATOR_ID" -b
             run_tests
           fi

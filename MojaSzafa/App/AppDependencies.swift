@@ -4,6 +4,7 @@ import Foundation
 struct AppDependencies: Sendable {
     let wardrobe: any WardrobeRepository
     let authentication: any AuthenticationService
+    var offline: OfflineStore? { wardrobe as? OfflineStore }
     private var apiConnection: APIConnection?
 
     private struct APIConnection: Sendable {
@@ -17,8 +18,10 @@ struct AppDependencies: Sendable {
         self.authentication = authentication
     }
 
-    static func configured(client: APIClient) -> AppDependencies {
-        AppDependencies(wardrobe: APIWardrobeRepository(client: client))
+    static func configured(client: APIClient, accountID: UUID, storageDirectory: URL) throws -> AppDependencies {
+        let database = OfflineDatabase(url: storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathExtension("sqlite"))
+        let store = try OfflineStore(accountID: accountID, database: database, remote: client)
+        return AppDependencies(wardrobe: store)
     }
 
     /// For the approved gateway deployment. live() intentionally remains locked
