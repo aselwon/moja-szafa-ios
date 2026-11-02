@@ -153,3 +153,11 @@ publication of normalized images. The migration runner now defaults to 008.
 See [T011 pipeline, HTTP contract and verification](../docs/architecture/T011-private-images.md)
 for decoder prerequisites, authenticated signed URLs, persistent storage and the
 cleanup worker integration. No storage service has been provisioned or deployed.
+
+## T027 AI provider adapter
+
+The server-only adapter supplies separate image analysis and outfit recommendation
+operations, required model configuration, bounded HTTP, safe failures and usage
+telemetry. It plugs into the T010 worker through an executable and mandatory
+trusted runtime hooks; no provider or mock is enabled by default. See
+[T027 protocol, configuration, integration and verification](../docs/architecture/T027-ai-provider.md).
