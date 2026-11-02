@@ -254,3 +254,65 @@ struct APIWardrobeRepository: WardrobeRepository {
         return result
     }
 }
+
+struct ExportTicket: Decodable, Sendable, Equatable {
+    let id: UUID
+    let expires_at: String
+}
+
+protocol DataExportService: Sendable {
+    func requestExport() async throws -> ExportTicket
+    func downloadExport(_ ticket: ExportTicket) async throws -> URL
+}
+
+/// Do not forward a session token to redirects, including a different origin.
+private final class ExportRedirectPolicy: NSObject, URLSessionTaskDelegate, Sendable {
+    func urlSession(_ session: URLSession, task: URLSessionTask,
+                    willPerformHTTPRedirection response: HTTPURLResponse,
+                    newRequest request: URLRequest) async -> URLRequest? { nil }
+}
+
+extension APIClient: DataExportService {
+    func requestExport() async throws -> ExportTicket {
+        let response: APIv1.Success<ExportTicket> = try await call("api_v1_request_export", [String: String]())
+        return response.data
+    }
+
+    func downloadExport(_ ticket: ExportTicket) async throws -> URL {
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/exports").appendingPathComponent(ticket.id.uuidString.lowercased()))
+        request.timeoutInterval = 300
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if let key = publicAPIKey { request.setValue(key, forHTTPHeaderField: "apikey") }
+        let config = URLSessionConfiguration.ephemeral
+        config.urlCache = nil
+        let session = URLSession(configuration: config, delegate: ExportRedirectPolicy(), delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+        let (temporary, response) = try await session.download(for: request)
+        defer { try? FileManager.default.removeItem(at: temporary) }
+        try Task.checkCancellation()
+        guard let http = response as? HTTPURLResponse else { throw APIClientError.invalidResponse }
+        if http.statusCode == 401 { await unauthorized(token) }
+        guard http.statusCode == 200, http.mimeType == "application/gzip" else { throw APIClientError.invalidResponse }
+        let folder = ExportLocalFiles.root.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true,
+                                               attributes: [.protectionKey: FileProtectionType.complete])
+        let destination = folder.appendingPathComponent("moja-szafa.tar.gz")
+        do {
+            try FileManager.default.moveItem(at: temporary, to: destination)
+            try FileManager.default.setAttributes([.protectionKey: FileProtectionType.complete], ofItemAtPath: destination.path)
+            return destination
+        } catch {
+            try? FileManager.default.removeItem(at: folder)
+            throw error
+        }
+    }
+}
+
+/// A crashed export screen may leave a protected temporary file. Remove it on
+/// next launch before any account is shown; shared copies belong to the user.
+enum ExportLocalFiles {
+    static var root: URL { FileManager.default.temporaryDirectory.appendingPathComponent("MojaSzafaExports") }
+    static func clear() { try? FileManager.default.removeItem(at: root) }
+}

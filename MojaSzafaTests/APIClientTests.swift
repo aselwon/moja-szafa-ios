@@ -2,6 +2,32 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testExportTicketDecodesAndCanBeRecoveredAfterReopening() async throws {
+        let id = UUID()
+        let body = Data("{\"data\":{\"id\":\"\(id)\",\"expires_at\":\"2026-11-03T12:15:00Z\"},\"request_id\":\"\(UUID())\"}".utf8)
+        let transport = FixedTransport(body: body, status: 200)
+        let first = try await client(transport).requestExport()
+        let recovered = try await client(transport).requestExport()
+        XCTAssertEqual(first.id, id)
+        XCTAssertEqual(first, recovered)
+    }
+
+    func testMalformedExportTicketIsRejected() async throws {
+        let body = Data("{\"data\":{\"id\":\"invalid\"},\"request_id\":\"\(UUID())\"}".utf8)
+        do {
+            _ = try await client(FixedTransport(body: body, status: 200)).requestExport()
+            XCTFail("Malformed export accepted")
+        } catch let error as APIClientError { XCTAssertEqual(error, .invalidResponse) }
+    }
+
+    func testExportTemporaryFilesArePurged() throws {
+        let folder = ExportLocalFiles.root.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("private fixture".utf8).write(to: folder.appendingPathComponent("export.tar.gz"))
+        ExportLocalFiles.clear()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path))
+    }
+
     private func operation(price: Int64? = nil, version: Int64? = nil) -> APIv1.SaveGarment {
         APIv1.SaveGarment(operationID: UUID(), garmentID: UUID(), baseVersion: version,
             garment: .init(name: "Koszula", category: .top, priceGrosz: price, availability: .available))

@@ -161,3 +161,10 @@ operations, required model configuration, bounded HTTP, safe failures and usage
 telemetry. It plugs into the T010 worker through an executable and mandatory
 trusted runtime hooks; no provider or mock is enabled by default. See
 [T027 protocol, configuration, integration and verification](../docs/architecture/T027-ai-provider.md).
+
+## T016 private data export
+
+Migration `009_exports.sql` and the authenticated streaming archive adapter add
+15-minute export tickets, allowlisted owner-only JSON and private photos. The
+migration runner now defaults to 009. See [T016 contract and verification](../docs/architecture/T016-data-export.md)
+for gateway mounting, retention semantics and outstanding device/staging checks.

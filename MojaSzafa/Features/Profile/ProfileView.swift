@@ -114,6 +114,7 @@ struct ProfileGateView: View {
                         NavigationStack {
                             List {
                                 NavigationLink("profile.title") { ProfileEditorView(model: model) }
+                                NavigationLink("export.title") { DataExportView(service: dependencies.dataExport) }
                                 NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
                             }.navigationTitle("profile.title")
                         }
@@ -170,5 +171,60 @@ struct AIPrivacyView: View {
         }
         .navigationTitle("privacy.title")
         .task { await model.load() }
+    }
+}
+
+struct DataExportView: View {
+    let service: (any DataExportService)?
+    @State private var ticket: ExportTicket?
+    @State private var file: URL?
+    @State private var busy = false
+    @State private var failed = false
+    @State private var operation: Task<Void, Never>?
+
+    var body: some View {
+        Form {
+            Text("export.explanation")
+            Text("export.local")
+            if service == nil { Text("export.unconfigured") }
+            if let ticket { LabeledContent("export.expires", value: ticket.expires_at) }
+            if busy { ProgressView() }
+            if failed { Text("export.error") }
+            Button("export.request") {
+                operation = Task { await prepare() }
+            }.disabled(busy || service == nil)
+            if let file { ShareLink(item: file) { Label("export.share", systemImage: "square.and.arrow.up") } }
+        }
+        .navigationTitle("export.title")
+        .onDisappear {
+            operation?.cancel()
+            removeFile()
+        }
+    }
+
+    @MainActor private func prepare() async {
+        guard let service else { return }
+        busy = true
+        failed = false
+        removeFile()
+        defer { busy = false }
+        do {
+            // Server reuses the active ticket after timeouts/reopening the screen.
+            let requested = try await service.requestExport()
+            try Task.checkCancellation()
+            ticket = requested
+            let downloaded = try await service.downloadExport(requested)
+            if Task.isCancelled {
+                try? FileManager.default.removeItem(at: downloaded.deletingLastPathComponent())
+                return
+            }
+            file = downloaded
+        } catch is CancellationError { }
+        catch { failed = true }
+    }
+
+    private func removeFile() {
+        if let file { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        file = nil
     }
 }

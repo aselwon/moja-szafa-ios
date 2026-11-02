@@ -2503,8 +2503,6 @@
       }
     },
     "export.title": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -2518,10 +2516,11 @@
             "value": "Data export"
           }
         }
-      }
+      },
+      "comment": "Private data export screen: title"
     },
     "export.prepare": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Private data export screen: prepare",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -2539,7 +2538,7 @@
       }
     },
     "export.download": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Private data export screen: download",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -2557,7 +2556,7 @@
       }
     },
     "export.working": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Private data export screen: working",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -4371,6 +4370,125 @@
           }
         }
       }
+    },
+    "export.explanation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pobierz JSON i zdjęcia z serwera w archiwum TAR.GZ. Eksport zawiera ceny, historię i plany. Dostęp do pobrania wygasa po 15 minutach."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download server data as JSON and photos in a TAR.GZ archive, including prices, history and plans. Download access expires after 15 minutes."
+          }
+        }
+      },
+      "comment": "Private data export screen: explanation"
+    },
+    "export.local": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najpierw zsynchronizuj zmiany offline. Archiwum zawiera dane z chwili pobrania. Zapisana lub udostępniona kopia nie wygasa."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync offline changes first. The archive contains data at download time. A saved or shared copy does not expire."
+          }
+        }
+      },
+      "comment": "Private data export screen: local"
+    },
+    "export.unconfigured": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport wymaga skonfigurowanej usługi i zalogowanego konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export requires a configured service and a signed-in account."
+          }
+        }
+      },
+      "comment": "Private data export screen: unconfigured"
+    },
+    "export.expires": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępne do"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available until"
+          }
+        }
+      },
+      "comment": "Private data export screen: expires"
+    },
+    "export.error": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się pobrać eksportu. Sprawdź połączenie i zalogowanie, a następnie spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export could not be downloaded. Check your connection and sign-in, then try again."
+          }
+        }
+      },
+      "comment": "Private data export screen: error"
+    },
+    "export.request": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamów i pobierz eksport"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request and download export"
+          }
+        }
+      },
+      "comment": "Private data export screen: request"
+    },
+    "export.share": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz lub udostępnij archiwum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save or share archive"
+          }
+        }
+      },
+      "comment": "Private data export screen: share"
     }
   },
   "version": "1.0"
