@@ -1,0 +1,2 @@
+# Decoder dependency; installation is an explicit environment provisioning step.
+Pillow>=10.2,<13
