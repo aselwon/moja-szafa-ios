@@ -39,7 +39,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog AS $$
 DECLARE
     owner_id uuid := auth.uid();
     request_id uuid := gen_random_uuid();
-    operation_id uuid;
+    v_operation_id uuid;
     wear_id uuid;
     body jsonb;
     garment_ids uuid[];
@@ -69,16 +69,16 @@ BEGIN
        OR NOT EXISTS (SELECT FROM pg_timezone_names WHERE name = body->>'timezone') THEN
         RAISE EXCEPTION USING ERRCODE = '22023';
     END IF;
-    operation_id := (request->>'operationID')::uuid;
+    v_operation_id := (request->>'operationID')::uuid;
     wear_id := (body->>'id')::uuid;
     SELECT array_agg(value::uuid ORDER BY value::uuid) INTO garment_ids FROM jsonb_array_elements_text(body->'garmentIDs');
-    IF operation_id IS NULL OR wear_id IS NULL OR coalesce(cardinality(garment_ids),0) NOT BETWEEN 1 AND 100
+    IF v_operation_id IS NULL OR wear_id IS NULL OR coalesce(cardinality(garment_ids),0) NOT BETWEEN 1 AND 100
        OR cardinality(garment_ids) <> (SELECT count(DISTINCT id) FROM unnest(garment_ids) id) THEN
         RAISE EXCEPTION USING ERRCODE = '22023';
     END IF;
-    INSERT INTO api_private.mutations VALUES (owner_id, operation_id, request, NULL) ON CONFLICT DO NOTHING;
+    INSERT INTO api_private.mutations VALUES (owner_id, v_operation_id, request, NULL) ON CONFLICT DO NOTHING;
     SELECT * INTO previous FROM api_private.mutations m
-        WHERE m.user_id = owner_id AND m.operation_id = api_v1_save_wear.operation_id FOR UPDATE;
+        WHERE m.user_id = owner_id AND m.operation_id = v_operation_id FOR UPDATE;
     IF previous.request <> request THEN
         RETURN jsonb_build_object('error',jsonb_build_object('code','idempotency_conflict','message','Operation ID already used','request_id',request_id));
     END IF;
@@ -89,12 +89,12 @@ BEGIN
         IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = '22023'; END IF;
     END LOOP;
     INSERT INTO app.wear_events(id,user_id,worn_on,timezone,client_request_id)
-        VALUES (wear_id,owner_id,(body->>'wornOn')::date,body->>'timezone',operation_id);
+        VALUES (wear_id,owner_id,(body->>'wornOn')::date,body->>'timezone',v_operation_id);
     INSERT INTO app.wear_event_items(user_id,wear_event_id,garment_id)
         SELECT owner_id,wear_id,id FROM unnest(garment_ids) id;
     result := jsonb_build_object('data',body || jsonb_build_object('version',1),'request_id',request_id);
     UPDATE api_private.mutations m SET response = result
-        WHERE m.user_id = owner_id AND m.operation_id = api_v1_save_wear.operation_id;
+        WHERE m.user_id = owner_id AND m.operation_id = v_operation_id;
     RETURN result;
 EXCEPTION
     WHEN invalid_text_representation OR invalid_datetime_format OR datetime_field_overflow
