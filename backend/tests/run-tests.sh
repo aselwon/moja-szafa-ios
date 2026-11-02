@@ -69,6 +69,7 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/offline-sync.sql"
     bash "$root/tests/api-concurrency.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/jobs.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/consent.sql"
     bash "$root/tests/jobs-concurrency.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/images.sql"
     # PostgreSQL clients may emit a randomly generated \restrict token.

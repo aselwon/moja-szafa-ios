@@ -6,6 +6,10 @@ trap 'rm -rf "$artifacts"' EXIT
 psql -X -v ON_ERROR_STOP=1 -d "$database" <<'SQL'
 INSERT INTO auth.users VALUES ('00000000-0000-0000-0000-000000000080');
 INSERT INTO app.profiles(id,user_id) VALUES ('00000000-0000-0000-0000-000000000080','00000000-0000-0000-0000-000000000080');
+INSERT INTO api_private.ai_disclosure VALUES (true,'test-v1','Test recipient','Selected thumbnails and metadata','Classification and outfit suggestions') ON CONFLICT DO NOTHING;
+INSERT INTO app.consent_events(user_id,purpose,policy_version,recipient,granted,client_request_id,disclosure)
+SELECT p.user_id,'ai',d.policy_version,d.recipient,true,gen_random_uuid(),to_jsonb(d) - 'singleton'
+FROM app.profiles p CROSS JOIN api_private.ai_disclosure d WHERE p.user_id::text IN ('00000000-0000-0000-0000-000000000080');
 SQL
 cat > "$artifacts/enqueue.sql" <<'SQL'
 BEGIN;

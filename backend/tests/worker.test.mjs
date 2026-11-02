@@ -7,7 +7,7 @@ import { runOnce, processExecutor } from '../worker/worker.mjs';
 
 const job = { id: 'job', lease_token: 'lease', input: { reference: 'private' } };
 function store(claim = job) {
-  return { calls: [], claim: async () => claim,
+  return { calls: [], authorize: async () => true, claim: async () => claim,
     async finish(...args) { this.calls.push(args); return true; } };
 }
 test('idle worker does not invoke adapter or settle usage', async () => {
@@ -32,7 +32,7 @@ test('only explicit retries are retryable; unknown errors/results are permanent'
 });
 test('ambiguous completion does not resubmit, release or settle again', async () => {
   let finishes = 0;
-  await assert.rejects(runOnce({ claim: async () => job, finish: async () => { finishes++; throw new Error('lost response'); } },
+  await assert.rejects(runOnce({ authorize: async () => true, claim: async () => job, finish: async () => { finishes++; throw new Error('lost response'); } },
     async () => ({ outcome: 'success', output: {} })));
   assert.equal(finishes, 1);
 });
@@ -51,4 +51,17 @@ printf '{"outcome":"success","output":%s}\\n' "$input"
     const response = await processExecutor(path)(job);
     assert.deepEqual(response, { outcome: 'success', output: job });
   } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test('revocation between claim and dispatch prevents provider call', async () => {
+  const s = store();
+  s.authorize = async () => false;
+  await runOnce(s, () => assert.fail('must not send'));
+  assert.deepEqual(s.calls, []);
+});
+test('consent lookup failure fails closed', async () => {
+  const s = store();
+  s.authorize = async () => { throw new Error('offline'); };
+  await assert.rejects(runOnce(s, () => assert.fail('must not send')));
+  assert.deepEqual(s.calls, []);
 });
