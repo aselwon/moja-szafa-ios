@@ -126,8 +126,10 @@ T007 is authorized. The harness check is not a substitute for executing SQL.
 
 ## T009 API extension
 
-Migration `003_api.sql` now adds the versioned garment list/save RPCs and a private
-transactional replay ledger. The migration runner defaults to 003. The table and
+Migration `003_api.sql` adds the versioned garment list/save RPCs and a private
+transactional replay ledger. Migration `005_fix_save_garment.sql` fixes the RPC's
+operation-ID lookup without changing the checksum of an applied migration. The
+migration runner defaults to 005. The table and
 API boundaries above describe the T008 baseline; direct client table writes
 remain denied. See [T009 contract and verification](../docs/architecture/T009-api-contract.md)
 and [OpenAPI v1](api/openapi-v1.json) for the implemented surface, configuration,
