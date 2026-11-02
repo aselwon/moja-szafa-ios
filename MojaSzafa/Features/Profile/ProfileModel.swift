@@ -78,3 +78,87 @@ final class ProfileModel {
         save(next)
     }
 }
+
+struct AIDisclosure: Codable, Equatable, Sendable {
+    let policy_version: String
+    let recipient: String
+    let data_description: String
+    let purpose_description: String
+}
+
+struct AIConsentSnapshot: Decodable, Sendable {
+    let disclosure: AIDisclosure?
+    let granted: Bool
+}
+
+struct AIConsentChoice: Encodable, Sendable {
+    let operation_id: UUID
+    let granted: Bool
+    let disclosure: AIDisclosure?
+
+    enum CodingKeys: String, CodingKey { case operation_id, granted, disclosure }
+    func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(operation_id, forKey: .operation_id)
+        try c.encode(granted, forKey: .granted)
+        try c.encode(disclosure, forKey: .disclosure)
+    }
+}
+
+protocol AIConsentService: Sendable {
+    func consent() async throws -> AIConsentSnapshot
+    func choose(_ choice: AIConsentChoice) async throws -> AIConsentSnapshot
+}
+
+extension APIClient: AIConsentService {
+    func consent() async throws -> AIConsentSnapshot {
+        let response: APIv1.Success<AIConsentSnapshot> = try await call("api_v1_ai_consent", [String: String]())
+        return response.data
+    }
+    func choose(_ choice: AIConsentChoice) async throws -> AIConsentSnapshot {
+        let response: APIv1.Success<AIConsentSnapshot> = try await call("api_v1_ai_consent", choice)
+        return response.data
+    }
+}
+
+@MainActor @Observable
+final class AIConsentModel {
+    private(set) var snapshot: AIConsentSnapshot?
+    private(set) var busy = false
+    private(set) var message: String?
+    private(set) var pending: AIConsentChoice?
+    private let service: (any AIConsentService)?
+
+    init(service: (any AIConsentService)?) { self.service = service }
+
+    func load() async {
+        guard !busy, pending == nil else { return }
+        guard let service else { message = "privacy.unconfigured"; return }
+        busy = true
+        defer { busy = false }
+        do { snapshot = try await service.consent(); message = nil }
+        catch { snapshot = nil; message = "privacy.loadError" }
+    }
+
+    func choose(_ granted: Bool) async {
+        guard !busy, let service else { return }
+        if granted && snapshot?.disclosure == nil { return }
+        // Preserve operation UUID on ambiguous failure. No optimistic success.
+        if pending == nil {
+            pending = AIConsentChoice(operation_id: UUID(), granted: granted, disclosure: snapshot?.disclosure)
+        }
+        guard let choice = pending else { return }
+        busy = true
+        defer { busy = false }
+        do {
+            snapshot = try await service.choose(choice)
+            pending = nil
+            message = nil
+        } catch let failure as APIv1.Failure where failure.code == "validation_failed" {
+            // A changed disclosure needs a fresh review, not an endless retry of stale consent.
+            pending = nil
+            snapshot = nil
+            message = "privacy.loadError"
+        } catch { message = "privacy.saveError" }
+    }
+}

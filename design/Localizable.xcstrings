@@ -3847,6 +3847,276 @@
         }
       },
       "comment": "T014: onboarding and optional account profile; device-local preferences."
+    },
+    "privacy.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prywatność i AI"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy and AI"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.manual": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ręczna szafa działa bez zgody na AI."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your manual wardrobe works without AI consent."
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.inflight": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnięcie zgody anuluje oczekujące zadania. Danych już wysłanych nie można wycofać. Zmiana wymaga połączenia z serwerem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoking consent cancels pending jobs. Data already sent cannot be recalled. Changes require a server connection."
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.unconfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI jest wyłączone do czasu skonfigurowania odbiorcy i informacji o danych."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI is disabled until the recipient and data disclosure are configured."
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.loadError": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można pobrać ustawień prywatności. Spróbuj ponownie po połączeniu z siecią."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot load privacy settings. Reconnect and retry."
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.saveError": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie potwierdzono zapisu. Ponów próbę, aby potwierdzić zmianę na serwerze."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save is unconfirmed. Retry to confirm the change on the server."
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zgoda na AI jest aktywna."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI consent is active."
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.blocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak aktywnej zgody na AI."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active AI consent."
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.recipient": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odbiorca"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recipient"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.data": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przesyłane dane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data sent"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.purpose": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purpose"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.version": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wersja zgody"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consent version"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.allow": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zgadzam się na przesłanie danych do AI"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I consent to sending data to AI"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.revoke": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnij zgodę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoke consent"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
+    },
+    "privacy.deny": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wyrażam zgody"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decline"
+          }
+        }
+      },
+      "comment": "T015: privacy settings and external AI consent."
     }
   },
   "version": "1.0"

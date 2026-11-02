@@ -109,10 +109,64 @@ struct ProfileGateView: View {
                         Button("profile.title") { showProfile = true }.padding(8)
                     }
                     .sheet(isPresented: $showProfile) {
-                        NavigationStack { ProfileEditorView(model: model) }
+                        NavigationStack {
+                            List {
+                                NavigationLink("profile.title") { ProfileEditorView(model: model) }
+                                NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
+                            }.navigationTitle("profile.title")
+                        }
                     }
             }
         }
         .task { model.load() }
+    }
+}
+
+struct AIPrivacyView: View {
+    @State private var model: AIConsentModel
+
+    init(service: (any AIConsentService)?) {
+        _model = State(initialValue: AIConsentModel(service: service))
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                Text("privacy.manual")
+                Text("privacy.inflight")
+            }
+            if let snapshot = model.snapshot {
+                Section {
+                    Text(snapshot.granted ? "privacy.allowed" : "privacy.blocked")
+                    if let disclosure = snapshot.disclosure {
+                        LabeledContent("privacy.recipient", value: disclosure.recipient)
+                        LabeledContent("privacy.data", value: disclosure.data_description)
+                        LabeledContent("privacy.purpose", value: disclosure.purpose_description)
+                        LabeledContent("privacy.version", value: disclosure.policy_version)
+                        if !snapshot.granted {
+                            Button("privacy.allow") { Task { await model.choose(true) } }
+                                .disabled(model.busy || model.pending != nil)
+                        }
+                    } else { Text("privacy.unconfigured") }
+                    Button(snapshot.granted ? "privacy.revoke" : "privacy.deny", role: .destructive) {
+                        Task { await model.choose(false) }
+                    }.disabled(model.busy || model.pending != nil)
+                }
+            }
+            if model.busy { ProgressView() }
+            if let message = model.message {
+                Section {
+                    Text(LocalizedStringKey(message))
+                    Button("profile.retry") {
+                        Task {
+                            if let pending = model.pending { await model.choose(pending.granted) }
+                            else { await model.load() }
+                        }
+                    }.disabled(model.busy)
+                }
+            }
+        }
+        .navigationTitle("privacy.title")
+        .task { await model.load() }
     }
 }

@@ -27,6 +27,11 @@ export function postgresStore() {
   const json = value => `convert_from(decode('${Buffer.from(JSON.stringify(value)).toString('base64')}','base64'),'UTF8')::jsonb`;
   return {
     claim: () => query('SELECT coalesce(app.jobs_claim(), \'null\'::jsonb);'),
+    authorize: job => {
+      const data = json({ id: job.id, token: job.lease_token });
+      return query(`WITH v AS (SELECT ${data} AS body) SELECT to_json(app.jobs_authorize_dispatch(
+        (body->>'id')::uuid,(body->>'token')::uuid)) FROM v;`);
+    },
     finish: (job, outcome, output = null) => {
       const data = json({ id: job.id, token: job.lease_token, outcome, output });
       return query(`WITH v AS (SELECT ${data} AS body) SELECT to_json(app.jobs_finish(
@@ -43,6 +48,7 @@ export function processExecutor(adapterPath, timeout = 45_000) {
 export async function runOnce(store, execute) {
   const job = await store.claim();
   if (!job) return false;
+  if (await store.authorize(job) !== true) return true;
   let response;
   try {
     response = await execute(job);
