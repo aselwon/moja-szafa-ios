@@ -161,3 +161,12 @@ operations, required model configuration, bounded HTTP, safe failures and usage
 telemetry. It plugs into the T010 worker through an executable and mandatory
 trusted runtime hooks; no provider or mock is enabled by default. See
 [T027 protocol, configuration, integration and verification](../docs/architecture/T027-ai-provider.md).
+
+## T055 recovery rehearsal
+
+[Backup and restore runbook](../docs/operations/T055-backup-restore.md) defines the
+paired database/photo strategy, independent deletion evidence, reopening gates and
+RPO/RTO measurement. `bash backend/tests/recovery-drill.sh` runs a synthetic restore
+on a dedicated PostgreSQL test cluster; the SQL suite runs it automatically.
+Production backup scheduling, provider recovery, deletion-journal integration and
+measured operational acceptance remain explicitly unverified.
