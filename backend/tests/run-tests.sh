@@ -85,3 +85,6 @@ if bash "$root/migrate.sh" "$fresh" > "$artifacts/checksum.log" 2>&1; then
 fi
 grep -q 'Applied migration 001 has changed' "$artifacts/checksum.log"
 echo 'PASS: clean install, populated v001 upgrade, replay, atomic rollback, checksum and schema/security contracts'
+
+# T055: isolated synthetic database + object restore and post-snapshot deletions.
+bash "$root/tests/recovery-drill.sh"

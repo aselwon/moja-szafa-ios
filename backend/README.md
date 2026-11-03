@@ -170,6 +170,15 @@ private garment photos into TAR and requires the current owner's session at both
 request and download. See [T016 integration, scope and verification](../docs/architecture/T016-data-export.md)
 for runtime composition, supervised cleanup and outstanding staging/device gates.
 
+## T055 recovery rehearsal
+
+[Backup and restore runbook](../docs/operations/T055-backup-restore.md) defines the
+paired database/photo strategy, independent deletion evidence, reopening gates and
+RPO/RTO measurement. `bash backend/tests/recovery-drill.sh` runs a synthetic restore
+on a dedicated PostgreSQL test cluster; the SQL suite runs it automatically.
+Production backup scheduling, provider recovery, deletion-journal integration and
+measured operational acceptance remain explicitly unverified.
+
 ## T017 account deletion
 
 Migration `010_account_deletion.sql` adds the account deletion queue commands,

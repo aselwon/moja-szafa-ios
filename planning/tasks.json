@@ -401,7 +401,7 @@
         "T013"
       ],
       "tier": "planner",
-      "status": "review",
+      "status": "done",
       "epicId": "E03",
       "priority": 2,
       "milestone": "App Store 1.0",
@@ -493,7 +493,7 @@
         "T019"
       ],
       "tier": "planner",
-      "status": "review",
+      "status": "done",
       "epicId": "E04",
       "priority": 2,
       "milestone": "App Store 1.0",
@@ -1291,7 +1291,7 @@
         "T011"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "done",
       "epicId": "E09",
       "priority": 2,
       "milestone": "App Store 1.0",
