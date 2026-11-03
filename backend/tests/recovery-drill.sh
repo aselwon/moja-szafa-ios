@@ -55,7 +55,11 @@ import pathlib, sys, time
 PY
 createdb "$restore_db"
 restore_created=true
-pg_restore --exit-on-error --single-transaction --dbname="$restore_db" "$artifacts/database.dump"
+# Newer pg_restore clients emit settings (e.g. transaction_timeout) unknown to
+# older servers; drop them so the drill works across client/server versions.
+pg_restore --file=- "$artifacts/database.dump" \
+    | sed '/^SET transaction_timeout = /d' \
+    | psql -X -q -v ON_ERROR_STOP=1 --single-transaction -d "$restore_db" >/dev/null
 cp -R "$artifacts/object-backup" "$artifacts/restored-objects"
 # Prove that restore really brought back the now-deleted rows before replay.
 psql -X -v ON_ERROR_STOP=1 -d "$restore_db" <<'SQL' >/dev/null
