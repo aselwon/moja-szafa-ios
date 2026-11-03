@@ -7,7 +7,7 @@ DO $$
 DECLARE a uuid := '00000000-0000-0000-0000-000000000081';
     b uuid := '00000000-0000-0000-0000-000000000082';
     g uuid := gen_random_uuid(); outfit uuid := gen_random_uuid(); wear uuid := gen_random_uuid();
-    op uuid := gen_random_uuid(); image uuid := gen_random_uuid(); req jsonb; first jsonb; snapshot jsonb;
+    op uuid := gen_random_uuid(); image uuid := gen_random_uuid(); req jsonb; first jsonb; snap jsonb;
 BEGIN
     INSERT INTO app.garments(id,user_id,name,category,price_grosz,archived_at)
     VALUES(g,a,'Archived export garment','top',9223372036854775807,now());
@@ -25,15 +25,15 @@ BEGIN
     PERFORM pg_temp.check_export(app.exports_command(req || '{"action":"prepare"}') = first);
     PERFORM pg_temp.check_export(app.exports_command(req || jsonb_build_object('action','read','owner',b)) = 'null');
     PERFORM pg_temp.check_export(app.exports_command(req || jsonb_build_object('action','prepare','owner',b)) = 'null');
-    snapshot := app.exports_command(req || '{"action":"read"}')->'snapshot';
-    PERFORM pg_temp.check_export(jsonb_array_length(snapshot->'garments') = 1);
-    PERFORM pg_temp.check_export(snapshot->'garments'->0->>'price_grosz' = '9223372036854775807');
-    PERFORM pg_temp.check_export(snapshot->'wear_events'->0->>'worn_on' = '2020-01-02');
-    PERFORM pg_temp.check_export(snapshot->'wear_event_items'->0->>'garment_id' = g::text);
-    PERFORM pg_temp.check_export(snapshot->'planned_outfits'->0->>'planned_on' = '2030-01-01');
-    PERFORM pg_temp.check_export(NOT snapshot ?| ARRAY['operator_audit','auth','sync_operations','ai_jobs']);
+    snap := app.exports_command(req || '{"action":"read"}')->'snapshot';
+    PERFORM pg_temp.check_export(jsonb_array_length(snap->'garments') = 1);
+    PERFORM pg_temp.check_export(snap->'garments'->0->>'price_grosz' = '9223372036854775807');
+    PERFORM pg_temp.check_export(snap->'wear_events'->0->>'worn_on' = '2020-01-02');
+    PERFORM pg_temp.check_export(snap->'wear_event_items'->0->>'garment_id' = g::text);
+    PERFORM pg_temp.check_export(snap->'planned_outfits'->0->>'planned_on' = '2030-01-01');
+    PERFORM pg_temp.check_export(NOT snap ?| ARRAY['operator_audit','auth','sync_operations','ai_jobs']);
     UPDATE app.garments SET price_grosz = 0 WHERE id = g;
-    PERFORM pg_temp.check_export(app.exports_command(req || '{"action":"read"}')->'snapshot' = snapshot);
+    PERFORM pg_temp.check_export(app.exports_command(req || '{"action":"read"}')->'snapshot' = snap);
     PERFORM pg_temp.check_export(app.exports_command(req || jsonb_build_object('action','image','image',image,'key','private-key')) = 'true');
     PERFORM pg_temp.check_export(app.exports_command(req || jsonb_build_object('action','image','image',image,'key','wrong-key')) = 'false');
     UPDATE app.garments SET deleted_at = now() WHERE id = g;
