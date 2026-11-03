@@ -65,8 +65,8 @@ struct GarmentFormView: View {
                         do {
                             let details = try form.validated()
                             if save(details) { dismiss() } else { error = "import.storageFailed" }
-                        } catch GarmentFormError.price { error = "garment.invalidPrice" }
-                        catch { error = "garment.invalidFields" }
+                        } catch GarmentFormError.price { self.error = "garment.invalidPrice" }
+                        catch { self.error = "garment.invalidFields" }
                     }
                 }
             }
