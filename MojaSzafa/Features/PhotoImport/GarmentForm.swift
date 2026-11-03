@@ -160,17 +160,41 @@ struct GarmentFormView: View {
     @State private var input: GarmentFormInput
     @State private var error: String?
     @Environment(\.dismiss) private var dismiss
+    @State private var duplicates: DuplicatePhotoReview?
+    private let duplicateReview: (() async -> DuplicatePhotoReview)?
     private let save: (GarmentFormValue) throws -> Void
 
     init(value: GarmentFormValue?, suggestions: GarmentSuggestions? = nil,
+         duplicateReview: (() async -> DuplicatePhotoReview)? = nil,
          save: @escaping (GarmentFormValue) throws -> Void) {
         _input = State(initialValue: GarmentFormInput(value: value, suggestions: suggestions))
         self.save = save
+        self.duplicateReview = duplicateReview
     }
 
     var body: some View {
         NavigationStack {
             Form {
+                if duplicateReview != nil {
+                    Section("duplicate.title") {
+                        if let duplicates {
+                            if duplicates.incomplete { Text("duplicate.incomplete") }
+                            if !duplicates.matches.isEmpty {
+                                Text("duplicate.explanation")
+                                ForEach(duplicates.matches) { match in
+                                    VStack(alignment: .leading) {
+                                        if let name = match.name { Text(name).font(.headline) }
+                                        if let image = UIImage(data: match.image) {
+                                            Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 160)
+                                                .accessibilityLabel(Text("duplicate.preview"))
+                                        }
+                                    }
+                                }
+                            } else if !duplicates.incomplete { Text("duplicate.none") }
+                        } else { ProgressView("duplicate.checking") }
+                    }
+                }
+
                 Section {
                     Text("garment.draftExplanation")
                     TextField("garment.name", text: $input.name)
@@ -212,7 +236,7 @@ struct GarmentFormView: View {
                 }
                 Section {
                     if let error { Text(LocalizedStringKey(error)).foregroundStyle(Color("danger")) }
-                    Button("garment.save") {
+                    Button(LocalizedStringKey(duplicates?.matches.isEmpty == false ? "duplicate.keepBoth" : "garment.save")) {
                         do { try save(input.validated()); dismiss() }
                         catch let validation as GarmentFormInput.Validation { self.error = validation.rawValue }
                         catch { self.error = "import.storageFailed" }
@@ -222,6 +246,12 @@ struct GarmentFormView: View {
             .navigationTitle("garment.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("common.cancel") { dismiss() } }
+            }
+        }
+        .task {
+            if let duplicateReview {
+                let result = await duplicateReview()
+                if !Task.isCancelled { duplicates = result }
             }
         }
         .interactiveDismissDisabled()

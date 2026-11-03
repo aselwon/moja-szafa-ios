@@ -6253,6 +6253,132 @@
           }
         }
       }
+    },
+    "duplicate.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podobne rzeczy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Similar items"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdzanie podobnych zdjęć…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking for similar photos…"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.incomplete": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się sprawdzić wszystkich zdjęć. Możesz zapisać rzecz i spróbować ponownie później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some photos could not be checked. You can save the item and try again later."
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź te podobne zdjęcia (do 5 wyników). To może być inny egzemplarz. Niczego nie scalamy — możesz zachować obie rzeczy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review these similar photos (up to 5 matches). This may be another copy. Nothing is merged — you can keep both items."
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie potencjalnie podobnej rzeczy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo of a potentially similar item"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie znaleziono podobnych zdjęć."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No similar photos found."
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.keepBoth": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz jako osobny egzemplarz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as a separate item"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
     }
   },
   "version": "1.0"
