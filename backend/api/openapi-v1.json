@@ -441,6 +441,132 @@
         },
         "description": "Owner-scoped read. Browse offsets are not a snapshot: refresh after changes; ties use UUID. Search is a literal case-insensitive name/brand substring. Images use T011 authenticated thumbnail URLs on demand. History contains distinct recorded calendar days, excluding plans and estimates."
       }
+    },
+    "/rest/v1/rpc/api_v1_save_outfit": {
+      "post": {
+        "operationId": "api_v1_save_outfit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/SaveOutfit"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application success OR structured domain error; inspect error before data. Replay returns original response including request_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OutfitSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Gateway or infrastructure HTTP failure; may not contain application JSON. Preserve X-Request-ID if present."
+          }
+        },
+        "summary": "Save manual outfit atomically with replay and version checking"
+      }
+    },
+    "/rest/v1/rpc/api_v1_list_outfits": {
+      "post": {
+        "operationId": "api_v1_list_outfits",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/PageRequest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application success OR structured domain error; inspect error before data. Replay returns original response including request_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OutfitPageSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Gateway or infrastructure HTTP failure; may not contain application JSON. Preserve X-Request-ID if present."
+          }
+        },
+        "summary": "List owner outfits with current garment metadata"
+      }
     }
   },
   "components": {
@@ -1244,6 +1370,142 @@
           "data",
           "request_id"
         ]
+      },
+      "Outfit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "name",
+          "favorite",
+          "garments"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "garments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WardrobeItem"
+            }
+          }
+        }
+      },
+      "SaveOutfit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operationID",
+          "id",
+          "baseVersion",
+          "name",
+          "favorite",
+          "garmentIDs"
+        ],
+        "properties": {
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "0 creates; positive values must match current version."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "garmentIDs": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "OutfitPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Outfit"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "OutfitSuccess": {
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Outfit"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "OutfitPageSuccess": {
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OutfitPage"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
       }
     }
   }

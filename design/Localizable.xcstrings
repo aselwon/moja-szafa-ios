@@ -6481,6 +6481,261 @@
         }
       },
       "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "outfits.new": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowy zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.new"
+    },
+    "outfits.edit": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.edit"
+    },
+    "outfits.name": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outfit name"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.name"
+    },
+    "outfits.favorite": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulubiony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.favorite"
+    },
+    "outfits.favoritesOnly": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tylko ulubione"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites only"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.favoritesOnly"
+    },
+    "outfits.empty": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utwórz pierwszy zestaw ze swoich ubrań."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create your first outfit from your clothes."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.empty"
+    },
+    "outfits.archived": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubranie w archiwum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archived garment"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.archived"
+    },
+    "outfits.history": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edycja zestawu nie zmienia historii noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editing an outfit does not change wear history."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.history"
+    },
+    "outfits.choose": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz ubrania (maks. 100)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose garments (up to 100)"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.choose"
+    },
+    "outfits.remove": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń z zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.remove"
+    },
+    "outfits.save": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.save"
+    },
+    "outfits.cancel": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anuluj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.cancel"
+    },
+    "outfits.offline": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Zachowano edycję. Spróbuj ponownie po odzyskaniu sieci."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection unavailable. Your edit is retained. Retry when online."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.offline"
+    },
+    "outfits.pending": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapis niepotwierdzony. Ponów tę samą operację przed dalszą edycją."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save unconfirmed. Retry the same operation before editing further."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.pending"
+    },
+    "outfits.conflict": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestaw zmienił się na innym urządzeniu. Anuluj edycję i odśwież listę."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The outfit changed on another device. Cancel editing and refresh the list."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.conflict"
     }
   },
   "version": "1.0"

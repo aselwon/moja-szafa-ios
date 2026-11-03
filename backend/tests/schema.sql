@@ -19,7 +19,7 @@ CREATE FUNCTION pg_temp.uid(n integer) RETURNS uuid LANGUAGE sql IMMUTABLE AS $$
     SELECT lpad(n::text, 32, '0')::uuid
 $$;
 SELECT pg_temp.assert_true((SELECT count(*) = 22 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'app' AND c.relkind = 'r' AND c.relrowsecurity AND c.relforcerowsecurity), '22 tables must enforce RLS');
-SELECT pg_temp.assert_true((SELECT count(*) = 11 FROM migration_meta.versions), 'all eleven available migrations recorded');
+SELECT pg_temp.assert_true((SELECT count(*) = 13 FROM migration_meta.versions), 'all thirteen available migrations recorded');
 INSERT INTO auth.users VALUES (pg_temp.uid(101)), (pg_temp.uid(102));
 INSERT INTO app.profiles (id, user_id) VALUES (pg_temp.uid(101),pg_temp.uid(101)), (pg_temp.uid(102),pg_temp.uid(102));
 INSERT INTO app.garments (id, user_id, name, category, price_grosz) VALUES
