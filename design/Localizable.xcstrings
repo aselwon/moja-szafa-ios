@@ -2503,8 +2503,6 @@
       }
     },
     "export.title": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -2515,13 +2513,14 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Data export"
+            "value": "Export data"
           }
         }
-      }
+      },
+      "comment": "T016 account data export: title"
     },
     "export.prepare": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T016 account data export: prepare",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -2539,25 +2538,24 @@
       }
     },
     "export.download": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pobierz eksport"
+            "value": "Pobierz archiwum"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Download export"
+            "value": "Download archive"
           }
         }
-      }
+      },
+      "comment": "T016 account data export: download"
     },
     "export.working": {
-      "comment": "T003: export; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T016 account data export: working",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -4626,6 +4624,176 @@
         }
       },
       "comment": "T020 photo editor: Could not prepare the photo. Try again or return to import."
+    },
+    "export.description": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamów prywatne archiwum TAR z danymi JSON i zdjęciami. Pobieranie jest dostępne przez 15 minut i wymaga zalogowania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request a private TAR archive containing JSON data and photos. Download is available for 15 minutes and requires sign-in."
+          }
+        }
+      },
+      "comment": "T016 account data export: description"
+    },
+    "export.synced": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport obejmuje dane zapisane na serwerze. Najpierw zsynchronizuj zmiany offline. Lokalne preferencje profilu i niezapisane szkice nie są częścią tego archiwum."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The export includes data saved on the server. Sync offline changes first. Device-local profile preferences and unsaved drafts are not part of this archive."
+          }
+        }
+      },
+      "comment": "T016 account data export: synced"
+    },
+    "export.copies": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisane przez Ciebie kopie nie wygasają automatycznie. Zachowaj je w bezpiecznym miejscu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copies you save do not expire automatically. Keep them in a safe place."
+          }
+        }
+      },
+      "comment": "T016 account data export: copies"
+    },
+    "export.expires": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępny do"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available until"
+          }
+        }
+      },
+      "comment": "T016 account data export: expires"
+    },
+    "export.save": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz lub udostępnij archiwum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save or share archive"
+          }
+        }
+      },
+      "comment": "T016 account data export: save"
+    },
+    "export.request": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamów eksport"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request export"
+          }
+        }
+      },
+      "comment": "T016 account data export: request"
+    },
+    "export.new": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpocznij nowy eksport"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a new export"
+          }
+        }
+      },
+      "comment": "T016 account data export: new"
+    },
+    "export.unconfigured": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport wymaga skonfigurowanego serwera."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export requires a configured server."
+          }
+        }
+      },
+      "comment": "T016 account data export: unconfigured"
+    },
+    "export.error": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się ukończyć eksportu. Sprawdź połączenie i ponów próbę. Po wygaśnięciu rozpocznij nowy eksport. Nowy eksport można zamówić po wygaśnięciu poprzedniego."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export could not be completed. Check your connection and retry. After expiry, start a new export. A new export can be requested once the previous one expires."
+          }
+        }
+      },
+      "comment": "T016 account data export: error"
+    },
+    "export.expired": {
+      "comment": "T016 archive availability has expired",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport wygasł. Rozpocznij nowy eksport, aby pobrać aktualne dane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The export has expired. Start a new export to download current data."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
