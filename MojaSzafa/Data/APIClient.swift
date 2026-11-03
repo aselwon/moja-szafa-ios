@@ -5,7 +5,7 @@ enum APIv1 {
     enum Category: String, Codable, Sendable, CaseIterable {
         case top, bottom, shoes, dress, jumpsuit, outerwear, accessory, other
     }
-    enum Availability: String, Codable, Sendable { case available, laundry, unavailable }
+    enum Availability: String, Codable, Sendable, CaseIterable { case available, laundry, unavailable }
 
     struct GarmentFields: Codable, Sendable, Equatable {
         let name: String
@@ -237,8 +237,61 @@ struct APIClient: Sendable {
     }
 }
 
-struct APIWardrobeRepository: WardrobeRepository {
+actor APIWardrobeRepository: WardrobeRepository {
     let client: APIClient
+    private var pages: [Data: WardrobePage] = [:]
+    private var details: [UUID: GarmentDetail] = [:]
+
+    init(client: APIClient) { self.client = client }
+
+    private func isOffline(_ error: any Error) -> Bool {
+        guard let error = error as? URLError else { return false }
+        return [.notConnectedToInternet, .networkConnectionLost].contains(error.code)
+    }
+    func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage {
+        struct Request: Encodable { let query: WardrobeQuery; let offset: Int; let limit: Int }
+        guard offset >= 0, (1...100).contains(limit), query.search.count <= 200 else { throw APIClientError.invalidRequest }
+        let request = Request(query: query, offset: offset, limit: limit)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        let key = try encoder.encode(request)
+        let page: WardrobePage
+        do {
+            let result: APIv1.Success<WardrobePage> = try await client.call("api_v1_browse_wardrobe", request)
+            page = result.data
+        } catch {
+            // In-memory, account-scoped metadata only. Auth/deletion errors must
+            // never be converted into a cached success.
+            if isOffline(error), var saved = pages[key] { saved.cached = true; return saved }
+            pages.removeAll(); details.removeAll()
+            throw error
+        }
+        guard page.items.count <= limit, Set(page.items.map(\.id)).count == page.items.count,
+              page.nextOffset == nil || (page.items.count == limit && page.nextOffset == offset + limit)
+        else { throw APIClientError.invalidResponse }
+        if pages.count >= 128 { pages.removeAll() }
+        pages[key] = page
+        return page
+    }
+
+    func detail(id: UUID) async throws -> GarmentDetail {
+        struct Request: Encodable { let id: UUID }
+        do {
+            let result: APIv1.Success<GarmentDetail> = try await client.call("api_v1_garment_detail", Request(id: id))
+            guard result.data.garment.id == id else { throw APIClientError.invalidResponse }
+            if details.count >= 40 { details.removeAll() }
+            details[id] = result.data
+            return result.data
+        } catch {
+            if isOffline(error), var saved = details[id] { saved.cached = true; return saved }
+            pages.removeAll(); details.removeAll()
+            throw error
+        }
+    }
+
+    func thumbnail(imageID: UUID) async throws -> Data { try await client.wardrobeThumbnail(imageID: imageID) }
+    func original(imageID: UUID) async throws -> Data { try await client.wardrobeImage(imageID: imageID, original: true) }
+
     func garments() async throws -> [Garment] {
         var result: [Garment] = []
         var cursor: UUID?
@@ -260,5 +313,42 @@ extension APIClient {
     var dataExports: DataExportClient {
         DataExportClient(baseURL: baseURL, publicAPIKey: publicAPIKey,
                          accessToken: accessToken, unauthorized: unauthorized)
+    }
+}
+
+// The image gateway requires authentication even on signed URLs. Use only its
+// same-origin relative URL, and never persist tokens or image response bytes.
+extension APIClient {
+    func wardrobeThumbnail(imageID: UUID) async throws -> Data {
+        try await wardrobeImage(imageID: imageID, original: false)
+    }
+
+    func wardrobeImage(imageID: UUID, original: Bool) async throws -> Data {
+        let variant = original ? "original" : "thumbnail"
+        let path = "/v1/images/\(imageID.uuidString.lowercased())/\(variant)"
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
+        func request(_ url: URL, method: String) -> URLRequest {
+            var value = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
+            value.httpMethod = method
+            value.timeoutInterval = 30
+            value.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            return value
+        }
+        let origin = URL(string: "https://\(baseURL.host!)\(baseURL.port.map { ":\($0)" } ?? "")")!
+        let (data, response) = try await transport.send(request(origin.appendingPathComponent(path + "/url"), method: "POST"))
+        if response.statusCode == 401 { await unauthorized(token) }
+        guard response.statusCode == 200 else { throw APIClientError.http(status: response.statusCode, requestID: nil) }
+        struct Link: Decodable { let url: String }
+        let link = try JSONDecoder().decode(Link.self, from: data)
+        guard let components = URLComponents(string: link.url), components.scheme == nil, components.host == nil,
+              components.path == path, components.fragment == nil,
+              let url = URL(string: link.url, relativeTo: origin)?.absoluteURL else { throw APIClientError.invalidResponse }
+        let (bytes, imageResponse) = try await transport.send(request(url, method: "GET"))
+        if imageResponse.statusCode == 401 { await unauthorized(token) }
+        guard imageResponse.statusCode == 200, imageResponse.mimeType == "image/jpeg", bytes.count <= (original ? 12 * 1_048_576 : 1_048_576)
+        else { throw APIClientError.invalidResponse }
+        try Task.checkCancellation()
+        return bytes
     }
 }

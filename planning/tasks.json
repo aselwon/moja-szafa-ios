@@ -539,7 +539,7 @@
         "T012"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "review",
       "epicId": "E04",
       "priority": 2,
       "milestone": "App Store 1.0",

@@ -105,3 +105,59 @@ Verification provided in repository:
 This Linux sandbox has no Xcode/Swift or PostgreSQL tools. The harness check can
 run here, but Swift/SQL runtime tests and the staging HTTP fault injection remain
 unverified until the existing macOS/PostgreSQL CI jobs and authorized staging run.
+
+## T022 wardrobe read surface
+
+Migration `011_wardrobe_browse.sql` adds `api_v1_browse_wardrobe` and
+`api_v1_garment_detail`; request/response schemas are in `backend/api/openapi-v1.json`.
+Browse applies owner, archive, category, availability and literal name/brand search
+before pagination. Sort supports name ascending/descending and price ascending
+(unknown last), with UUID tie-breaking. The UI requests 40 metadata records per
+page; the server caps requests at 100. Offsets are not a consistent snapshot:
+concurrent inserts/edits may move boundaries. The client deduplicates IDs; pull to
+refresh restarts pagination. Local sorting uses the device locale; server sorting
+uses the database collation, so their ordering may differ.
+
+Only an image operation UUID is returned. Visible cards request authenticated
+T011 thumbnail capabilities, restricted to the same origin and exact variant path.
+No storage keys, signed URLs or image bytes are persisted by the feature. Detail
+fetches a full normalized photograph only after its explicit toggle is enabled.
+The existing image pipeline does not publish a cleaned variant; this change does
+not invent one. Detail history reads distinct `worn_on` dates from historical
+`wear_event_items`, excluding tombstones, plans and estimated prior wears.
+
+API repositories retain bounded, account-instance-scoped metadata in memory for
+previously visited pages/details. Only connection-loss errors can use that cache;
+auth, deletion and other errors clear it. Relaunch without a durable offline store
+has no API cache. The T012 OfflineStore composition remains durable and refreshes
+its metadata snapshot on the first page only. Migration 011 adds optional display
+metadata (including image IDs and archive state) to sync records without changing
+outbox writes. Older local snapshots remain readable and gain these fields after
+sync. Photos are fetched on demand and unavailable while offline; the local-data
+banner states that details/photos may be missing. The live composition
+remains explicitly unconfigured pending the existing backend provisioning gate.
+
+Verification for T022:
+
+- Run `node scripts/harness-check.mjs` (with the harness Node PATH). This checks
+  contracts, source membership, localization and existing offline backend tests;
+  it is not an iOS or PostgreSQL runtime test.
+- Run existing macOS CI in Debug/Staging/Release, including `WardrobeTests` and
+  `ArchitectureTests`. Tests cover 1,000 items, bounded pages/no image fetching,
+  filter-before-page, unknown/zero price, stale async responses, page retry,
+  offline distinct wear days and foreign image URL rejection.
+- Run `bash backend/tests/run-tests.sh` against disposable PostgreSQL 15 databases.
+  `wardrobe.sql` checks all 1,000 owner records exactly once, filters, sorting,
+  bounded responses, history/undo and cross-account/deleted-account denial.
+- With an authorized configured gateway, seed 1,000 synthetic clothes and ready
+  T011 images. Inspect requests while opening/scrolling/loading more: 40 metadata
+  records per page, only visible thumbnail requests, no original requests until
+  toggling the selected full photo. Record memory/network measurements on iPhone.
+- Exercise PL/EN, light/dark, largest Dynamic Type and VoiceOver; verify filters,
+  navigation back, empty states and retries. Disconnect after visiting pages and
+  detail: cached metadata must be labelled, unseen pages must fail explicitly.
+  Relaunch a configured T012 store offline and verify its durable basic metadata
+  and history. Check a second account cannot see the first account's data.
+
+No deployed gateway, screenshots, physical-device measurement, PostgreSQL runtime
+result or macOS build is claimed by the Linux harness result.

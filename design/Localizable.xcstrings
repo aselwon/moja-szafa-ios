@@ -883,7 +883,7 @@
       }
     },
     "wardrobe.empty": {
-      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T022: wardrobe browsing, filters, details and offline state.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -901,7 +901,7 @@
       }
     },
     "wardrobe.add": {
-      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T022: wardrobe browsing, filters, details and offline state.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -919,22 +919,22 @@
       }
     },
     "wardrobe.noResults": {
-      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Brak rzeczy pasujących do tych filtrów."
+            "value": "Brak pasujących ubrań. Dodaj rzecz lub zmień filtry."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No items match these filters."
+            "value": "No matching clothes. Add an item or change filters."
           }
         }
-      }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
     },
     "garment.category": {
       "extractionState": "manual",
@@ -2645,7 +2645,7 @@
       }
     },
     "wardrobe.count": {
-      "comment": "Liczba całkowita nieujemna Int64. Pełny tekst; nie doklejać jednostki.",
+      "comment": "T022: wardrobe browsing, filters, details and offline state.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -5893,6 +5893,366 @@
         }
       },
       "comment": "Garment recognition draft review and manual correction."
+    },
+    "wardrobe.cached": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dane lokalne — mogą być nieaktualne. Zdjęcia i rozszerzone szczegóły mogą być niedostępne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local data — may be out of date. Photos and extended details may be unavailable."
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż więcej"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show more"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.search": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szukaj po nazwie lub marce"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by name or brand"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.all": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystkie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.availability": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępność"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Availability"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.available": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.laundry": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "W praniu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In laundry"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niedostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortowanie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa rosnąco"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name ascending"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort.nameDescending": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa malejąco"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name descending"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort.price": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena rosnąco — braki na końcu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price ascending — unknown last"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.archived": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż archiwum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show archive"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.noPhoto": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie niedostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo unavailable"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.noPrice": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak ceny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No price"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia noszenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear history"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.historyExplanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unikalne dni z dziennika. Plany i estymacje nie są tu wyświetlane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unique diary days. Plans and estimates are not displayed here."
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.neverWorn": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zapisanych noszeń"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recorded wears"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.detailFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można wczytać szczegółów. Sprawdź połączenie i spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load details. Check your connection and try again."
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.original": {
+      "comment": "T022: Explicit opt-in to download the selected full-size normalized photograph.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wczytaj pełne zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load full photo"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
