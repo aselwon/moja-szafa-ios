@@ -23,6 +23,11 @@ Warunkowy wybór backendu T007, region, model kosztów i trwałość zadań opis
 autoryzacji i wymagane dowody zawiera [procedura staging](docs/operations/T007-staging.md).
 Staging nie został wdrożony; aktualność dokumentacji i kosztów wymaga weryfikacji.
 
+Materiały T018: [pakiet polityk i wsparcia PL/EN](docs/privacy/T018-publication.md)
+zawiera wersje robocze, mapę przepływów danych i warunki publikacji. Publikacja
+pozostaje zablokowana do uzupełnienia danych właściciela, retencji, odbiorców
+i działającego kanału wsparcia; dokumenty nie są gotowe do release.
+
 ## Kontrola zmian
 
 ```sh
