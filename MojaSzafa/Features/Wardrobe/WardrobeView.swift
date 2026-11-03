@@ -97,7 +97,7 @@ struct WardrobeView: View {
 
 /// Bytes live only in the visible view. There is deliberately no URLCache or
 /// automatic original fallback; only the detail toggle requests a full photo.
-private struct WardrobeThumbnail: View {
+struct WardrobeThumbnail: View {
     let imageID: UUID?
     let repository: any WardrobeRepository
     var original = false

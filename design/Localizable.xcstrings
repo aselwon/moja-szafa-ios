@@ -6253,6 +6253,312 @@
           }
         }
       }
+    },
+    "outfits.new": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowy zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New outfit"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.editor": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit outfit"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outfit name"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.favorite": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulubiony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.favoritesOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tylko ulubione"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites only"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zestawów. Utwórz swój pierwszy zestaw."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No outfits here. Create your first outfit."
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.collage": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kolaż"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collage"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz ubrania (maks. 100)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose garments (up to 100)"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.archived": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubranie zarchiwizowane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archived garment"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubranie niedostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garment unavailable"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.removeMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń niedostępny element"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove unavailable item"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.historyUnchanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edycja zestawu nie zmienia historii noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editing an outfit does not change wear history."
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Zachowano edycję; spróbuj ponownie po połączeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection. Your edit is retained; retry when connected."
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać lub wczytać zestawu. Sprawdź nazwę i wybór ubrań."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save or load the outfit. Check its name and selected garments."
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.conflict": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestaw został zmieniony. Zamknij edytor, odśwież listę i ponów edycję."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The outfit changed. Close the editor, refresh the list and edit again."
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.retryPending": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wynik zapisu jest nieznany. Ponów zapis przed kolejną edycją."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save result is unknown. Retry this save before making another edit."
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
+    },
+    "outfits.resume": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponów niezakończony zapis"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume pending save"
+          }
+        }
+      },
+      "comment": "T026: manual outfit creator and saved collection UI."
     }
   },
   "version": "1.0"
