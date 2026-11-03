@@ -80,7 +80,7 @@ struct SyncGarment: Codable, Sendable {
     }
 }
 
-struct SyncWear: Codable, Sendable {
+struct SyncWear: Codable, Equatable, Identifiable, Sendable {
     let id: UUID
     let version: Int64
     let deleted: Bool
@@ -89,7 +89,7 @@ struct SyncWear: Codable, Sendable {
     let garmentIDs: [UUID]
 
     func validate(now: Date = Date()) throws {
-        guard let zone = TimeZone(identifier: timezone), !garmentIDs.isEmpty,
+        guard version >= 0, !deleted, let zone = TimeZone(identifier: timezone), !garmentIDs.isEmpty,
               garmentIDs.count <= 100, Set(garmentIDs).count == garmentIDs.count else { throw APIClientError.invalidRequest }
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -139,7 +139,7 @@ extension APIClient: OfflineRemote {
     func save(_ operation: SaveWear) async throws -> SyncWear {
         try operation.wear.validate()
         let result: APIv1.Success<SyncWear> = try await call("api_v1_save_wear", operation)
-        guard result.data.id == operation.wear.id, result.data.version > 0 else { throw APIClientError.invalidResponse }
+        guard result.data.id == operation.wear.id, result.data.version > operation.wear.version else { throw APIClientError.invalidResponse }
         return result.data
     }
 }
@@ -253,19 +253,71 @@ actor OfflineStore: WardrobeRepository {
     }
 
     @discardableResult
-    func recordWear(wornOn: String, timezone: String, garmentIDs: [UUID]) throws -> UUID {
+    func recordWear(id: UUID = UUID(), wornOn: String, timezone: String, garmentIDs: [UUID]) throws -> UUID {
         try requireActive()
-        let wear = SyncWear(id: UUID(), version: 0, deleted: false, wornOn: wornOn, timezone: timezone, garmentIDs: garmentIDs)
+        if let existing = state.wears.first(where: { $0.id == id }) {
+            guard !existing.deleted, existing.wornOn == wornOn, existing.timezone == timezone,
+                  existing.garmentIDs == garmentIDs else { throw OfflineError.conflict }
+            return id
+        }
+        try saveWear(SyncWear(id: id, version: 0, deleted: false, wornOn: wornOn, timezone: timezone, garmentIDs: garmentIDs))
+        return id
+    }
+
+    /// The editor retains the version it opened, so a sync during editing cannot
+    /// silently overwrite a newer event. An in-flight intent is immutable.
+    func editWear(_ wear: SyncWear) throws {
+        try requireActive()
+        guard let old = state.wears.first(where: { $0.id == wear.id }),
+              !old.deleted, old.version == wear.version else { throw OfflineError.conflict }
+        try saveWear(wear)
+    }
+
+    private func saveWear(_ wear: SyncWear) throws {
         try wear.validate()
-        guard garmentIDs.allSatisfy({ id in state.garments.contains { $0.id == id && !$0.deleted } }) else {
+        guard wear.garmentIDs.allSatisfy({ id in state.garments.contains { $0.id == id && !$0.deleted } }) else {
             throw APIClientError.invalidRequest
         }
-        let operation = SaveWear(operationID: UUID(), wear: wear)
+        let queued = state.outbox.first { $0.wear?.wear.id == wear.id }
+        guard queued?.sent != true else { throw OfflineError.pendingChange }
+        let operation = SaveWear(operationID: queued?.id ?? UUID(), wear: wear)
         var next = state
+        next.wears.removeAll { $0.id == wear.id }
         next.wears.append(wear)
+        next.outbox.removeAll { $0.id == operation.operationID }
         next.outbox.append(Pending(id: operation.operationID, garment: nil, wear: operation))
         try commit(next)
-        return wear.id
+    }
+
+    /// Resolve only definitive conflicts, never discard an ambiguous timeout.
+    func resolveWear(id: UUID, keepLocal: Bool) async throws {
+        try requireActive()
+        guard !syncing else { throw OfflineError.pendingChange }
+        guard let pending = state.outbox.first(where: { $0.wear?.wear.id == id }),
+              let failure = pending.failure, ["version_conflict", "validation_failed"].contains(failure),
+              let local = pending.wear?.wear else { throw OfflineError.invalidState }
+        guard !keepLocal || failure == "version_conflict" else { throw OfflineError.conflict }
+        syncing = true
+        defer { syncing = false }
+        let snapshot: SyncSnapshot
+        do { snapshot = try await remote.snapshot() }
+        catch { try handleAccount(error); throw error }
+        try requireActive()
+        guard snapshot.accountID == state.accountID else { throw OfflineError.accountMismatch }
+        let server = snapshot.wears.first(where: { $0.id == id })
+        var next = state
+        next.outbox.removeAll { $0.id == pending.id }
+        next.wears.removeAll { $0.id == id }
+        if keepLocal {
+            guard let server, !server.deleted else { throw OfflineError.conflict }
+            let replacement = SyncWear(id: id, version: server.version, deleted: false,
+                wornOn: local.wornOn, timezone: local.timezone, garmentIDs: local.garmentIDs)
+            try replacement.validate()
+            let operation = SaveWear(operationID: UUID(), wear: replacement)
+            next.wears.append(replacement)
+            next.outbox.append(Pending(id: operation.operationID, garment: nil, wear: operation))
+        } else if let server { next.wears.append(server) }
+        try commit(next)
     }
 
     /// Count local calendar days, never events or current outfit membership.
@@ -394,6 +446,12 @@ actor OfflineStore: WardrobeRepository {
         }
         for wear in snapshot.wears {
             guard wear.version > 0 else { throw APIClientError.invalidResponse }
+            if let pending = next.outbox.firstIndex(where: { $0.wear?.wear.id == wear.id }) {
+                if wear.deleted {
+                    next.outbox[pending].failure = "version_conflict"
+                    next.outbox[pending].sent = true
+                } else { continue }
+            }
             next.wears.removeAll { $0.id == wear.id }
             next.wears.append(wear)
         }

@@ -79,6 +79,115 @@ final class OfflineStoreTests: XCTestCase {
         XCTAssertEqual(counts, [1, 1])
     }
 
+    func testWearEditSurvivesRestartAndTimeoutWithoutDuplicateDays() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let shirt = try await store.saveGarment(fields: fields)
+        let shoes = try await store.saveGarment(fields: fields)
+        let first = try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [shirt])
+        try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [shirt, shoes])
+        try await store.synchronize()
+        let edited = SyncWear(id: first, version: 1, deleted: false, wornOn: "2026-01-02",
+                              timezone: "Europe/Warsaw", garmentIDs: [shoes])
+        try await store.editWear(edited)
+        let local = await store.status()
+        XCTAssertEqual(local.wears.first { $0.id == first }, edited)
+        let restored = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        await remote.timeoutNextWear()
+        do { try await restored.synchronize(); XCTFail("Expected timeout") } catch is URLError {}
+        let pending = await restored.status()
+        XCTAssertEqual(pending.wears.first { $0.id == first }, edited, "Pull must not erase a pending edit")
+        do { try await restored.editWear(edited); XCTFail("In-flight intent is immutable") }
+        catch { XCTAssertEqual(error as? OfflineError, .pendingChange) }
+        try await restored.synchronize(now: .distantFuture)
+        let saved = await restored.status()
+        XCTAssertTrue(saved.outbox.isEmpty)
+        XCTAssertEqual(saved.wears.count, 2)
+        XCTAssertEqual(saved.wears.first { $0.id == first }?.version, 2)
+        let shirtDays = await restored.wearDays(for: shirt)
+        let shoeDays = await restored.wearDays(for: shoes)
+        XCTAssertEqual(shirtDays, 1, "Other event still contributes the shared day")
+        XCTAssertEqual(shoeDays, 2)
+        let requests = await remote.wearRequests
+        XCTAssertEqual(requests.suffix(2).first, requests.last, "Retry must preserve the exact payload")
+    }
+
+    func testWearConflictResolutionAndTombstone() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let garment = try await store.saveGarment(fields: fields)
+        let id = try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [garment])
+        try await store.synchronize()
+        let edit = SyncWear(id: id, version: 1, deleted: false, wornOn: "2026-01-02", timezone: "Europe/Warsaw", garmentIDs: [garment])
+        try await store.editWear(edit)
+        await remote.changeWear(id: id, deleted: false)
+        do { try await store.synchronize(); XCTFail("Stale version") } catch is APIv1.Failure {}
+        let conflicted = await store.status()
+        XCTAssertEqual(conflicted.outbox.first?.failure, "version_conflict")
+        try await store.resolveWear(id: id, keepLocal: true)
+        let resolved = await store.status()
+        XCTAssertNotEqual(resolved.outbox.first?.id, conflicted.outbox.first?.id)
+        XCTAssertEqual(resolved.wears.first?.version, 2)
+        try await store.synchronize()
+        let current = await store.status().wears[0]
+        try await store.editWear(current)
+        await remote.changeWear(id: id, deleted: true)
+        try await store.synchronize()
+        let tombstone = await store.status()
+        XCTAssertEqual(tombstone.wears.first?.deleted, true)
+        do { try await store.resolveWear(id: id, keepLocal: true); XCTFail("Cannot revive tombstone") }
+        catch { XCTAssertEqual(error as? OfflineError, .conflict) }
+        try await store.resolveWear(id: id, keepLocal: false)
+        let accepted = await store.status()
+        XCTAssertTrue(accepted.outbox.isEmpty)
+    }
+
+    func testWearInvalidEditAndDiskFailureAreAtomic() async throws {
+        let db = database()
+        let directory = db.url.deletingLastPathComponent()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let garment = try await store.saveGarment(fields: fields)
+        let id = UUID()
+        try await store.recordWear(id: id, wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [garment])
+        try await store.recordWear(id: id, wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [garment])
+        let before = await store.status()
+        XCTAssertEqual(before.wears.count, 1)
+        for (day, ids) in [("2999-01-01", [garment]), ("2026-02-30", [garment]), ("2026-01-02", [UUID()])] {
+            do {
+                try await store.editWear(SyncWear(id: id, version: 0, deleted: false, wornOn: day,
+                                                  timezone: "Europe/Warsaw", garmentIDs: ids))
+                XCTFail("Invalid edit")
+            } catch { XCTAssertEqual(error as? APIClientError, .invalidRequest) }
+        }
+        try FileManager.default.removeItem(at: directory)
+        try Data().write(to: directory)
+        do {
+            try await store.editWear(SyncWear(id: id, version: 0, deleted: false, wornOn: "2026-01-02",
+                                              timezone: "Europe/Warsaw", garmentIDs: [garment]))
+            XCTFail("Expected storage failure")
+        } catch { }
+        let after = await store.status()
+        XCTAssertEqual(after.wears, before.wears)
+        XCTAssertEqual(after.outbox.map(\.id), before.outbox.map(\.id))
+    }
+
+    func testWearDateValidationUsesRecordedTimezone() throws {
+        let instant = ISO8601DateFormatter().date(from: "2026-01-01T12:30:00Z")!
+        let id = UUID()
+        let eastern = SyncWear(id: UUID(), version: 0, deleted: false, wornOn: "2026-01-02",
+                               timezone: "Pacific/Kiritimati", garmentIDs: [id])
+        XCTAssertNoThrow(try eastern.validate(now: instant))
+        let western = SyncWear(id: eastern.id, version: 0, deleted: false, wornOn: eastern.wornOn,
+                               timezone: "Pacific/Honolulu", garmentIDs: [id])
+        XCTAssertThrowsError(try western.validate(now: instant))
+    }
+
     func testConflictRequiresExplicitResolutionAndTombstoneWins() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
@@ -184,6 +293,8 @@ private actor SyncTestRemote: OfflineRemote {
     private var wears: [SyncWear] = []
     private var replay: [UUID: APIv1.GarmentDTO] = [:]
     private var timeout = false
+    private var wearReplay: [UUID: SyncWear] = [:]
+    private(set) var wearRequests: [Data] = []
     private var wearTimeout = false
     private var deleted = false
     private(set) var requests: [Data] = []
@@ -215,11 +326,24 @@ private actor SyncTestRemote: OfflineRemote {
         if timeout { timeout = false; throw URLError(.timedOut) }
         return dto
     }
+    func changeWear(id: UUID, deleted: Bool) {
+        let old = wears.first { $0.id == id }!
+        wears.removeAll { $0.id == id }
+        wears.append(SyncWear(id: id, version: old.version + 1, deleted: deleted,
+            wornOn: old.wornOn, timezone: old.timezone, garmentIDs: old.garmentIDs))
+    }
     func save(_ operation: SaveWear) throws -> SyncWear {
-        if let existing = wears.first(where: { $0.id == operation.wear.id }) { return existing }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        wearRequests.append(try encoder.encode(operation))
+        if let existing = wearReplay[operation.operationID] { return existing }
         let input = operation.wear
-        let wear = SyncWear(id: input.id, version: 1, deleted: false, wornOn: input.wornOn, timezone: input.timezone, garmentIDs: input.garmentIDs)
+        let old = wears.first { $0.id == input.id }
+        guard (old?.version ?? 0) == input.version, old?.deleted != true else { throw failure("version_conflict") }
+        let wear = SyncWear(id: input.id, version: input.version + 1, deleted: false, wornOn: input.wornOn, timezone: input.timezone, garmentIDs: input.garmentIDs)
+        wears.removeAll { $0.id == wear.id }
         wears.append(wear)
+        wearReplay[operation.operationID] = wear
         if wearTimeout { wearTimeout = false; throw URLError(.timedOut) }
         return wear
     }

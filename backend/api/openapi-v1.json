@@ -949,7 +949,9 @@
               {
                 "properties": {
                   "version": {
-                    "const": 0
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Expected event version; 0 creates, positive values edit. Stale versions and tombstones return version_conflict."
                   },
                   "deleted": {
                     "const": false
