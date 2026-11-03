@@ -12,9 +12,10 @@ enum APIv1 {
         let category: Category
         let priceGrosz: Int64?
         let availability: Availability
+        var archived: Bool? = nil
 
         enum CodingKeys: String, CodingKey {
-            case name, category, availability
+            case name, category, availability, archived
             case priceGrosz = "price_grosz"
         }
         func validate() throws {
@@ -28,6 +29,7 @@ enum APIv1 {
             try c.encode(category, forKey: .category)
             try c.encode(priceGrosz, forKey: .priceGrosz)
             try c.encode(availability, forKey: .availability)
+            try c.encodeIfPresent(archived, forKey: .archived)
         }
     }
     struct GarmentDTO: Decodable, Sendable, Equatable {
@@ -37,8 +39,9 @@ enum APIv1 {
         let category: Category
         let priceGrosz: Int64?
         let availability: Availability
+        var archived: Bool? = nil
         enum CodingKeys: String, CodingKey {
-            case id, version, name, category, availability
+            case id, version, name, category, availability, archived
             case priceGrosz = "price_grosz"
         }
         func validate() throws {
@@ -241,6 +244,7 @@ actor APIWardrobeRepository: WardrobeRepository {
     let client: APIClient
     private var pages: [Data: WardrobePage] = [:]
     private var details: [UUID: GarmentDetail] = [:]
+    private var pendingStatus: [UUID: APIv1.SaveGarment] = [:]
 
     init(client: APIClient) { self.client = client }
 
@@ -289,6 +293,34 @@ actor APIWardrobeRepository: WardrobeRepository {
         }
     }
 
+    func updateStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
+        let operation: APIv1.SaveGarment
+        if let pending = pendingStatus[id] {
+            guard pending.garment.availability == availability, pending.garment.archived == archived else {
+                throw OfflineError.pendingChange
+            }
+            operation = pending
+        } else {
+            let current = try await detail(id: id).garment
+            guard let version = current.version else { throw APIClientError.invalidResponse }
+            operation = APIv1.SaveGarment(operationID: UUID(), garmentID: id, baseVersion: version,
+                garment: APIv1.GarmentFields(name: current.name, category: current.category,
+                    priceGrosz: current.priceGrosz, availability: availability, archived: archived))
+            pendingStatus[id] = operation
+        }
+        do { _ = try await client.saveGarment(operation) }
+        catch {
+            if let failure = error as? APIv1.Failure,
+               ["version_conflict", "validation_failed", "account_unavailable"].contains(failure.code) {
+                pendingStatus[id] = nil
+            }
+            throw error
+        }
+        pendingStatus[id] = nil
+        pages.removeAll(); details[id] = nil
+        return try await detail(id: id)
+    }
+
     func thumbnail(imageID: UUID) async throws -> Data { try await client.wardrobeThumbnail(imageID: imageID) }
     func original(imageID: UUID) async throws -> Data { try await client.wardrobeImage(imageID: imageID, original: true) }
 
@@ -300,7 +332,9 @@ actor APIWardrobeRepository: WardrobeRepository {
             let page = try await client.garments(cursor: cursor).data
             for dto in page.items {
                 guard seen.insert(dto.id).inserted else { throw APIClientError.invalidResponse }
-                result.append(Garment(id: dto.id, name: dto.name))
+                result.append(Garment(id: dto.id, name: dto.name, category: dto.category,
+                    availability: dto.availability, priceGrosz: dto.priceGrosz,
+                    archived: dto.archived ?? false, version: dto.version))
             }
             cursor = page.nextCursor
         } while cursor != nil

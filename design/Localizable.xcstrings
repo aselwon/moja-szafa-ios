@@ -6253,6 +6253,91 @@
           }
         }
       }
+    },
+    "wardrobe.status": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status ubrania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garment status"
+          }
+        }
+      },
+      "comment": "Garment availability and archive editor; archive preserves history."
+    },
+    "wardrobe.statusExplanation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiwizacja zachowuje historię i cenę. AI używa tylko dostępnych, niearchiwalnych rzeczy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiving preserves history and price. AI uses only available, unarchived items."
+          }
+        }
+      },
+      "comment": "Garment availability and archive editor; archive preserves history."
+    },
+    "wardrobe.saveStatus": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz status"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save status"
+          }
+        }
+      },
+      "comment": "Garment availability and archive editor; archive preserves history."
+    },
+    "wardrobe.statusFailed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zapisano zmiany. Spróbuj ponownie. Jeśli rzecz zmieniła się na innym urządzeniu, wróć do szafy i odśwież dane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save. Retry. If the item changed on another device, return to the wardrobe and refresh."
+          }
+        }
+      },
+      "comment": "Garment availability and archive editor; archive preserves history."
+    },
+    "wardrobe.statusLocal": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisano na urządzeniu. Synchronizacja może nadal oczekiwać; odśwież szafę po odzyskaniu połączenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved on this device. Sync may still be pending; refresh the wardrobe when connected."
+          }
+        }
+      },
+      "comment": "Garment availability and archive editor; archive preserves history."
     }
   },
   "version": "1.0"

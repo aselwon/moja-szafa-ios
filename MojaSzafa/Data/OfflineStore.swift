@@ -76,7 +76,7 @@ struct SyncGarment: Codable, Sendable {
                 availability: fields.availability, priceGrosz: fields.priceGrosz,
                 imageID: metadata?.imageID, brand: metadata?.brand,
                 colors: metadata?.colors ?? [], seasons: metadata?.seasons ?? [],
-                archived: metadata?.archived ?? false)
+                archived: fields.archived ?? metadata?.archived ?? false, version: version)
     }
 }
 
@@ -193,7 +193,7 @@ actor OfflineStore: WardrobeRepository {
             // Sync failures remain inspectable in status; local data stays readable.
         }
         try requireActive()
-        return state.garments.filter { !$0.deleted }.map { Garment(id: $0.id, name: $0.fields.name) }
+        return state.garments.filter { !$0.deleted }.map(\.display)
     }
 
     /// Refresh the durable metadata snapshot on the first page only. Subsequent
@@ -218,6 +218,17 @@ actor OfflineStore: WardrobeRepository {
         guard let item = state.garments.first(where: { $0.id == id && !$0.deleted }) else { throw OfflineError.invalidState }
         return GarmentDetail(garment: item.display,
             wornOn: Set(state.wears.filter { !$0.deleted && $0.garmentIDs.contains(id) }.map(\.wornOn)).sorted(by: >), cached: true)
+    }
+
+    func updateStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
+        try requireActive()
+        guard let current = state.garments.first(where: { $0.id == id && !$0.deleted }) else {
+            throw OfflineError.invalidState
+        }
+        try saveGarment(id: id, fields: APIv1.GarmentFields(name: current.fields.name,
+            category: current.fields.category, priceGrosz: current.fields.priceGrosz,
+            availability: availability, archived: archived))
+        return try await detail(id: id)
     }
 
     func thumbnail(imageID: UUID) async throws -> Data {
@@ -340,7 +351,7 @@ actor OfflineStore: WardrobeRepository {
                         var next = state
                         next.garments.removeAll { $0.id == dto.id }
                         next.garments.append(SyncGarment(id: dto.id, version: dto.version, deleted: false,
-                            fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability),
+                            fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability, archived: dto.archived),
                             metadata: state.garments.first { $0.id == dto.id }?.metadata))
                         next.outbox.removeAll { $0.id == id }
                         try commit(next)

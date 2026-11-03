@@ -24,6 +24,11 @@ DO $$ DECLARE
     seen uuid[] := '{}';
     offset_value integer := 0;
     item jsonb;
+    mutation jsonb;
+    saved jsonb;
+    status text;
+    archive boolean;
+    current_version bigint := 1;
 BEGIN
     LOOP
         page := app.api_v1_browse_wardrobe(jsonb_set(request,'{offset}',to_jsonb(offset_value)));
@@ -59,6 +64,39 @@ BEGIN
     PERFORM pg_temp.assert_true(page->'data'->'wornOn' = '["2026-01-01"]', 'duplicate same-day wears count once');
     page := app.api_v1_garment_detail('{"id":"20000000-0000-0000-0000-000000000001"}');
     PERFORM pg_temp.assert_true(page->'error'->>'code' = 'not_found', 'foreign detail denied');
+    FOREACH status IN ARRAY ARRAY['available','laundry','unavailable'] LOOP
+        FOREACH archive IN ARRAY ARRAY[true,false] LOOP
+            mutation := jsonb_build_object('operation_id',gen_random_uuid(),
+                'garment_id','10000000-0000-0000-0000-000000000001','base_version',current_version,
+                'garment',jsonb_build_object('name','Item 0001','category','top','price_grosz',1,
+                    'availability',status,'archived',archive));
+            saved := app.api_v1_save_garment(mutation);
+            current_version := current_version + 1;
+            PERFORM pg_temp.assert_true((saved->'data'->>'version')::bigint = current_version, 'status version increments');
+            PERFORM pg_temp.assert_true(app.api_v1_save_garment(mutation) = saved, 'status replay is idempotent');
+            page := app.api_v1_garment_detail('{"id":"10000000-0000-0000-0000-000000000001"}');
+            PERFORM pg_temp.assert_true(page->'data'->'garment'->>'availability' = status, 'availability independent of archive');
+            PERFORM pg_temp.assert_true((page->'data'->'garment'->>'archived')::boolean = archive, 'archive and restore');
+            PERFORM pg_temp.assert_true(page->'data'->'garment'->>'priceGrosz' = '1' AND
+                page->'data'->'wornOn' = '["2026-01-01"]', 'CPW inputs and history unchanged');
+            page := app.api_v1_sync_snapshot('{}');
+            PERFORM pg_temp.assert_true((page->'data'->'garments'->0->'fields'->>'archived')::boolean = archive AND
+                page->'data'->'garments'->0->'fields'->>'availability' = status, 'second device snapshot carries both states');
+            mutation := jsonb_set(mutation,'{operation_id}',to_jsonb(gen_random_uuid()));
+            PERFORM pg_temp.assert_true(app.api_v1_save_garment(mutation)->'error'->>'code' = 'version_conflict', 'stale device cannot overwrite');
+        END LOOP;
+    END LOOP;
+    mutation := jsonb_set(mutation,'{base_version}',to_jsonb(current_version));
+    mutation := jsonb_set(mutation,'{garment,archived}','true');
+    PERFORM pg_temp.assert_true(app.api_v1_save_garment(mutation)->'data'->>'archived' = 'true', 'archive before old-client edit');
+    mutation := jsonb_set(mutation,'{operation_id}',to_jsonb(gen_random_uuid()));
+    mutation := jsonb_set(mutation,'{base_version}',to_jsonb(current_version + 1)) #- '{garment,archived}';
+    PERFORM pg_temp.assert_true(app.api_v1_save_garment(mutation)->'data'->>'archived' = 'true', 'legacy edit preserves archive');
+    mutation := jsonb_set(mutation,'{operation_id}',to_jsonb(gen_random_uuid()));
+    mutation := jsonb_set(mutation,'{garment_id}','"20000000-0000-0000-0000-000000000001"');
+    mutation := jsonb_set(mutation,'{base_version}','1');
+    PERFORM pg_temp.assert_true(app.api_v1_save_garment(mutation)->'error'->>'code' = 'version_conflict', 'foreign status write denied');
+
 END $$;
 RESET ROLE;
 UPDATE app.wear_events SET deleted_at = now() WHERE id = '30000000-0000-0000-0000-000000000001';

@@ -82,3 +82,25 @@ reuse the original response. Existing migrations and their checksums are unchang
 The Linux sandbox has no Xcode/Swift or PostgreSQL executables. Runtime tests and
 real-device synchronization are not claimed as passed here. No network resources,
 accounts, secrets or deployment were changed.
+
+
+### T023 garment status
+
+Migration `012_garment_status.sql` adds optional `archived` to the existing
+versioned, idempotent garment mutation and sync fields. Omission preserves the
+server archive state for old clients/outboxes. Availability remains independent;
+archive/restore never updates price or wear relationships. The detail editor
+uses the repository: OfflineStore persists the edit and outbox atomically, and
+APIWardrobeRepository saves online with a retained operation for ambiguous retry.
+The local confirmation explicitly warns that sync may remain pending. Existing
+foreground/refresh synchronization and conflict resolution rules still apply.
+The live composition remains unconfigured; no production sync is claimed.
+
+Verification: run `node scripts/harness-check.mjs`, macOS CI XCTest (including
+`testStatusSurvivesRestartAndReachesSecondDeviceWithoutChangingHistory`), and
+`bash backend/tests/run-tests.sh` against a disposable PostgreSQL test service.
+The SQL wardrobe suite covers every status/archive combination, replay, stale
+versions, owner isolation, legacy edits and unchanged CPW inputs. On two signed-in
+iPhones, test offline changes, reconnect/refresh, restart, archive/restore and
+concurrent edits; verify PL/EN, VoiceOver and large text. Swift/Xcode and PostgreSQL
+are absent from this sandbox, so those checks require external execution.

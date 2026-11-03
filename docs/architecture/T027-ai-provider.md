@@ -122,3 +122,16 @@ provider charges and worker crash recovery on staging. No paid calls, account
 changes, deployment or external verification were performed. Require existing
 GitHub validation/PostgreSQL and macOS Debug/Staging/Release CI jobs to pass; Xcode
 and hosted CI are not available as local evidence in this Linux sandbox.
+
+
+### T023 availability boundary
+
+The trusted runtime module must export `currentGarments(job)`, reading current
+server records for the job owner and returning `{ id, user_id, availability,
+archived, deleted }` rows. The executor requires explicit `archived: false` and
+`deleted: false`; missing state fails closed. It filters resolved outfit inputs
+before dispatch and re-reads state after domain validation, rejecting results
+containing IDs outside both sets. Image recognition of drafts is unaffected.
+The downstream outfit save transaction must still revalidate current state;
+this executor check does not eliminate the race after generation completes.
+No production runtime or paid provider was configured or called for T023.

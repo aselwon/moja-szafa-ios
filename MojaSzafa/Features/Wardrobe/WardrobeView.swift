@@ -24,7 +24,9 @@ struct WardrobeView: View {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: typeSize.isAccessibilitySize ? 280 : 145))], spacing: 16) {
                         ForEach(model.items) { garment in
                             NavigationLink {
-                                GarmentDetailView(id: garment.id, repository: model.repository)
+                                GarmentDetailView(id: garment.id, repository: model.repository) {
+                                    await model.reload()
+                                }
                             } label: {
                                 VStack(alignment: .leading) {
                                     WardrobeThumbnail(imageID: garment.imageID, repository: model.repository)
@@ -132,6 +134,12 @@ private struct WardrobeThumbnail: View {
 private struct GarmentDetailView: View {
     let id: UUID
     let repository: any WardrobeRepository
+    let onChange: () async -> Void
+    @State private var availability: APIv1.Availability = .available
+    @State private var archived = false
+    @State private var saving = false
+    @State private var saveFailed = false
+    @State private var savedLocally = false
     @State private var detail: GarmentDetail?
     @State private var failure = false
     @State private var retry = 0
@@ -156,6 +164,30 @@ private struct GarmentDetailView: View {
                     ForEach(detail.garment.colors, id: \.self) { Text(LocalizedStringKey("garment.color.\($0)")) }
                     ForEach(detail.garment.seasons, id: \.self) { Text(LocalizedStringKey("garment.season.\($0)")) }
                 }
+                Section("wardrobe.status") {
+                    Picker("wardrobe.availability", selection: $availability) {
+                        ForEach(APIv1.Availability.allCases, id: \.self) {
+                            Text(LocalizedStringKey("wardrobe.\($0.rawValue)")).tag($0)
+                        }
+                    }
+                    Toggle("wardrobe.archived", isOn: $archived)
+                    Text("wardrobe.statusExplanation").font(.caption)
+                    Button("wardrobe.saveStatus") {
+                        Task {
+                            saving = true; saveFailed = false; savedLocally = false
+                            defer { saving = false }
+                            do {
+                                self.detail = try await repository.updateStatus(id: id, availability: availability, archived: archived)
+                                savedLocally = self.detail?.cached == true
+                                await onChange()
+                            } catch { saveFailed = true }
+                        }
+                    }
+                    if saving { ProgressView("common.loading") }
+                    if saveFailed { Text("wardrobe.statusFailed") }
+                    if savedLocally { Text("wardrobe.statusLocal") }
+                }
+                .disabled(saving)
                 Section("wardrobe.history") {
                     Text("wardrobe.historyExplanation").font(.caption)
                     if detail.wornOn.isEmpty { Text("wardrobe.neverWorn") }
@@ -173,6 +205,8 @@ private struct GarmentDetailView: View {
                 let result = try await repository.detail(id: id)
                 try Task.checkCancellation()
                 detail = result
+                availability = result.garment.availability
+                archived = result.garment.archived
             } catch { if !Task.isCancelled { failure = true } }
         }
     }

@@ -5,7 +5,7 @@ import { AIError } from './provider.mjs';
 // resolveInput checks current ownership/availability and loads normalized private bytes.
 // validateResult must perform feature schema + domain validation before persistence.
 // authorize checks the lease/current consent AND configured recipient after input resolution.
-export function createAIExecutor({ provider, resolveInput, validateResult, authorize, recordTelemetry }) {
+export function createAIExecutor({ provider, resolveInput, validateResult, authorize, recordTelemetry, currentGarments }) {
   if (!provider || !['analyzeImage', 'recommendOutfits'].every(key => typeof provider[key] === 'function') ||
       typeof provider.recipient !== 'string' ||
       [resolveInput, validateResult, authorize, recordTelemetry].some(value => typeof value !== 'function')) {
@@ -16,12 +16,32 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
     let telemetry;
     let output;
     try {
-      const input = await resolveInput(job);
+      let input = await resolveInput(job);
+      let eligibleIDs;
+      const eligible = async () => {
+        if (typeof currentGarments !== 'function') throw new AIError('configuration_invalid');
+        const garments = await currentGarments(job);
+        if (!Array.isArray(garments)) throw new AIError('input_invalid');
+        return new Set(garments.filter(g => g.user_id === job.user_id &&
+          g.availability === 'available' && g.archived === false && g.deleted === false).map(g => g.id));
+      };
+      if (job.kind === 'outfit_generation') {
+        eligibleIDs = await eligible();
+        input = { ...input, garments: input.garments.filter(g => eligibleIDs.has(g.id)) };
+        eligibleIDs = new Set(input.garments.map(g => g.id));
+        if (!eligibleIDs.size) throw new AIError('input_invalid');
+      }
       if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
       const response = await (job.kind === 'image_analysis' ? provider.analyzeImage(input) : provider.recommendOutfits(input));
       telemetry = response.telemetry;
       const candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : response.result;
       const validated = await validateResult(job, candidate, input);
+      if (job.kind === 'outfit_generation') {
+        const currentIDs = await eligible();
+        if (!Array.isArray(validated?.outfits) || validated.outfits.some(outfit =>
+          !Array.isArray(outfit.garment_ids) || outfit.garment_ids.some(id =>
+            !eligibleIDs.has(id) || !currentIDs.has(id)))) throw new AIError('result_invalid');
+      }
       const result = job.kind === 'image_analysis' ? recognitionDraft(validated) : validated;
       if (!result || typeof result !== 'object' || Array.isArray(result)) throw new AIError('result_invalid');
       output = { result, telemetry };

@@ -12,6 +12,9 @@ struct Garment: Identifiable, Equatable, Codable, Sendable {
     var colors: [String] = []
     var seasons: [String] = []
     var archived: Bool = false
+    var version: Int64? = nil
+
+    var eligibleForAI: Bool { availability == .available && !archived }
 }
 
 struct WardrobeQuery: Equatable, Encodable, Sendable {
@@ -59,11 +62,15 @@ protocol WardrobeRepository: Sendable {
     func garments() async throws -> [Garment]
     func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage
     func detail(id: UUID) async throws -> GarmentDetail
+    func updateStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail
     func thumbnail(imageID: UUID) async throws -> Data
     func original(imageID: UUID) async throws -> Data
 }
 
 extension WardrobeRepository {
+    func updateStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
+        throw RepositoryError.backendNotConfigured
+    }
     func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage {
         query.page(try await garments(), offset: offset, limit: limit, cached: false)
     }

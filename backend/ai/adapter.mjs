@@ -15,6 +15,7 @@ async function executeAdapter({ env, stdin }) {
   if (typeof runtime.authorizeRecipient !== 'function') throw new Error('configuration_invalid');
   const store = postgresStore();
   const execute = createAIExecutor({ provider: createProvider(configuration),
+    currentGarments: runtime.currentGarments,
     resolveInput: runtime.resolveInput, validateResult: runtime.validateResult,
     recordTelemetry: runtime.recordTelemetry,
     authorize: async (job, recipient) => await runtime.authorizeRecipient(job, recipient) === true &&

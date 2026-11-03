@@ -500,6 +500,10 @@
               "laundry",
               "unavailable"
             ]
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Optional for older clients; omission preserves archive state on updates."
           }
         }
       },
@@ -562,6 +566,9 @@
               "laundry",
               "unavailable"
             ]
+          },
+          "archived": {
+            "type": "boolean"
           }
         }
       },
@@ -1123,6 +1130,10 @@
           },
           "archived": {
             "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [
