@@ -119,6 +119,8 @@ final class PhotoImportModel: ObservableObject {
               let original = drafts[index].file else { return false }
         let destination = original.deletingPathExtension().appendingPathExtension("png")
         do {
+            let recognition = directory.appendingPathComponent(id.uuidString).appendingPathExtension("recognition")
+            if FileManager.default.fileExists(atPath: recognition.path) { try FileManager.default.removeItem(at: recognition) }
             try data.write(to: destination, options: [.atomic, .completeFileProtection])
             drafts[index].editedFile = destination
             return true
@@ -126,6 +128,23 @@ final class PhotoImportModel: ObservableObject {
             message = "import.storageFailed"
             return false
         }
+    }
+
+    /// Integration boundary for an owner-scoped completed image job, never a provider call.
+    /// Store suggestions separately so analysis cannot overwrite manually entered metadata.
+    func acceptRecognition(_ data: Data, for id: UUID) throws {
+        guard !running, drafts.contains(where: { $0.id == id && $0.file != nil }) else {
+            throw PhotoImportError.invalidImage
+        }
+        _ = try GarmentRecognition.decodeDraft(data)
+        let url = directory.appendingPathComponent(id.uuidString).appendingPathExtension("recognition")
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
+    }
+
+    func recognitionSuggestions(for id: UUID) throws -> GarmentSuggestions? {
+        let url = directory.appendingPathComponent(id.uuidString).appendingPathExtension("recognition")
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return try GarmentRecognition.decodeDraft(Data(contentsOf: url)).suggestions
     }
 
     func garmentValue(for id: UUID) throws -> GarmentFormValue? {
@@ -147,6 +166,8 @@ final class PhotoImportModel: ObservableObject {
         do {
             let metadata = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
             if FileManager.default.fileExists(atPath: metadata.path) { try FileManager.default.removeItem(at: metadata) }
+            let recognition = directory.appendingPathComponent(id.uuidString).appendingPathExtension("recognition")
+            if FileManager.default.fileExists(atPath: recognition.path) { try FileManager.default.removeItem(at: recognition) }
             if let edited = draft.editedFile { try FileManager.default.removeItem(at: edited) }
             if let file = draft.file { try FileManager.default.removeItem(at: file) }
             drafts.removeAll { $0.id == id }

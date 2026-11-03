@@ -64,7 +64,9 @@ The runtime module must export these async functions:
   recalled after revocation.
 - `validateResult(job, result, resolvedInput)`: enforce the feature's schema and
   domain rules (including ownership, availability, IDs, completeness and duplicate
-  sets) and return the validated object, or throw. There is deliberately no default
+  sets) and return the validated object, or throw. T028 additionally enforces its closed recognition metadata schema before and
+  after this hook for image jobs, then wraps the validated result as a draft.
+  Image hooks must return metadata matching that schema. There is no default
   identity validator. Only the validated object can be persisted as success.
 - `recordTelemetry(event)`: durably record safe job ID/attempt, provider, model,
   operation, prompt version, latency, status and token usage. Deduplicate by
