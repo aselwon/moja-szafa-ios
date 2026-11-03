@@ -162,6 +162,14 @@ telemetry. It plugs into the T010 worker through an executable and mandatory
 trusted runtime hooks; no provider or mock is enabled by default. See
 [T027 protocol, configuration, integration and verification](../docs/architecture/T027-ai-provider.md).
 
+## T016 private data export
+
+Migration `009_exports.sql` adds private, idempotent 15-minute export snapshots.
+The migration runner defaults to 009. The export HTTP handler packages JSON and
+private garment photos into TAR and requires the current owner's session at both
+request and download. See [T016 integration, scope and verification](../docs/architecture/T016-data-export.md)
+for runtime composition, supervised cleanup and outstanding staging/device gates.
+
 ## T055 recovery rehearsal
 
 [Backup and restore runbook](../docs/operations/T055-backup-restore.md) defines the

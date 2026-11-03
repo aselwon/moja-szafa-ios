@@ -115,6 +115,7 @@ struct ProfileGateView: View {
                             List {
                                 NavigationLink("profile.title") { ProfileEditorView(model: model) }
                                 NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
+                                NavigationLink("export.title") { DataExportView(service: dependencies.dataExports) }
                             }.navigationTitle("profile.title")
                         }
                     }
