@@ -14,7 +14,7 @@ struct WardrobeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                NavigationLink("import.title") { PhotoImportView(model: imports) }
+                NavigationLink("import.title") { PhotoImportView(model: imports, repository: model.repository) }
                 controls
                 if model.cached { Text("wardrobe.cached").font(.callout) }
                 switch model.state {

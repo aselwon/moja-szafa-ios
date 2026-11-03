@@ -14,6 +14,7 @@ private struct ImportedPhoto: Transferable, Sendable {
 
 struct PhotoImportView: View {
     @ObservedObject var model: PhotoImportModel
+    var repository: (any WardrobeRepository)? = nil
     @State private var selection: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var editing: PhotoImportModel.Draft?
@@ -86,7 +87,9 @@ struct PhotoImportView: View {
             selection = []
         }
         .sheet(item: $formDraft) { draft in
-            GarmentFormView(value: draft.value, suggestions: draft.suggestions) { value in
+            GarmentFormView(value: draft.value, suggestions: draft.suggestions, duplicateReview: {
+                await model.duplicateReview(for: draft.id, repository: repository)
+            }) { value in
                 try model.saveGarmentValue(value, for: draft.id)
             }
         }
