@@ -31,6 +31,8 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      # The self-hosted Mac jobs share a simulator; run configurations serially.
+      max-parallel: 1
       matrix:
         configuration: [Debug, Staging, Release]
     steps:
