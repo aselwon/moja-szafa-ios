@@ -51,6 +51,7 @@ final class PhotoImportModel: ObservableObject {
         var status: String
         var file: URL?
         var editedFile: URL?
+        var details = GarmentDetails()
         var displayFile: URL? { editedFile ?? file }
     }
     @Published private(set) var drafts: [Draft] = []
@@ -73,6 +74,14 @@ final class PhotoImportModel: ObservableObject {
                                 ? url.deletingPathExtension().appendingPathExtension("png") : nil)
                     }
                 }
+            for index in drafts.indices {
+                let metadata = directory.appendingPathComponent(drafts[index].id.uuidString).appendingPathExtension("json")
+                if FileManager.default.fileExists(atPath: metadata.path) {
+                    let details = try JSONDecoder().decode(GarmentDetails.self, from: Data(contentsOf: metadata))
+                    try details.validate()
+                    drafts[index].details = details
+                }
+            }
         } catch { message = "import.storageFailed" }
     }
 
@@ -128,11 +137,28 @@ final class PhotoImportModel: ObservableObject {
         }
     }
 
+    func saveDetails(_ details: GarmentDetails, for id: UUID) -> Bool {
+        guard !running, let index = drafts.firstIndex(where: { $0.id == id }),
+              drafts[index].file != nil else { return false }
+        do {
+            try details.validate()
+            let file = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
+            try JSONEncoder().encode(details).write(to: file, options: [.atomic, .completeFileProtection])
+            drafts[index].details = details
+            return true
+        } catch {
+            message = "import.storageFailed"
+            return false
+        }
+    }
+
     func remove(_ id: UUID) {
         guard !running, let draft = drafts.first(where: { $0.id == id }) else { return }
         do {
             if let edited = draft.editedFile { try FileManager.default.removeItem(at: edited) }
             if let file = draft.file { try FileManager.default.removeItem(at: file) }
+            let metadata = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
+            if FileManager.default.fileExists(atPath: metadata.path) { try FileManager.default.removeItem(at: metadata) }
             drafts.removeAll { $0.id == id }
         } catch { message = "import.storageFailed" }
     }

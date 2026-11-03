@@ -17,6 +17,7 @@ struct PhotoImportView: View {
     @State private var selection: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var editing: PhotoImportModel.Draft?
+    @State private var describing: PhotoImportModel.Draft?
     @State private var requestingCamera = false
     @State private var cameraDenied = false
     @Environment(\.openURL) private var openURL
@@ -52,6 +53,8 @@ struct PhotoImportView: View {
                     }
                     Text(LocalizedStringKey(draft.status))
                     if draft.file != nil {
+                        Button("garment.title") { describing = draft }
+                            .disabled(model.running)
                         Button("edit.title") { editing = draft }
                             .disabled(model.running)
                     }
@@ -73,6 +76,11 @@ struct PhotoImportView: View {
             }
             model.start(loaders)
             selection = []
+        }
+        .sheet(item: $describing) { draft in
+            GarmentFormView(details: draft.details) { details in
+                model.saveDetails(details, for: draft.id)
+            }
         }
         .sheet(item: $editing) { draft in
             if let file = draft.file, let data = try? Data(contentsOf: file) {
