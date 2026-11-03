@@ -161,6 +161,18 @@ final class AuthenticationModel {
             catch { message = "auth.revocationPending" }
         }
     }
+    func finishAccountDeletion(accountID: UUID) throws {
+        guard session?.userID == accountID else { return }
+        try store.clear()
+        generation = UUID()
+        refreshTask?.cancel()
+        refreshTask = nil
+        session = nil
+        pendingApple = nil
+        challenge = nil
+        message = "deletion.accepted"
+    }
+
     private func save(_ value: AuthSession) throws {
         try value.validate()
         try store.write(value)

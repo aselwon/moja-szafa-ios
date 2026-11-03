@@ -2,6 +2,8 @@ import Foundation
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var accountDeletion: (any AccountDeletionService)?
+    var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
     var dataExports: (any DataExportService)?
     var aiConsent: (any AIConsentService)?
     let wardrobe: any WardrobeRepository
@@ -51,6 +53,20 @@ struct AppDependencies: Sendable {
             var result = AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
             result.aiConsent = client
             result.dataExports = client.dataExports
+            result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
+                                                            accessToken: { try await model.accessToken() })
+            let accountID = model.session?.userID
+            result.deletionCleanup = {
+                guard let accountID else { throw AuthError.expired }
+                guard model.session?.userID == accountID else { return }
+                try ProfileStore.local.remove(accountID: accountID)
+                let drafts = URL.applicationSupportDirectory.appendingPathComponent("PhotoDrafts")
+                    .appendingPathComponent(accountID.uuidString)
+                if FileManager.default.fileExists(atPath: drafts.path) { try FileManager.default.removeItem(at: drafts) }
+                let exports = DataExportClient.temporaryDirectory
+                if FileManager.default.fileExists(atPath: exports.path) { try FileManager.default.removeItem(at: exports) }
+                try model.finishAccountDeletion(accountID: accountID)
+            }
             return result
         } catch { return AppDependencies(wardrobe: UnconfiguredWardrobeRepository(), authentication: authentication) }
     }

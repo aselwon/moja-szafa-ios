@@ -4794,6 +4794,227 @@
           }
         }
       }
+    },
+    "deletion.title": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
+          }
+        }
+      },
+      "comment": "Account deletion: title."
+    },
+    "deletion.consequences": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie jest nieodwracalne. Utracisz ubrania, zdjęcia, historię, plany i preferencje. Najpierw możesz wyeksportować dane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion is irreversible. Your clothes, photos, history, plans and preferences will be erased. You can export your data first."
+          }
+        }
+      },
+      "comment": "Account deletion: consequences."
+    },
+    "deletion.subscription": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie konta nie anuluje subskrypcji Apple. Możesz nią zarządzać osobno; nie jest to warunek usunięcia konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting your account does not cancel your Apple subscription. Manage it separately; cancellation is not required to delete your account."
+          }
+        }
+      },
+      "comment": "Account deletion: subscription."
+    },
+    "deletion.manage": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zarządzaj subskrypcją Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Apple subscription"
+          }
+        }
+      },
+      "comment": "Account deletion: manage."
+    },
+    "deletion.backups": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czyszczenie jest wykonywane w tle. Kopie zapasowe wygasają zgodnie z polityką prywatności usługi."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup runs in the background. Backups expire according to the service privacy policy."
+          }
+        }
+      },
+      "comment": "Account deletion: backups."
+    },
+    "deletion.unconfigured": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuwanie konta jest niedostępne: usługa nie została skonfigurowana. Niczego nie usunięto."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account deletion is unavailable: the service is not configured. Nothing was deleted."
+          }
+        }
+      },
+      "comment": "Account deletion: unconfigured."
+    },
+    "deletion.error": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się potwierdzić usunięcia. Sprawdź połączenie i ponów; ponowienie jest bezpieczne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion could not be confirmed. Check your connection and retry; retrying is safe."
+          }
+        }
+      },
+      "comment": "Account deletion: error."
+    },
+    "deletion.cleanupError": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żądanie przyjęto, ale czyszczenie danych na urządzeniu nie powiodło się. Ponów czyszczenie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request was accepted, but device cleanup failed. Retry cleanup."
+          }
+        }
+      },
+      "comment": "Account deletion: cleanupError."
+    },
+    "deletion.accepted": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żądanie usunięcia przyjęto. Konto zostało zablokowane; czyszczenie danych trwa."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion request accepted. The account is blocked; data cleanup is in progress."
+          }
+        }
+      },
+      "comment": "Account deletion: accepted."
+    },
+    "deletion.reauthenticate": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź tożsamość, aby trwale usunąć konto. Użyj kodu wysłanego na powiązany email lub kontynuuj z Apple."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm your identity to permanently delete the account. Use the code sent to your linked email or continue with Apple."
+          }
+        }
+      },
+      "comment": "Account deletion: reauthenticate."
+    },
+    "deletion.confirm": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź i usuń konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and delete account"
+          }
+        }
+      },
+      "comment": "Account deletion: confirm."
+    },
+    "deletion.restart": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponów potwierdzenie tożsamości"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart identity confirmation"
+          }
+        }
+      },
+      "comment": "Account deletion: restart."
+    },
+    "deletion.continue": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przejdź do potwierdzenia tożsamości"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to identity confirmation"
+          }
+        }
+      },
+      "comment": "Account deletion: continue."
     }
   },
   "version": "1.0"

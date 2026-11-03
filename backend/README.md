@@ -169,3 +169,11 @@ The migration runner defaults to 009. The export HTTP handler packages JSON and
 private garment photos into TAR and requires the current owner's session at both
 request and download. See [T016 integration, scope and verification](../docs/architecture/T016-data-export.md)
 for runtime composition, supervised cleanup and outstanding staging/device gates.
+
+## T017 account deletion
+
+Migration `010_account_deletion.sql` adds the account deletion queue commands,
+account tombstones and restrictive read policies. The migration runner defaults
+to 010. See [T017 contract, adapters, cleanup and retention gates](../docs/architecture/T017-account-deletion.md).
+The HTTP/worker modules require real deployment identity, storage and backup
+adapters; they do not simulate successful Apple revocation or backup erasure.
