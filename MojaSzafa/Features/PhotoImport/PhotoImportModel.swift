@@ -1,4 +1,5 @@
 import Combine
+import CryptoKit
 import CoreImage
 import Vision
 import Foundation
@@ -275,5 +276,114 @@ final class PhotoEditorModel: ObservableObject {
             preview = nil
             if !Task.isCancelled { message = "edit.failed" }
         }
+    }
+}
+
+/// Advisory comparison only. No identity, merge or deletion decisions use this score.
+actor DuplicatePhotoDetector {
+    struct Fingerprint: Sendable {
+        let digest: Data
+        let pixels: [UInt8]
+
+        func resembles(_ other: Self) -> Bool {
+            if digest == other.digest { return true }
+            // Mean RGB distance on an 8×8 white-backed image. Conservative, but not
+            // invariant to a different camera angle or background; false positives are possible.
+            let distance = zip(pixels, other.pixels).reduce(0) { $0 + abs(Int($1.0) - Int($1.1)) }
+            return distance <= pixels.count * 8
+        }
+    }
+
+    func fingerprint(_ data: Data) throws -> Fingerprint {
+        guard data.count <= PhotoProcessor.maxBytes,
+              let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceThumbnailMaxPixelSize: 64
+              ] as CFDictionary) else { throw PhotoImportError.invalidImage }
+        var rgba = [UInt8](repeating: 255, count: 8 * 8 * 4)
+        let rendered = rgba.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(data: buffer.baseAddress, width: 8, height: 8,
+                bitsPerComponent: 8, bytesPerRow: 32, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            context.setFillColor(CGColor(gray: 1, alpha: 1))
+            context.fill(CGRect(x: 0, y: 0, width: 8, height: 8))
+            context.interpolationQuality = .high
+            context.draw(image, in: CGRect(x: 0, y: 0, width: 8, height: 8))
+            return true
+        }
+        guard rendered else { throw PhotoImportError.invalidImage }
+        return Fingerprint(digest: Data(SHA256.hash(data: data)),
+                           pixels: rgba.enumerated().filter { $0.offset % 4 != 3 }.map(\.element))
+    }
+
+    func fingerprint(file: URL) throws -> Fingerprint {
+        try fingerprint(PhotoProcessor.read(file))
+    }
+}
+
+struct DuplicatePhotoMatch: Identifiable {
+    let id: UUID
+    let name: String?
+    let image: Data
+}
+
+struct DuplicatePhotoReview {
+    var matches: [DuplicatePhotoMatch] = []
+    var incomplete = false
+}
+
+extension PhotoImportModel {
+    /// Both sources are scoped to the current account by WardrobeView. Fingerprints
+    /// live only for this review; no image data or hashes are sent to a third party.
+    func duplicateReview(for id: UUID, repository: (any WardrobeRepository)?) async -> DuplicatePhotoReview {
+        var review = DuplicatePhotoReview()
+        let detector = DuplicatePhotoDetector()
+        guard let file = drafts.first(where: { $0.id == id })?.file,
+              let target = try? await detector.fingerprint(file: file) else {
+            review.incomplete = true
+            return review
+        }
+        for draft in drafts where draft.id != id && draft.file != nil {
+            if Task.isCancelled { review.incomplete = true; return review }
+            do {
+                let fingerprint = try await detector.fingerprint(file: draft.file!)
+                if target.resembles(fingerprint), review.matches.count < 5 {
+                    review.matches.append(DuplicatePhotoMatch(id: draft.id,
+                        name: (try? garmentValue(for: draft.id))?.name,
+                        image: try PhotoProcessor.read(draft.file!)))
+                }
+            } catch { review.incomplete = true }
+        }
+        guard let repository else { review.incomplete = true; return review }
+        do {
+            for archived in [false, true] {
+                var query = WardrobeQuery()
+                query.archived = archived
+                var offset = 0
+                repeat {
+                    try Task.checkCancellation()
+                    let page = try await repository.page(query: query, offset: offset, limit: 40)
+                    if page.cached { review.incomplete = true }
+                    for garment in page.items {
+                        try Task.checkCancellation()
+                        guard let imageID = garment.imageID else { continue }
+                        do {
+                            let data = try await repository.thumbnail(imageID: imageID)
+                            let fingerprint = try await detector.fingerprint(data)
+                            if target.resembles(fingerprint), review.matches.count < 5,
+                               !review.matches.contains(where: { $0.id == garment.id }) {
+                                review.matches.append(DuplicatePhotoMatch(id: garment.id, name: garment.name, image: data))
+                            }
+                        } catch { review.incomplete = true }
+                    }
+                    guard let next = page.nextOffset else { break }
+                    guard next > offset else { review.incomplete = true; break }
+                    offset = next
+                } while true
+            }
+        } catch { review.incomplete = true }
+        return review
     }
 }

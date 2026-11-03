@@ -16,11 +16,17 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
     let telemetry;
     let output;
     try {
-      const input = await resolveInput(job);
+      let input = await resolveInput(job);
+      if (job.kind === 'outfit_generation') input = eligibleInput(input);
       if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
       const response = await (job.kind === 'image_analysis' ? provider.analyzeImage(input) : provider.recommendOutfits(input));
       telemetry = response.telemetry;
       const candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : response.result;
+      if (job.kind === 'outfit_generation') {
+        // Resolve again after the provider await: laundry/archive may have changed.
+        const current = eligibleInput(await resolveInput(job));
+        assertEligibleResult(candidate, input, current);
+      }
       const validated = await validateResult(job, candidate, input);
       const result = job.kind === 'image_analysis' ? recognitionDraft(validated) : validated;
       if (!result || typeof result !== 'object' || Array.isArray(result)) throw new AIError('result_invalid');
@@ -36,4 +42,21 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
     await recordTelemetry({ job_id: job.id, attempt: job.attempt, ...telemetry });
     return { outcome: 'success', output };
   };
+}
+
+// Trusted resolver supplies explicit current status; missing status fails closed.
+function eligibleInput(input) {
+  if (!Array.isArray(input?.garments)) throw new AIError('input_invalid');
+  const garments = input.garments.filter(g => g.availability === 'available' && g.archived === false);
+  if (!garments.length) throw new AIError('no_available_garments');
+  return { ...input, garments };
+}
+function assertEligibleResult(result, sent, current) {
+  const allowed = new Set(current.garments.map(g => g.id));
+  const supplied = new Set(sent.garments.map(g => g.id));
+  if (!Array.isArray(result?.outfits) || result.outfits.some(outfit =>
+    !Array.isArray(outfit.garment_ids) || !outfit.garment_ids.length ||
+    outfit.garment_ids.some(id => !allowed.has(id) || !supplied.has(id)))) {
+    throw new AIError('result_invalid');
+  }
 }

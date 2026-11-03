@@ -883,7 +883,7 @@
       }
     },
     "wardrobe.empty": {
-      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T022: wardrobe browsing, filters, details and offline state.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -901,7 +901,7 @@
       }
     },
     "wardrobe.add": {
-      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T022: wardrobe browsing, filters, details and offline state.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -919,22 +919,22 @@
       }
     },
     "wardrobe.noResults": {
-      "comment": "T003: wardrobe; tekst interfejsu, nie dane użytkownika.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Brak rzeczy pasujących do tych filtrów."
+            "value": "Brak pasujących ubrań. Dodaj rzecz lub zmień filtry."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No items match these filters."
+            "value": "No matching clothes. Add an item or change filters."
           }
         }
-      }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
     },
     "garment.category": {
       "extractionState": "manual",
@@ -2645,7 +2645,7 @@
       }
     },
     "wardrobe.count": {
-      "comment": "Liczba całkowita nieujemna Int64. Pełny tekst; nie doklejać jednostki.",
+      "comment": "T022: wardrobe browsing, filters, details and offline state.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -5893,6 +5893,849 @@
         }
       },
       "comment": "Garment recognition draft review and manual correction."
+    },
+    "wardrobe.cached": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dane lokalne — mogą być nieaktualne. Zdjęcia i rozszerzone szczegóły mogą być niedostępne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local data — may be out of date. Photos and extended details may be unavailable."
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż więcej"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show more"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.search": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szukaj po nazwie lub marce"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by name or brand"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.all": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystkie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.availability": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępność"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Availability"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.available": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.laundry": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "W praniu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In laundry"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niedostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortowanie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa rosnąco"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name ascending"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort.nameDescending": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa malejąco"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name descending"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.sort.price": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena rosnąco — braki na końcu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price ascending — unknown last"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.archived": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż archiwum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show archive"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.noPhoto": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie niedostępne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo unavailable"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.noPrice": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak ceny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No price"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia noszenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear history"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.historyExplanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unikalne dni z dziennika. Plany i estymacje nie są tu wyświetlane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unique diary days. Plans and estimates are not displayed here."
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.neverWorn": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zapisanych noszeń"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recorded wears"
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.detailFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można wczytać szczegółów. Sprawdź połączenie i spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load details. Check your connection and try again."
+          }
+        }
+      },
+      "comment": "T022: wardrobe browsing, filters, details and offline state."
+    },
+    "wardrobe.original": {
+      "comment": "T022: Explicit opt-in to download the selected full-size normalized photograph.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wczytaj pełne zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load full photo"
+          }
+        }
+      }
+    },
+    "duplicate.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podobne rzeczy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Similar items"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdzanie podobnych zdjęć…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking for similar photos…"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.incomplete": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się sprawdzić wszystkich zdjęć. Możesz zapisać rzecz i spróbować ponownie później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some photos could not be checked. You can save the item and try again later."
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź te podobne zdjęcia (do 5 wyników). To może być inny egzemplarz. Niczego nie scalamy — możesz zachować obie rzeczy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review these similar photos (up to 5 matches). This may be another copy. Nothing is merged — you can keep both items."
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie potencjalnie podobnej rzeczy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo of a potentially similar item"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie znaleziono podobnych zdjęć."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No similar photos found."
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "duplicate.keepBoth": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz jako osobny egzemplarz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as a separate item"
+          }
+        }
+      },
+      "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "wardrobe.statusExplanation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiwizacja zachowuje historię i CPW. AI używa tylko dostępnych, niearchiwalnych ubrań."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiving preserves history and cost per wear. AI uses only available, unarchived garments."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.statusFailed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zapisano zmiany. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The change was not saved. Try again."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.statusPending": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisano na urządzeniu. Zmiana czeka na synchronizację."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved on this device. The change is waiting to sync."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.statusConflict": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubranie zmieniono na innym urządzeniu. Wybierz wersję do zachowania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This garment changed on another device. Choose which version to keep."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.useServer": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj wersji z serwera"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use server version"
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.keepLocal": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj lokalną wersję"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep local version"
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "outfits.new": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowy zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.new"
+    },
+    "outfits.edit": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.edit"
+    },
+    "outfits.name": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outfit name"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.name"
+    },
+    "outfits.favorite": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulubiony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.favorite"
+    },
+    "outfits.favoritesOnly": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tylko ulubione"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites only"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.favoritesOnly"
+    },
+    "outfits.empty": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utwórz pierwszy zestaw ze swoich ubrań."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create your first outfit from your clothes."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.empty"
+    },
+    "outfits.archived": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubranie w archiwum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archived garment"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.archived"
+    },
+    "outfits.history": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edycja zestawu nie zmienia historii noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editing an outfit does not change wear history."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.history"
+    },
+    "outfits.choose": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz ubrania (maks. 100)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose garments (up to 100)"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.choose"
+    },
+    "outfits.remove": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń z zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.remove"
+    },
+    "outfits.save": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save outfit"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.save"
+    },
+    "outfits.cancel": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anuluj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.cancel"
+    },
+    "outfits.offline": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Zachowano edycję. Spróbuj ponownie po odzyskaniu sieci."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection unavailable. Your edit is retained. Retry when online."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.offline"
+    },
+    "outfits.pending": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapis niepotwierdzony. Ponów tę samą operację przed dalszą edycją."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save unconfirmed. Retry the same operation before editing further."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.pending"
+    },
+    "outfits.conflict": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestaw zmienił się na innym urządzeniu. Anuluj edycję i odśwież listę."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The outfit changed on another device. Cancel editing and refresh the list."
+          }
+        }
+      },
+      "comment": "T026 manual outfit builder: outfits.conflict"
     }
   },
   "version": "1.0"

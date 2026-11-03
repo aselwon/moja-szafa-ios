@@ -2,6 +2,7 @@ import Foundation
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
     var dataExports: (any DataExportService)?
@@ -26,6 +27,7 @@ struct AppDependencies: Sendable {
         let database = OfflineDatabase(url: storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathExtension("sqlite"))
         let store = try OfflineStore(accountID: accountID, database: database, remote: client)
         var result = AppDependencies(wardrobe: store)
+        result.outfits = client
         result.aiConsent = client
         result.dataExports = client.dataExports
         return result
@@ -50,7 +52,12 @@ struct AppDependencies: Sendable {
                                        unauthorized: { token in await model.rejectSession(accessToken: token) }) {
                 try await model.accessToken()
             }
-            var result = AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
+            guard let userID = model.session?.userID else { throw AuthError.expired }
+            let database = OfflineDatabase(url: URL.applicationSupportDirectory
+                .appendingPathComponent("Wardrobe").appendingPathComponent(userID.uuidString + ".sqlite"))
+            let store = try OfflineStore(accountID: userID, database: database, remote: client)
+            var result = AppDependencies(wardrobe: store, authentication: authentication)
+            result.outfits = client
             result.aiConsent = client
             result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
@@ -59,6 +66,7 @@ struct AppDependencies: Sendable {
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
+                try await store.invalidateAccount()
                 try ProfileStore.local.remove(accountID: accountID)
                 let drafts = URL.applicationSupportDirectory.appendingPathComponent("PhotoDrafts")
                     .appendingPathComponent(accountID.uuidString)

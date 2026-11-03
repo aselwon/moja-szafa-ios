@@ -226,6 +226,77 @@ final class PhotoImportTests: XCTestCase {
         XCTAssertFalse(editor.running)
     }
 
+    func testDuplicateFingerprintMatchesReencodingButRejectsDifferentColors() async throws {
+        let detector = DuplicatePhotoDetector()
+        let jpeg = try fixture()
+        let png = try fixture(type: .png)
+        let first = try await detector.fingerprint(jpeg)
+        let identical = try await detector.fingerprint(jpeg)
+        let reencoded = try await detector.fingerprint(png)
+        XCTAssertTrue(first.resembles(identical))
+        XCTAssertTrue(first.resembles(reencoded))
+        XCTAssertNotEqual(first.digest, reencoded.digest)
+        let other = UIGraphicsImageRenderer(size: CGSize(width: 100, height: 100)).image { context in
+            UIColor.green.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 100, height: 100))
+        }
+        let different = try await detector.fingerprint(XCTUnwrap(other.jpegData(compressionQuality: 0.9)))
+        XCTAssertFalse(first.resembles(different))
+        do {
+            _ = try await detector.fingerprint(Data([0, 1]))
+            XCTFail("Invalid images must not produce a fingerprint")
+        } catch {}
+    }
+
+    func testDuplicateWarningDoesNotMergeOrPreventSavingTwoCopies() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = PhotoImportModel(directory: directory)
+        let data = try fixture()
+        model.start([{ data }, { data }])
+        await finish(model)
+        let first = model.drafts[0].id
+        let second = model.drafts[1].id
+        let review = await model.duplicateReview(for: second, repository: nil)
+        XCTAssertEqual(review.matches.map(\.id), [first])
+        XCTAssertTrue(review.incomplete)
+        var input = GarmentFormInput()
+        input.name = "Two identical shirts"
+        let value = try input.validated()
+        try model.saveGarmentValue(value, for: first)
+        try model.saveGarmentValue(value, for: second)
+        let reopened = PhotoImportModel(directory: directory)
+        XCTAssertEqual(Set(reopened.drafts.map(\.id)), [first, second])
+        XCTAssertEqual(try reopened.garmentValue(for: first), value)
+        XCTAssertEqual(try reopened.garmentValue(for: second), value)
+        let restoredReview = await reopened.duplicateReview(for: second, repository: nil)
+        XCTAssertEqual(restoredReview.matches.map(\.id), [first])
+        reopened.remove(first)
+        let afterRemoval = await reopened.duplicateReview(for: second, repository: nil)
+        XCTAssertTrue(afterRemoval.matches.isEmpty)
+        XCTAssertEqual(try reopened.garmentValue(for: second), value)
+    }
+
+    func testDuplicateReviewIncludesWardrobeAndArchivedItems() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = PhotoImportModel(directory: directory)
+        let data = try fixture()
+        model.start([{ data }])
+        await finish(model)
+        let active = Garment(id: UUID(), name: "Active", imageID: UUID())
+        let archived = Garment(id: UUID(), name: "Archived", imageID: UUID(), archived: true)
+        let another = Garment(id: UUID(), name: "Second page", imageID: UUID())
+        let repository = DuplicateRepository(items: [active, another, archived], data: data)
+        let review = await model.duplicateReview(for: model.drafts[0].id, repository: repository)
+        XCTAssertFalse(review.incomplete)
+        XCTAssertEqual(Set(review.matches.map(\.id)), [active.id, another.id, archived.id])
+        let failed = await model.duplicateReview(for: model.drafts[0].id,
+            repository: DuplicateRepository(items: [active], data: Data()))
+        XCTAssertTrue(failed.incomplete)
+        XCTAssertTrue(failed.matches.isEmpty)
+    }
+
     private func finish(_ model: PhotoImportModel) async {
         let deadline = Date().addingTimeInterval(10)
         while model.running && Date() < deadline {
@@ -233,4 +304,15 @@ final class PhotoImportTests: XCTestCase {
         }
         XCTAssertFalse(model.running, "Import did not finish")
     }
+}
+
+private struct DuplicateRepository: WardrobeRepository {
+    let items: [Garment]
+    let data: Data
+    func garments() async throws -> [Garment] { items }
+    func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage {
+        // Force pagination to verify matches beyond the first page.
+        query.page(items, offset: offset, limit: 1, cached: false)
+    }
+    func thumbnail(imageID: UUID) async throws -> Data { data }
 }

@@ -69,6 +69,15 @@ struct SyncGarment: Codable, Sendable {
     let version: Int64
     let deleted: Bool
     let fields: APIv1.GarmentFields
+    var metadata: Garment? = nil
+
+    var display: Garment {
+        Garment(id: id, name: fields.name, category: fields.category,
+                availability: fields.availability, priceGrosz: fields.priceGrosz,
+                imageID: metadata?.imageID, brand: metadata?.brand,
+                colors: metadata?.colors ?? [], seasons: metadata?.seasons ?? [],
+                archived: fields.archived ?? metadata?.archived ?? false)
+    }
 }
 
 struct SyncWear: Codable, Sendable {
@@ -108,9 +117,17 @@ protocol OfflineRemote: Sendable {
     func snapshot() async throws -> SyncSnapshot
     func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO
     func save(_ operation: SaveWear) async throws -> SyncWear
+    func image(id: UUID, original: Bool) async throws -> Data
+}
+
+extension OfflineRemote {
+    func image(id: UUID, original: Bool) async throws -> Data { throw RepositoryError.backendNotConfigured }
 }
 
 extension APIClient: OfflineRemote {
+    func image(id: UUID, original: Bool) async throws -> Data {
+        try await wardrobeImage(imageID: id, original: original)
+    }
     func snapshot() async throws -> SyncSnapshot {
         struct Empty: Encodable {}
         let result: APIv1.Success<SyncSnapshot> = try await call("api_v1_sync_snapshot", Empty())
@@ -176,7 +193,53 @@ actor OfflineStore: WardrobeRepository {
             // Sync failures remain inspectable in status; local data stays readable.
         }
         try requireActive()
-        return state.garments.filter { !$0.deleted }.map { Garment(id: $0.id, name: $0.fields.name) }
+        return state.garments.filter { !$0.deleted }.map(\.display)
+    }
+
+    /// Refresh the durable metadata snapshot on the first page only. Subsequent
+    /// pages never trigger another whole-account sync or any image downloads.
+    func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage {
+        try requireActive()
+        guard offset >= 0, (1...100).contains(limit) else { throw APIClientError.invalidRequest }
+        if offset == 0 {
+            do { try await synchronize() }
+            catch {
+                if error is CancellationError || Task.isCancelled || error as? OfflineError == .storage { throw error }
+                if !(error is URLError) { throw error }
+            }
+            try requireActive()
+        }
+        let items = state.garments.filter { !$0.deleted }.map(\.display)
+        return query.page(items, offset: offset, limit: limit, cached: true)
+    }
+
+    func detail(id: UUID) async throws -> GarmentDetail {
+        try requireActive()
+        guard let item = state.garments.first(where: { $0.id == id && !$0.deleted }) else { throw OfflineError.invalidState }
+        return GarmentDetail(garment: item.display,
+            wornOn: Set(state.wears.filter { !$0.deleted && $0.garmentIDs.contains(id) }.map(\.wornOn)).sorted(by: >), cached: true)
+    }
+
+    func thumbnail(imageID: UUID) async throws -> Data {
+        try await readImage(id: imageID, original: false)
+    }
+    func original(imageID: UUID) async throws -> Data {
+        try await readImage(id: imageID, original: true)
+    }
+    private func readImage(id: UUID, original: Bool) async throws -> Data {
+        try requireActive()
+        let data = try await remote.image(id: id, original: original)
+        try requireActive()
+        return data
+    }
+
+    func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
+        try requireActive()
+        guard let item = state.garments.first(where: { $0.id == id && !$0.deleted }) else { throw OfflineError.invalidState }
+        try saveGarment(id: id, fields: APIv1.GarmentFields(name: item.fields.name,
+            category: item.fields.category, priceGrosz: item.fields.priceGrosz,
+            availability: availability, archived: archived))
+        return try await detail(id: id)
     }
 
     @discardableResult
@@ -191,7 +254,7 @@ actor OfflineStore: WardrobeRepository {
         let operation = APIv1.SaveGarment(operationID: queued?.id ?? UUID(), garmentID: id, baseVersion: base, garment: fields)
         var next = state
         next.garments.removeAll { $0.id == id }
-        next.garments.append(SyncGarment(id: id, version: previous?.version ?? 0, deleted: false, fields: fields))
+        next.garments.append(SyncGarment(id: id, version: previous?.version ?? 0, deleted: false, fields: fields, metadata: previous?.metadata))
         next.outbox.removeAll { $0.id == operation.operationID }
         next.outbox.append(Pending(id: operation.operationID, garment: operation, wear: nil))
         try commit(next)
@@ -251,7 +314,7 @@ actor OfflineStore: WardrobeRepository {
             let replacement = APIv1.SaveGarment(operationID: UUID(), garmentID: id, baseVersion: server.version, garment: operation.garment)
             next.outbox.append(Pending(id: replacement.operationID, garment: replacement, wear: nil))
             next.garments.removeAll { $0.id == id }
-            next.garments.append(SyncGarment(id: id, version: server.version, deleted: false, fields: operation.garment))
+            next.garments.append(SyncGarment(id: id, version: server.version, deleted: false, fields: operation.garment, metadata: server.metadata))
         }
         try commit(next)
     }
@@ -286,7 +349,8 @@ actor OfflineStore: WardrobeRepository {
                         var next = state
                         next.garments.removeAll { $0.id == dto.id }
                         next.garments.append(SyncGarment(id: dto.id, version: dto.version, deleted: false,
-                            fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability)))
+                            fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability, archived: dto.archived ?? operation.garment.archived),
+                            metadata: state.garments.first { $0.id == dto.id }?.metadata))
                         next.outbox.removeAll { $0.id == id }
                         try commit(next)
                     } else if let operation = pending.wear {
