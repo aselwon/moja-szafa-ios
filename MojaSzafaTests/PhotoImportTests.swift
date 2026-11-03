@@ -25,6 +25,33 @@ final class PhotoImportTests: XCTestCase {
         return data as Data
     }
 
+    func testDeletionRemovesOriginalAndEditAndFencesDelayedImport() async throws {
+        let accountID = UUID()
+        let key = "deletion.accepted.\(accountID)"
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer {
+            UserDefaults.standard.removeObject(forKey: key)
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let model = PhotoImportModel(directory: directory, accountID: accountID)
+        let bytes = try fixture()
+        try bytes.write(to: directory.appendingPathComponent("original.jpg"))
+        try bytes.write(to: directory.appendingPathComponent("edit.png"))
+        var release: CheckedContinuation<Data, Never>?
+        model.start([{ await withCheckedContinuation { release = $0 } }])
+        while release == nil { await Task.yield() }
+        UserDefaults.standard.set(true, forKey: key)
+        try PhotoImportModel.deleteDrafts(directory: directory)
+        try PhotoImportModel.deleteDrafts(directory: directory)
+        release?.resume(returning: bytes)
+        while model.running { await Task.yield() }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.path))
+        model.start([{ bytes }])
+        XCTAssertFalse(model.running)
+        _ = PhotoImportModel(directory: directory, accountID: accountID)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.path))
+    }
+
     func testJPEGAllOrientationsResizeAndRemoveGPS() async throws {
         let processor = PhotoProcessor()
         for orientation in 1...8 {

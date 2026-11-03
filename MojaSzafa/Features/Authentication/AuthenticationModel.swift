@@ -5,6 +5,8 @@ import Security
 
 @MainActor @Observable
 final class AuthenticationModel {
+    private(set) var deletionCleanupPending = false
+    private(set) var appleAuthorizationCode: String?
     private(set) var session: AuthSession?
     private(set) var challenge: UUID?
     private(set) var busy = false
@@ -12,13 +14,17 @@ final class AuthenticationModel {
     private(set) var restored = false
     private let service: any AuthenticationService
     private let store: any SessionStore
+    private let deletionCleanup: @MainActor (UUID) async throws -> Void
+    private var pendingDeletionAccountID: UUID?
     private var generation = UUID()
     private var refreshTask: Task<AuthSession, Error>?
     private var pendingApple: (nonce: String, state: String, linking: Bool)?
 
-    init(service: any AuthenticationService, store: any SessionStore) {
+    init(service: any AuthenticationService, store: any SessionStore,
+         deletionCleanup: @escaping @MainActor (UUID) async throws -> Void = { _ in }) {
         self.service = service
         self.store = store
+        self.deletionCleanup = deletionCleanup
     }
 
     func restore() async {
@@ -26,7 +32,12 @@ final class AuthenticationModel {
         restored = true
         do {
             session = try store.read()
-            if session != nil { _ = try await accessToken() }
+            if let current = session, UserDefaults.standard.bool(forKey: "deletion.accepted.\(current.userID)") {
+                deletionCleanupPending = true
+                pendingDeletionAccountID = current.userID
+                session = nil
+                await finishAcceptedDeletion()
+            } else if session != nil { _ = try await accessToken() }
         } catch { show(error) }
     }
 
@@ -49,6 +60,7 @@ final class AuthenticationModel {
 
     func accessToken() async throws -> String {
         guard let current = session else { throw AuthError.expired }
+        guard !UserDefaults.standard.bool(forKey: "deletion.accepted.\(current.userID)") else { throw AuthError.expired }
         if current.expiresAt.timeIntervalSinceNow > 60 { return current.accessToken }
         let operation = generation
         let task: Task<AuthSession, Error>
@@ -117,7 +129,7 @@ final class AuthenticationModel {
         return (SHA256.hash(data: Data(nonce.utf8)).map { String(format: "%02x", $0) }.joined(), state)
     }
 
-    func finishApple(identityToken: String, state: String?) async {
+    func finishApple(identityToken: String, state: String?, authorizationCode: String? = nil) async {
         guard let pending = pendingApple else { return }
         pendingApple = nil
         defer { busy = false }
@@ -130,6 +142,7 @@ final class AuthenticationModel {
             guard operation == generation else { return }
             if pending.linking && result.userID != previousUser { throw AuthError.invalidResponse }
             try save(result)
+            appleAuthorizationCode = authorizationCode
         } catch { if operation == generation { show(error) } }
     }
 
@@ -151,6 +164,7 @@ final class AuthenticationModel {
         refreshTask?.cancel()
         refreshTask = nil
         session = nil
+        appleAuthorizationCode = nil
         pendingApple = nil
         challenge = nil
         message = nil
@@ -161,8 +175,57 @@ final class AuthenticationModel {
             catch { message = "auth.revocationPending" }
         }
     }
+    func deletionAuthentication() -> AuthenticationModel {
+        AuthenticationModel(service: service, store: EphemeralSessionStore())
+    }
+
+    /// Only a same-account, newly authenticated session can request deletion.
+    /// Server independently enforces auth_time; client expiry is not reauth proof.
+    func deleteAccount(reauthenticated: AuthenticationModel, operationID: UUID) async -> Bool {
+        guard !busy, let original = session, let fresh = reauthenticated.session,
+              fresh.userID == original.userID else {
+            message = "deletion.wrongAccount"
+            return false
+        }
+        busy = true
+        defer { busy = false }
+        let operation = generation
+        do {
+            try fresh.validate()
+            _ = try await service.deleteAccount(bearer: fresh.accessToken, operationID: operationID,
+                                                appleAuthorizationCode: reauthenticated.appleAuthorizationCode)
+            guard operation == generation else { return false }
+            // Preserve a durable accepted marker before clearing local stores.
+            // Restart retries cleanup without needing a now-revoked session.
+            UserDefaults.standard.set(true, forKey: "deletion.accepted.\(original.userID)")
+            deletionCleanupPending = true
+            pendingDeletionAccountID = original.userID
+            session = nil
+            generation = UUID()
+            refreshTask?.cancel()
+            refreshTask = nil
+            appleAuthorizationCode = nil
+            await finishAcceptedDeletion()
+            return true
+        } catch {
+            if operation == generation { show(error) }
+            return false
+        }
+    }
+
+    func finishAcceptedDeletion() async {
+        guard deletionCleanupPending, let accountID = pendingDeletionAccountID else { return }
+        do {
+            try await deletionCleanup(accountID)
+            try store.clear()
+            deletionCleanupPending = false
+            message = "deletion.accepted"
+        } catch { message = "deletion.cleanupRetry" }
+    }
+
     private func save(_ value: AuthSession) throws {
         try value.validate()
+        guard !UserDefaults.standard.bool(forKey: "deletion.accepted.\(value.userID)") else { throw AuthError.expired }
         try store.write(value)
         session = value
         challenge = nil
@@ -176,4 +239,13 @@ final class AuthenticationModel {
         else if (error as? URLError)?.code == .notConnectedToInternet { message = "auth.offline" }
         else { message = "auth.error" }
     }
+}
+
+/// Reauthentication credentials exist only for the lifetime of the deletion sheet.
+@MainActor
+private final class EphemeralSessionStore: SessionStore {
+    private var value: AuthSession?
+    func read() throws -> AuthSession? { value }
+    func write(_ session: AuthSession) throws { value = session }
+    func clear() throws { value = nil }
 }

@@ -3,6 +3,8 @@ import AuthenticationServices
 
 struct AuthenticationView: View {
     @Bindable var model: AuthenticationModel
+    var allowsAccountActions = true
+    @State private var showDeletion = false
     @State private var email = ""
     @State private var code = ""
     @State private var confirmLink = false
@@ -32,9 +34,11 @@ struct AuthenticationView: View {
                     }
                 }
                 Section { appleButton }
-            } else {
+            } else if allowsAccountActions {
                 Section {
                     Text("auth.signedIn")
+                    Button("deletion.title", role: .destructive) { showDeletion = true }
+                        .disabled(model.busy)
                     if linkConfirmed { appleButton }
                     else { Button("auth.link") { confirmLink = true }.disabled(model.busy) }
                     Button("auth.logout", role: .destructive) {
@@ -49,6 +53,9 @@ struct AuthenticationView: View {
             }
         }
         .navigationTitle("auth.title")
+        .sheet(isPresented: $showDeletion) {
+            NavigationStack { AccountDeletionView(model: model) }
+        }
         .confirmationDialog("auth.linkTitle", isPresented: $confirmLink, titleVisibility: .visible) {
             Button("auth.linkConfirm") { linkConfirmed = true }
             Button("auth.cancel", role: .cancel) {}
@@ -77,7 +84,8 @@ struct AuthenticationView: View {
                 }
                 // Apple may omit email on subsequent authorizations. Neither it nor
                 // the private relay address is used for local identity matching.
-                Task { await model.finishApple(identityToken: token, state: credential.state) }
+                let authorizationCode = credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
+                Task { await model.finishApple(identityToken: token, state: credential.state, authorizationCode: authorizationCode) }
             case .failure(let error):
                 model.cancelApple(failed: (error as? ASAuthorizationError)?.code != .canceled)
             }
@@ -99,7 +107,11 @@ struct AuthenticationGateView: View {
         self.dependencies = dependencies
         _model = State(initialValue: AuthenticationModel(
             service: dependencies.authentication,
-            store: KeychainSessionStore(service: Bundle.main.bundleIdentifier ?? "pl.mojaszafa.app")))
+            store: KeychainSessionStore(service: Bundle.main.bundleIdentifier ?? "pl.mojaszafa.app"),
+            deletionCleanup: { accountID in
+                try await dependencies.offline?.invalidateAccount()
+                try PhotoImportModel.deleteDrafts(directory: PhotoImportModel.directory(for: accountID))
+            }))
     }
 
     var body: some View {
@@ -108,6 +120,11 @@ struct AuthenticationGateView: View {
                 WelcomeView { welcomeSeen = true }
             } else if !model.restored {
                 ProgressView().accessibilityLabel(Text("auth.loading"))
+            } else if model.deletionCleanupPending {
+                VStack {
+                    Text("deletion.cleanupRetry")
+                    Button("deletion.retryCleanup") { Task { await model.finishAcceptedDeletion() } }
+                }
             } else if let session = model.session {
                 ProfileGateView(dependencies: dependencies.authenticated(using: model), accountID: session.userID)
                     .id(session.userID)
@@ -130,5 +147,57 @@ struct AuthenticationGateView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await model.restoreOrRefresh() } }
         }
+    }
+}
+
+struct AccountDeletionView: View {
+    @Bindable var model: AuthenticationModel
+    @State private var reauthentication: AuthenticationModel
+    @State private var confirm = false
+    @Environment(\.dismiss) private var dismiss
+    private let operationID: UUID
+
+    init(model: AuthenticationModel) {
+        self.model = model
+        _reauthentication = State(initialValue: model.deletionAuthentication())
+        let key = "deletion.operation.\(model.session?.userID.uuidString ?? "unknown")"
+        let id = UserDefaults.standard.string(forKey: key).flatMap(UUID.init(uuidString:)) ?? UUID()
+        UserDefaults.standard.set(id.uuidString, forKey: key)
+        operationID = id
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ScrollView {
+                Text("deletion.explanation")
+                Link("deletion.subscriptions", destination: URL(string: "https://apps.apple.com/account/subscriptions")!)
+            }
+            .frame(maxHeight: 200)
+            .padding(.horizontal)
+            if reauthentication.session == nil {
+                AuthenticationView(model: reauthentication, allowsAccountActions: false)
+            } else {
+                Form {
+                    Text("deletion.confirmExplanation")
+                    Button("deletion.confirm", role: .destructive) { confirm = true }
+                        .disabled(model.busy)
+                    Button("deletion.retryIdentity") { Task { await reauthentication.logout() } }
+                        .disabled(model.busy)
+                    if model.busy { ProgressView() }
+                    if let message = model.message { Text(LocalizedStringKey(message)) }
+                }
+            }
+        }
+        .navigationTitle("deletion.title")
+        .toolbar { Button("common.cancel") { dismiss() }.disabled(model.busy) }
+        .interactiveDismissDisabled(model.busy)
+        .confirmationDialog("deletion.confirm", isPresented: $confirm, titleVisibility: .visible) {
+            Button("deletion.confirm", role: .destructive) {
+                Task {
+                    if await model.deleteAccount(reauthenticated: reauthentication, operationID: operationID) { dismiss() }
+                }
+            }
+            Button("common.cancel", role: .cancel) {}
+        } message: { Text("deletion.confirmExplanation") }
     }
 }

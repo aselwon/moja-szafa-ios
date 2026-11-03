@@ -139,6 +139,98 @@ final class AuthenticationTests: XCTestCase {
         XCTAssertNil(store.value)
     }
 
+    func testDeletionRejectsDifferentReauthenticatedAccount() async {
+        let original = makeSession()
+        let service = AuthStub()
+        let store = MemorySessionStore(value: original)
+        let model = AuthenticationModel(service: service, store: store)
+        await model.restore()
+        let fresh = model.deletionAuthentication()
+        await fresh.startEmail("person@example.invalid")
+        await fresh.verifyEmail("123456")
+        let deleted = await model.deleteAccount(reauthenticated: fresh, operationID: UUID())
+        XCTAssertFalse(deleted)
+        XCTAssertEqual(model.message, "deletion.wrongAccount")
+        XCTAssertEqual(store.value, original)
+        let calls = await service.deletionCalls
+        XCTAssertEqual(calls, 0)
+    }
+
+    func testAcceptedDeletionClearsSessionAndRunsLocalCleanup() async {
+        let original = makeSession()
+        let key = "deletion.accepted.\(original.userID)"
+        defer { UserDefaults.standard.removeObject(forKey: key) }
+        let service = AuthStub(result: original)
+        let store = MemorySessionStore(value: original)
+        var cleaned = false
+        let model = AuthenticationModel(service: service, store: store, deletionCleanup: { _ in cleaned = true })
+        await model.restore()
+        let fresh = model.deletionAuthentication()
+        await fresh.startEmail("person@example.invalid")
+        await fresh.verifyEmail("123456")
+        let deleted = await model.deleteAccount(reauthenticated: fresh, operationID: UUID())
+        XCTAssertTrue(deleted)
+        XCTAssertTrue(cleaned)
+        XCTAssertNil(model.session)
+        XCTAssertNil(store.value)
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: key))
+        XCTAssertEqual(model.message, "deletion.accepted")
+    }
+
+    func testAcceptedDeletionRestartsCleanupBeforeUsingStoredSession() async {
+        let original = makeSession()
+        let key = "deletion.accepted.\(original.userID)"
+        UserDefaults.standard.set(true, forKey: key)
+        defer { UserDefaults.standard.removeObject(forKey: key) }
+        let store = MemorySessionStore(value: original)
+        var fails = true
+        let model = AuthenticationModel(service: AuthStub(), store: store, deletionCleanup: { _ in
+            if fails { throw AuthError.storage }
+        })
+        await model.restore()
+        XCTAssertNil(model.session)
+        XCTAssertTrue(model.deletionCleanupPending)
+        XCTAssertEqual(store.value, original)
+        fails = false
+        await model.finishAcceptedDeletion()
+        XCTAssertFalse(model.deletionCleanupPending)
+        XCTAssertNil(store.value)
+    }
+
+    func testDeletionNetworkFailurePreservesAccountAndReusesOperationID() async {
+        let original = makeSession()
+        let service = AuthStub(result: original, deletionError: .rejected)
+        let store = MemorySessionStore(value: original)
+        let model = AuthenticationModel(service: service, store: store)
+        await model.restore()
+        let fresh = model.deletionAuthentication()
+        await fresh.startEmail("person@example.invalid")
+        await fresh.verifyEmail("123456")
+        let operationID = UUID()
+        for _ in 0..<2 {
+            let deleted = await model.deleteAccount(reauthenticated: fresh, operationID: operationID)
+            XCTAssertFalse(deleted)
+        }
+        let operations = await service.deletionOperations
+        XCTAssertEqual(operations, [operationID, operationID])
+        XCTAssertEqual(store.value, original)
+        XCTAssertEqual(model.session, original)
+    }
+
+    func testDeletionClientUsesFreshBearerAndOperationID() async throws {
+        let receipt = DeletionReceipt(jobID: UUID(), status: "queued")
+        let transport = AuthTransport(status: 202, data: try JSONEncoder().encode(receipt))
+        let client = try AuthenticationClient(baseURL: URL(string: "https://auth.example.invalid")!, transport: transport)
+        let operationID = UUID()
+        let result = try await client.deleteAccount(bearer: "fresh", operationID: operationID, appleAuthorizationCode: "synthetic-code")
+        XCTAssertEqual(result, receipt)
+        let request = await transport.lastRequest
+        XCTAssertEqual(request?.url?.path, "/auth/v1/account/delete")
+        XCTAssertEqual(request?.value(forHTTPHeaderField: "Authorization"), "Bearer fresh")
+        let body = try JSONSerialization.jsonObject(with: XCTUnwrap(request?.httpBody)) as? [String: String]
+        XCTAssertEqual(body, ["operationID": operationID.uuidString, "appleAuthorizationCode": "synthetic-code"])
+    }
+
     func testClientContractAnd401() async throws {
         let transport = AuthTransport(status: 401, data: Data())
         let client = try AuthenticationClient(baseURL: URL(string: "https://auth.example.invalid")!, transport: transport)
@@ -182,11 +274,15 @@ private final class MemorySessionStore: SessionStore {
 private actor AuthStub: AuthenticationService {
     let result: AuthSession
     let refreshError: AuthError?
+    let deletionError: AuthError?
+    private(set) var deletionCalls = 0
+    private(set) var deletionOperations: [UUID] = []
     private(set) var appleCalls = 0
     private(set) var linkingToken: String?
-    init(result: AuthSession = makeSession(), refreshError: AuthError? = nil) {
+    init(result: AuthSession = makeSession(), refreshError: AuthError? = nil, deletionError: AuthError? = nil) {
         self.result = result
         self.refreshError = refreshError
+        self.deletionError = deletionError
     }
     func startEmail(_ email: String) async throws -> UUID { UUID() }
     func verifyEmail(challenge: UUID, code: String) async throws -> AuthSession { result }
@@ -198,6 +294,12 @@ private actor AuthStub: AuthenticationService {
     func refresh(_ token: String) async throws -> AuthSession {
         if let refreshError { throw refreshError }
         return result
+    }
+    func deleteAccount(bearer: String, operationID: UUID, appleAuthorizationCode: String?) async throws -> DeletionReceipt {
+        deletionCalls += 1
+        deletionOperations.append(operationID)
+        if let deletionError { throw deletionError }
+        return DeletionReceipt(jobID: UUID(), status: "queued")
     }
     func revoke(_ token: String) async throws {}
 }

@@ -424,7 +424,7 @@
         "T015"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "review",
       "epicId": "E03",
       "priority": 1,
       "milestone": "App Store 1.0",

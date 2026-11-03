@@ -57,11 +57,27 @@ final class PhotoImportModel: ObservableObject {
     @Published private(set) var running = false
     @Published var message: String?
     private let directory: URL
+    private let accountID: UUID?
+    private var accountDeleted: Bool {
+        accountID.map { UserDefaults.standard.bool(forKey: "deletion.accepted.\($0)") } ?? false
+    }
+
+    static func directory(for accountID: UUID) -> URL {
+        URL.applicationSupportDirectory.appendingPathComponent("PhotoDrafts").appendingPathComponent(accountID.uuidString)
+    }
+
+    static func deleteDrafts(directory: URL) throws {
+        if FileManager.default.fileExists(atPath: directory.path) {
+            try FileManager.default.removeItem(at: directory)
+        }
+    }
     private let processor = PhotoProcessor()
     private var task: Task<Void, Never>?
 
-    init(directory: URL) {
+    init(directory: URL, accountID: UUID? = nil) {
         self.directory = directory
+        self.accountID = accountID
+        guard !accountDeleted else { return }
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             drafts = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
@@ -77,7 +93,7 @@ final class PhotoImportModel: ObservableObject {
     }
 
     func start(_ loaders: [@MainActor () async throws -> Data]) {
-        guard !running, !loaders.isEmpty else { return }
+        guard !accountDeleted, !running, !loaders.isEmpty else { return }
         running = true
         let ids = loaders.map { _ in UUID() }
         drafts += ids.map { Draft(id: $0, status: "import.waiting") }
@@ -92,6 +108,8 @@ final class PhotoImportModel: ObservableObject {
                     try Task.checkCancellation()
                     let output = try await processor.normalize(input)
                     try Task.checkCancellation()
+                    // The durable marker fences an import that resumed after deletion.
+                    guard !accountDeleted else { throw CancellationError() }
                     let file = directory.appendingPathComponent(id.uuidString).appendingPathExtension("jpg")
                     try output.write(to: file, options: [.atomic, .completeFileProtection])
                     drafts[index].file = file
@@ -115,7 +133,7 @@ final class PhotoImportModel: ObservableObject {
 
     /// Atomic replacement leaves the previous selection intact if storage fails.
     func acceptEdit(_ data: Data, for id: UUID) -> Bool {
-        guard !running, let index = drafts.firstIndex(where: { $0.id == id }),
+        guard !accountDeleted, !running, let index = drafts.firstIndex(where: { $0.id == id }),
               let original = drafts[index].file else { return false }
         let destination = original.deletingPathExtension().appendingPathExtension("png")
         do {

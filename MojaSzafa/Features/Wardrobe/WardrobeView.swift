@@ -6,8 +6,7 @@ struct WardrobeView: View {
     @State private var reloadID = 0
 
     init(repository: any WardrobeRepository, accountID: UUID) {
-        _imports = StateObject(wrappedValue: PhotoImportModel(directory: URL.applicationSupportDirectory
-            .appendingPathComponent("PhotoDrafts").appendingPathComponent(accountID.uuidString)))
+        _imports = StateObject(wrappedValue: PhotoImportModel(directory: PhotoImportModel.directory(for: accountID), accountID: accountID))
         _model = StateObject(wrappedValue: WardrobeModel(repository: repository))
     }
 

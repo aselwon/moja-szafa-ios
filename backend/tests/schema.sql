@@ -19,7 +19,7 @@ CREATE FUNCTION pg_temp.uid(n integer) RETURNS uuid LANGUAGE sql IMMUTABLE AS $$
     SELECT lpad(n::text, 32, '0')::uuid
 $$;
 SELECT pg_temp.assert_true((SELECT count(*) = 22 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'app' AND c.relkind = 'r' AND c.relrowsecurity AND c.relforcerowsecurity), '22 tables must enforce RLS');
-SELECT pg_temp.assert_true((SELECT count(*) = 8 FROM migration_meta.versions), 'all eight available migrations recorded');
+SELECT pg_temp.assert_true((SELECT count(*) = 9 FROM migration_meta.versions), 'all nine available migrations recorded');
 INSERT INTO auth.users VALUES (pg_temp.uid(101)), (pg_temp.uid(102));
 INSERT INTO app.profiles (id, user_id) VALUES (pg_temp.uid(101),pg_temp.uid(101)), (pg_temp.uid(102),pg_temp.uid(102));
 INSERT INTO app.garments (id, user_id, name, category, price_grosz) VALUES
@@ -49,7 +49,6 @@ INSERT INTO app.purchase_candidates (user_id,expires_at) VALUES (pg_temp.uid(101
 INSERT INTO app.subscription_events (user_id,notification_id,entitlement_id,event_type,occurred_at) VALUES (pg_temp.uid(101),pg_temp.uid(901),pg_temp.uid(701),'test',now());
 INSERT INTO app.usage_reservations (user_id,ai_job_id,client_request_id,units,expires_at) VALUES (pg_temp.uid(101),pg_temp.uid(601),pg_temp.uid(1001),1,now()+interval '1 hour');
 INSERT INTO app.sync_operations (user_id,client_request_id,entity_type,entity_id,status) VALUES (pg_temp.uid(101),pg_temp.uid(1101),'garments',pg_temp.uid(201),'pending');
-INSERT INTO app.deletion_jobs (user_id,client_request_id) VALUES (pg_temp.uid(101),pg_temp.uid(1201));
 INSERT INTO app.support_requests (user_id,client_request_id,subject,message) VALUES (pg_temp.uid(101),pg_temp.uid(1301),'Test','Synthetic');
 INSERT INTO app.operator_audit (user_id,operator_id,action,target_type,request_id,outcome) VALUES (pg_temp.uid(101),pg_temp.uid(1401),'test','profile',pg_temp.uid(1402),'allowed');
 
@@ -59,7 +58,8 @@ SELECT set_config('request.jwt.claim.sub',pg_temp.uid(101)::text,true);
 DO $$ DECLARE t text; total integer; foreign_count integer; BEGIN
     FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'app' AND tablename <> 'operator_audit' LOOP
         EXECUTE format('SELECT count(*), count(*) FILTER (WHERE user_id <> auth.uid()) FROM app.%I', t) INTO total, foreign_count;
-        PERFORM pg_temp.assert_true(total > 0 AND foreign_count = 0, 'owner-only reads: ' || t);
+        -- A deletion job now fences the entire account, so create it after live-owner checks.
+        PERFORM pg_temp.assert_true((CASE WHEN t = 'deletion_jobs' THEN total = 0 ELSE total > 0 END) AND foreign_count = 0, 'owner-only reads: ' || t);
         PERFORM pg_temp.expect_error(format('DELETE FROM app.%I',t),'42501');
         PERFORM pg_temp.expect_error(format('UPDATE app.%I SET version = version + 1',t),'42501');
         PERFORM pg_temp.expect_error(format('INSERT INTO app.%I DEFAULT VALUES',t),'42501');
@@ -78,6 +78,16 @@ END $$;
 RESET ROLE;
 SET LOCAL ROLE anon;
 SELECT pg_temp.expect_error('SELECT * FROM app.garments','42501');
+RESET ROLE;
+
+-- T017: adding a deletion ledger entry hides existing content even with a valid JWT.
+INSERT INTO app.deletion_jobs (user_id,client_request_id) VALUES (pg_temp.uid(101),pg_temp.uid(1201));
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub',pg_temp.uid(101)::text,true);
+SELECT pg_temp.assert_true((SELECT count(*) = 1 FROM app.deletion_jobs), 'owner can read deletion receipt');
+SELECT pg_temp.assert_true((SELECT count(*) = 0 FROM app.garments), 'deleting owner cannot read garments');
+SELECT set_config('request.jwt.claim.sub',pg_temp.uid(102)::text,true);
+SELECT pg_temp.assert_true((SELECT count(*) = 0 FROM app.deletion_jobs), 'other owner cannot read deletion receipt');
 RESET ROLE;
 
 -- Composite foreign keys still enforce ownership for the trusted backend,

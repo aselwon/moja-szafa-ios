@@ -26,6 +26,19 @@ protocol AuthenticationService: Sendable {
     func apple(identityToken: String, nonce: String, linkingToken: String?) async throws -> AuthSession
     func refresh(_ token: String) async throws -> AuthSession
     func revoke(_ token: String) async throws
+    func deleteAccount(bearer: String, operationID: UUID, appleAuthorizationCode: String?) async throws -> DeletionReceipt
+}
+
+struct DeletionReceipt: Codable, Sendable, Equatable {
+    let jobID: UUID
+    let status: String
+}
+
+extension AuthenticationService {
+    // Unconfigured services fail closed; a logout is never treated as deletion.
+    func deleteAccount(bearer: String, operationID: UUID, appleAuthorizationCode: String?) async throws -> DeletionReceipt {
+        throw AuthError.notConfigured
+    }
 }
 
 struct UnconfiguredAuthenticationService: AuthenticationService {
@@ -70,6 +83,15 @@ struct AuthenticationClient: AuthenticationService {
     }
     func revoke(_ token: String) async throws {
         let _: Empty = try await call("logout", body: ["refreshToken": token])
+    }
+    func deleteAccount(bearer: String, operationID: UUID, appleAuthorizationCode: String?) async throws -> DeletionReceipt {
+        var body = ["operationID": operationID.uuidString]
+        if let appleAuthorizationCode { body["appleAuthorizationCode"] = appleAuthorizationCode }
+        let receipt: DeletionReceipt = try await call("account/delete", body: body, bearer: bearer)
+        guard ["queued", "running", "succeeded", "failed", "dead_letter"].contains(receipt.status) else {
+            throw AuthError.invalidResponse
+        }
+        return receipt
     }
     private func session(_ path: String, body: [String: String], bearer: String? = nil) async throws -> AuthSession {
         let result: AuthSession = try await call(path, body: body, bearer: bearer)

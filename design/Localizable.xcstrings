@@ -4626,6 +4626,176 @@
         }
       },
       "comment": "T020 photo editor: Could not prepare the photo. Try again or return to import."
+    },
+    "deletion.title": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
+          }
+        }
+      }
+    },
+    "deletion.explanation": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie obejmuje ubrania, zdjęcia, historię, plany i preferencje. Zaloguj się ponownie na to samo konto, aby potwierdzić tożsamość. Potrzebne jest połączenie z internetem. Usunięcie konta nie anuluje subskrypcji Apple."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion includes garments, photos, history, plans and preferences. Sign in again to the same account to confirm your identity. An internet connection is required. Deleting your account does not cancel an Apple subscription."
+          }
+        }
+      }
+    },
+    "deletion.subscriptions": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zarządzaj subskrypcjami Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Apple subscriptions"
+          }
+        }
+      }
+    },
+    "deletion.confirmExplanation": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tej operacji nie można cofnąć. Dostęp do konta zostanie zablokowany, a dane trafią do trwałego usunięcia. Anulowanie subskrypcji nie jest warunkiem usunięcia konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cannot be undone. Account access will be blocked and data queued for permanent deletion. Cancelling a subscription is not required to delete your account."
+          }
+        }
+      }
+    },
+    "deletion.confirm": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trwale usuń konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently delete account"
+          }
+        }
+      }
+    },
+    "deletion.retryIdentity": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się na inne konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with a different account"
+          }
+        }
+      }
+    },
+    "deletion.wrongAccount": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się ponownie na konto, które chcesz usunąć."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again to the account you want to delete."
+          }
+        }
+      }
+    },
+    "deletion.accepted": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przyjęto żądanie usunięcia konta. Trwa sprzątanie danych."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account deletion was accepted. Data cleanup is in progress."
+          }
+        }
+      }
+    },
+    "deletion.cleanupRetry": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięcie konta przyjęto. Ponów czyszczenie danych na tym urządzeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account deletion was accepted. Retry clearing data on this device."
+          }
+        }
+      }
+    },
+    "deletion.retryCleanup": {
+      "comment": "T017 account deletion flow.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponów czyszczenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry cleanup"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

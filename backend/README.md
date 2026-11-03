@@ -161,3 +161,8 @@ operations, required model configuration, bounded HTTP, safe failures and usage
 telemetry. It plugs into the T010 worker through an executable and mandatory
 trusted runtime hooks; no provider or mock is enabled by default. See
 [T027 protocol, configuration, integration and verification](../docs/architecture/T027-ai-provider.md).
+
+Account deletion (T017): migration 009, the injectable gateway handler and durable
+worker are documented in [the deletion runbook](../docs/privacy/T017-account-deletion.md).
+Production activation remains blocked on the T013 authentication gateway, real
+identity/Apple revocation adapters and approved backup retention/restore evidence.
