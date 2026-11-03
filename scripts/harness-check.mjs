@@ -42,3 +42,5 @@ execFileSync('python3', ['-B', 'backend/tests/test_image_decoder.py'], { stdio: 
 await import('../backend/tests/ai-provider.test.mjs');
 
 await import('../backend/tests/exports.test.mjs');
+
+await import('../backend/tests/deletion.test.mjs');

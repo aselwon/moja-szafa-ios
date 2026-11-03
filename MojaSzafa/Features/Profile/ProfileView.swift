@@ -116,6 +116,13 @@ struct ProfileGateView: View {
                                 NavigationLink("profile.title") { ProfileEditorView(model: model) }
                                 NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
                                 NavigationLink("export.title") { DataExportView(service: dependencies.dataExports) }
+                                NavigationLink("deletion.title") {
+                                    AccountDeletionView(service: dependencies.accountDeletion, accountID: accountID) {
+                                        if let offline = dependencies.offline { try await offline.invalidateAccount() }
+                                        guard let cleanup = dependencies.deletionCleanup else { throw AuthError.notConfigured }
+                                        try await cleanup()
+                                    }
+                                }
                             }.navigationTitle("profile.title")
                         }
                     }

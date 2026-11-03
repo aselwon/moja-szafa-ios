@@ -178,3 +178,11 @@ RPO/RTO measurement. `bash backend/tests/recovery-drill.sh` runs a synthetic res
 on a dedicated PostgreSQL test cluster; the SQL suite runs it automatically.
 Production backup scheduling, provider recovery, deletion-journal integration and
 measured operational acceptance remain explicitly unverified.
+
+## T017 account deletion
+
+Migration `010_account_deletion.sql` adds the account deletion queue commands,
+account tombstones and restrictive read policies. The migration runner defaults
+to 010. See [T017 contract, adapters, cleanup and retention gates](../docs/architecture/T017-account-deletion.md).
+The HTTP/worker modules require real deployment identity, storage and backup
+adapters; they do not simulate successful Apple revocation or backup erasure.
