@@ -315,6 +315,132 @@
           }
         }
       }
+    },
+    "/rest/v1/rpc/api_v1_browse_wardrobe": {
+      "post": {
+        "operationId": "api_v1_browse_wardrobe",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/WardrobeRequest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application success OR structured domain error; inspect error before data. Replay returns original response including request_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/WardrobePageSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Gateway or infrastructure HTTP failure; may not contain application JSON. Preserve X-Request-ID if present."
+          }
+        },
+        "description": "Owner-scoped read. Browse offsets are not a snapshot: refresh after changes; ties use UUID. Search is a literal case-insensitive name/brand substring. Images use T011 authenticated thumbnail URLs on demand. History contains distinct recorded calendar days, excluding plans and estimates."
+      }
+    },
+    "/rest/v1/rpc/api_v1_garment_detail": {
+      "post": {
+        "operationId": "api_v1_garment_detail",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/GarmentDetailRequest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application success OR structured domain error; inspect error before data. Replay returns original response including request_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/GarmentDetailSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Gateway or infrastructure HTTP failure; may not contain application JSON. Preserve X-Request-ID if present."
+          }
+        },
+        "description": "Owner-scoped read. Browse offsets are not a snapshot: refresh after changes; ties use UUID. Search is a literal case-insensitive name/brand substring. Images use T011 authenticated thumbnail URLs on demand. History contains distinct recorded calendar days, excluding plans and estimates."
+      }
     }
   },
   "components": {
@@ -623,6 +749,16 @@
           },
           "fields": {
             "$ref": "#/components/schemas/GarmentFields"
+          },
+          "metadata": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WardrobeItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -856,6 +992,250 @@
             "format": "uuid"
           }
         }
+      },
+      "WardrobeQuery": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "search": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "top",
+              "bottom",
+              "shoes",
+              "dress",
+              "jumpsuit",
+              "outerwear",
+              "accessory",
+              "other",
+              null
+            ]
+          },
+          "availability": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "available",
+              "laundry",
+              "unavailable",
+              null
+            ]
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "name",
+              "nameDescending",
+              "price"
+            ]
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "search",
+          "sort",
+          "archived"
+        ]
+      },
+      "WardrobeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/WardrobeQuery"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "query",
+          "offset",
+          "limit"
+        ]
+      },
+      "WardrobeItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string"
+          },
+          "priceGrosz": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "imageID": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "brand": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "seasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "availability",
+          "priceGrosz",
+          "imageID",
+          "brand",
+          "colors",
+          "seasons",
+          "archived"
+        ]
+      },
+      "WardrobePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/WardrobeItem"
+            }
+          },
+          "nextOffset": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "cached": {
+            "const": false
+          }
+        },
+        "required": [
+          "items",
+          "nextOffset",
+          "cached"
+        ]
+      },
+      "GarmentDetailRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "GarmentDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "garment": {
+            "$ref": "#/components/schemas/WardrobeItem"
+          },
+          "wornOn": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "cached": {
+            "const": false
+          }
+        },
+        "required": [
+          "garment",
+          "wornOn",
+          "cached"
+        ]
+      },
+      "WardrobePageSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/WardrobePage"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ]
+      },
+      "GarmentDetailSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GarmentDetail"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ]
       }
     }
   }
