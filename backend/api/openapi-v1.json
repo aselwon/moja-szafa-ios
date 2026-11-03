@@ -626,6 +626,10 @@
               "laundry",
               "unavailable"
             ]
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Independent of availability. Omission preserves current archive state on update."
           }
         }
       },
@@ -688,6 +692,10 @@
               "laundry",
               "unavailable"
             ]
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Independent of availability. Omission preserves current archive state on update."
           }
         }
       },

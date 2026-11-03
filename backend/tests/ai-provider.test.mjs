@@ -181,3 +181,46 @@ test('telemetry persistence failure cannot report success or repeat the provider
   assert.equal(outcome, 'permanent');
   assert.equal(calls.length, 1);
 });
+
+test('outfit executor excludes laundry, unavailable and archived garments before dispatch and rejects changed results', async () => {
+  for (const changed of [false, true]) {
+    let resolves = 0;
+    let sent;
+    const execute = createAIExecutor({
+      provider: { recipient: 'fixture', analyzeImage: async () => {}, recommendOutfits: async input => {
+        sent = input.garments.map(g => g.id);
+        return { result: { outfits: [{ garment_ids: ['available'] }] }, telemetry: { status: 'success' } };
+      } },
+      resolveInput: async () => ({ count: 1, garments: [
+        { id: 'available', availability: 'available', archived: changed && resolves++ > 0 },
+        { id: 'laundry', availability: 'laundry', archived: false },
+        { id: 'unavailable', availability: 'unavailable', archived: false },
+        { id: 'archived', availability: 'available', archived: true },
+        { id: 'unknown' }
+      ] }),
+      authorize: async () => true, validateResult: async (_job, result) => result, recordTelemetry: async () => {}
+    });
+    const result = await execute({ kind: 'outfit_generation' });
+    assert.deepEqual(sent, ['available']);
+    assert.equal(result.outcome, changed ? 'permanent' : 'success');
+  }
+});
+
+test('outfit executor rejects excluded IDs and avoids provider calls without eligible candidates', async () => {
+  for (const empty of [false, true]) {
+    let calls = 0;
+    const execute = createAIExecutor({
+      provider: { recipient: 'fixture', analyzeImage: async () => {}, recommendOutfits: async () => {
+        calls++;
+        return { result: { outfits: [{ garment_ids: ['laundry'] }] }, telemetry: { status: 'success' } };
+      } },
+      resolveInput: async () => ({ count: 1, garments: [
+        { id: 'available', availability: 'available', archived: empty },
+        { id: 'laundry', availability: 'laundry', archived: false }
+      ] }),
+      authorize: async () => true, validateResult: async (_job, result) => result, recordTelemetry: async () => {}
+    });
+    assert.equal((await execute({ kind: 'outfit_generation' })).outcome, 'permanent');
+    assert.equal(calls, empty ? 0 : 1);
+  }
+});

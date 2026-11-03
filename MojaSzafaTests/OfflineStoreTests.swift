@@ -8,6 +8,65 @@ final class OfflineStoreTests: XCTestCase {
     }
     private let fields = APIv1.GarmentFields(name: "Shirt", category: .top, priceGrosz: 80000, availability: .available)
 
+    func testStatusSurvivesRestartAndReachesSecondDeviceWithoutChangingHistoryOrPrice() async throws {
+        let firstDB = database(), secondDB = database()
+        defer {
+            try? FileManager.default.removeItem(at: firstDB.url.deletingLastPathComponent())
+            try? FileManager.default.removeItem(at: secondDB.url.deletingLastPathComponent())
+        }
+        let remote = SyncTestRemote()
+        let first = try OfflineStore(accountID: remote.accountID, database: firstDB, remote: remote)
+        let second = try OfflineStore(accountID: remote.accountID, database: secondDB, remote: remote)
+        let id = try await first.saveGarment(fields: fields)
+        try await first.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [id])
+        try await first.synchronize()
+        for availability in APIv1.Availability.allCases {
+            let local = try await first.setStatus(id: id, availability: availability, archived: true)
+            XCTAssertTrue(local.garment.archived)
+            let restarted = try OfflineStore(accountID: remote.accountID, database: firstDB, remote: remote)
+            let restored = try await restarted.detail(id: id)
+            XCTAssertTrue(restored.garment.archived)
+            XCTAssertEqual(restored.garment.availability, availability)
+            try await first.synchronize()
+            try await second.synchronize()
+            let detail = try await second.detail(id: id)
+            XCTAssertEqual(detail.garment.availability, availability)
+            XCTAssertTrue(detail.garment.archived)
+            XCTAssertEqual(detail.garment.priceGrosz, 80000)
+            XCTAssertEqual(detail.wornOn, ["2026-01-01"])
+        }
+        _ = try await first.setStatus(id: id, availability: .laundry, archived: false)
+        try await first.synchronize()
+        try await second.synchronize()
+        let unarchived = try await second.detail(id: id)
+        XCTAssertFalse(unarchived.garment.archived)
+        XCTAssertEqual(unarchived.garment.availability, .laundry)
+        XCTAssertEqual(unarchived.wornOn.count, 1)
+    }
+
+    func testArchiveConflictRequiresResolutionAndTimeoutReplaysSameIntent() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let id = try await store.saveGarment(fields: fields)
+        try await store.synchronize()
+        _ = try await store.setStatus(id: id, availability: .laundry, archived: true)
+        await remote.change(id: id, deleted: false)
+        do { try await store.synchronize(); XCTFail("Stale version must conflict") }
+        catch let error as APIv1.Failure { XCTAssertEqual(error.code, "version_conflict") }
+        try await store.resolveGarment(id: id, keepLocal: true)
+        await remote.timeoutNextWrite()
+        do { try await store.synchronize(); XCTFail("Expected ambiguous timeout") } catch is URLError {}
+        let restarted = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        try await restarted.synchronize(now: .distantFuture)
+        let requests = await remote.requests
+        XCTAssertEqual(requests[requests.count - 1], requests[requests.count - 2])
+        let detail = try await restarted.detail(id: id)
+        XCTAssertTrue(detail.garment.archived)
+        XCTAssertEqual(detail.garment.availability, .laundry)
+    }
+
     func testOfflineCreateEditWearSurviveRestartAndSyncWithoutDuplicateDays() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
@@ -208,7 +267,7 @@ private actor SyncTestRemote: OfflineRemote {
         let old = garments.first { $0.id == operation.garmentID }
         guard old?.version == operation.baseVersion else { throw failure("version_conflict") }
         let dto = APIv1.GarmentDTO(id: operation.garmentID, version: (old?.version ?? 0) + 1, name: operation.garment.name,
-            category: operation.garment.category, priceGrosz: operation.garment.priceGrosz, availability: operation.garment.availability)
+            category: operation.garment.category, priceGrosz: operation.garment.priceGrosz, availability: operation.garment.availability, archived: operation.garment.archived)
         replay[operation.operationID] = dto
         garments.removeAll { $0.id == dto.id }
         garments.append(SyncGarment(id: dto.id, version: dto.version, deleted: false, fields: operation.garment))
@@ -251,7 +310,7 @@ private actor SuspendedSyncRemote: OfflineRemote {
         guard let operation else { return }
         pending?.resume(returning: APIv1.GarmentDTO(id: operation.garmentID, version: 1,
             name: operation.garment.name, category: operation.garment.category,
-            priceGrosz: operation.garment.priceGrosz, availability: operation.garment.availability))
+            priceGrosz: operation.garment.priceGrosz, availability: operation.garment.availability, archived: operation.garment.archived))
         pending = nil
     }
 }
