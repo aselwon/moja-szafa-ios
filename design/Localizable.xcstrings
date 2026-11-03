@@ -937,8 +937,6 @@
       }
     },
     "garment.category": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -952,10 +950,11 @@
             "value": "Category"
           }
         }
-      }
+      },
+      "comment": "T021 garment draft form: garment.category"
     },
     "garment.other": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.other",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -973,44 +972,40 @@
       }
     },
     "garment.colors": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kolory"
+            "value": "Paleta kolorów"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Colors"
+            "value": "Color palette"
           }
         }
-      }
+      },
+      "comment": "T021 garment draft form: garment.colors"
     },
     "garment.pattern": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wzór"
+            "value": "Wzór (opcjonalnie)"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pattern"
+            "value": "Pattern (optional)"
           }
         }
-      }
+      },
+      "comment": "T021 garment draft form: garment.pattern"
     },
     "garment.seasons": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -1024,11 +1019,10 @@
             "value": "Seasons"
           }
         }
-      }
+      },
+      "comment": "T021 garment draft form: garment.seasons"
     },
     "garment.formality": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -1042,11 +1036,10 @@
             "value": "Formality"
           }
         }
-      }
+      },
+      "comment": "T021 garment draft form: garment.formality"
     },
     "garment.brand": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
@@ -1060,10 +1053,11 @@
             "value": "Brand (optional)"
           }
         }
-      }
+      },
+      "comment": "T021 garment draft form: garment.brand"
     },
     "garment.purchaseDate": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.purchaseDate",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1081,25 +1075,24 @@
       }
     },
     "garment.price": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cena zakupu (PLN)"
+            "value": "Cena w PLN (opcjonalnie)"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Purchase price (PLN)"
+            "value": "Price in PLN (optional)"
           }
         }
-      }
+      },
+      "comment": "T021 garment draft form: garment.price"
     },
     "garment.unknownPrice": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.unknownPrice",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1117,7 +1110,7 @@
       }
     },
     "garment.available": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.available",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1135,7 +1128,7 @@
       }
     },
     "garment.laundry": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.laundry",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1153,7 +1146,7 @@
       }
     },
     "garment.unavailable": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.unavailable",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1171,7 +1164,7 @@
       }
     },
     "garment.archive": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.archive",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1189,7 +1182,7 @@
       }
     },
     "garment.restore": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.restore",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1207,7 +1200,7 @@
       }
     },
     "garment.deleteTitle": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.deleteTitle",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1225,7 +1218,7 @@
       }
     },
     "garment.deleteBody": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.deleteBody",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -1243,7 +1236,7 @@
       }
     },
     "garment.deleteConfirm": {
-      "comment": "T003: garment; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T021 garment draft form: garment.deleteConfirm",
       "extractionState": "manual",
       "localizations": {
         "pl": {
@@ -4626,6 +4619,771 @@
         }
       },
       "comment": "T020 photo editor: Could not prepare the photo. Try again or return to import."
+    },
+    "garment.title": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dane ubrania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garment details"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.title"
+    },
+    "garment.explanation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Możesz poprawić wszystkie sugestie AI lub uzupełnić dane ręcznie. Zapisujesz lokalny szkic, dostępny offline."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit any AI suggestions or enter details manually. This saves a local draft, available offline."
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.explanation"
+    },
+    "garment.name": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.name"
+    },
+    "garment.unknown": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie podano"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not specified"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.unknown"
+    },
+    "garment.purchase": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakup"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.purchase"
+    },
+    "garment.priceHint": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puste pole oznacza brak ceny. Zero oznacza rzecz otrzymaną bezpłatnie. Maksymalnie dwa miejsca po przecinku."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave blank for an unknown price. Zero means free. Use at most two decimal places."
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.priceHint"
+    },
+    "garment.hasDate": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znam datę zakupu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I know the purchase date"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.hasDate"
+    },
+    "garment.date": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data zakupu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase date"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.date"
+    },
+    "garment.saveDraft": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz lokalny szkic"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save local draft"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.saveDraft"
+    },
+    "garment.invalidName": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podaj nazwę od 1 do 200 znaków."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a name of 1–200 characters."
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.invalidName"
+    },
+    "garment.invalidPrice": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podaj poprawną, nieujemną cenę z maksymalnie dwoma miejscami po przecinku."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid nonnegative price with at most two decimal places."
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.invalidPrice"
+    },
+    "garment.invalidMetadata": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź kolory, sezony i formalność. Marka i wzór mogą mieć do 200 znaków."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check colors, seasons and formality. Brand and pattern may contain up to 200 characters."
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.invalidMetadata"
+    },
+    "garment.invalidDate": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podaj poprawną datę zakupu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid purchase date."
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.invalidDate"
+    },
+    "garment.category.top": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Góra"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.top"
+    },
+    "garment.category.bottom": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dół"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.bottom"
+    },
+    "garment.category.shoes": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buty"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoes"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.shoes"
+    },
+    "garment.category.dress": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sukienka"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dress"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.dress"
+    },
+    "garment.category.jumpsuit": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kombinezon"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jumpsuit"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.jumpsuit"
+    },
+    "garment.category.outerwear": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okrycie wierzchnie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outerwear"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.outerwear"
+    },
+    "garment.category.accessory": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodatek"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessory"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.accessory"
+    },
+    "garment.category.other": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inne"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.category.other"
+    },
+    "garment.color.black": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czarny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Black"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.black"
+    },
+    "garment.color.white": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biały"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "White"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.white"
+    },
+    "garment.color.grey": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szary"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grey"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.grey"
+    },
+    "garment.color.beige": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beżowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beige"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.beige"
+    },
+    "garment.color.brown": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brązowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brown"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.brown"
+    },
+    "garment.color.red": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czerwony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Red"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.red"
+    },
+    "garment.color.orange": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomarańczowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orange"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.orange"
+    },
+    "garment.color.yellow": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żółty"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yellow"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.yellow"
+    },
+    "garment.color.green": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zielony"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Green"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.green"
+    },
+    "garment.color.blue": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niebieski"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blue"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.blue"
+    },
+    "garment.color.purple": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fioletowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purple"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.purple"
+    },
+    "garment.color.pink": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Różowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pink"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.pink"
+    },
+    "garment.color.silver": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Srebrny"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silver"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.silver"
+    },
+    "garment.color.gold": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Złoty"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.gold"
+    },
+    "garment.color.multicolor": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wielokolorowy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multicolor"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.color.multicolor"
+    },
+    "garment.season.spring": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiosna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spring"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.season.spring"
+    },
+    "garment.season.summer": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lato"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summer"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.season.summer"
+    },
+    "garment.season.autumn": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jesień"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autumn"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.season.autumn"
+    },
+    "garment.season.winter": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zima"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Winter"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.season.winter"
+    },
+    "garment.formality.1": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 — Swobodna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 — Casual"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.formality.1"
+    },
+    "garment.formality.2": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 — Codzienna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 — Everyday"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.formality.2"
+    },
+    "garment.formality.3": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 — Elegancka codzienna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 — Smart casual"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.formality.3"
+    },
+    "garment.formality.4": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4 — Biznesowa"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4 — Business"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.formality.4"
+    },
+    "garment.formality.5": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 — Formalna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 — Formal"
+          }
+        }
+      },
+      "comment": "T021 garment draft form: garment.formality.5"
     }
   },
   "version": "1.0"
