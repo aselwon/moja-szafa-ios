@@ -6379,6 +6379,108 @@
         }
       },
       "comment": "T025: advisory duplicate photo review in garment form; never merges items."
+    },
+    "wardrobe.statusExplanation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiwizacja zachowuje historię i CPW. AI używa tylko dostępnych, niearchiwalnych ubrań."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiving preserves history and cost per wear. AI uses only available, unarchived garments."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.statusFailed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zapisano zmiany. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The change was not saved. Try again."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.statusPending": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisano na urządzeniu. Zmiana czeka na synchronizację."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved on this device. The change is waiting to sync."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.statusConflict": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubranie zmieniono na innym urządzeniu. Wybierz wersję do zachowania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This garment changed on another device. Choose which version to keep."
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.useServer": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj wersji z serwera"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use server version"
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
+    },
+    "wardrobe.keepLocal": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj lokalną wersję"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep local version"
+          }
+        }
+      },
+      "comment": "Garment availability/archive editing and synchronization feedback."
     }
   },
   "version": "1.0"
