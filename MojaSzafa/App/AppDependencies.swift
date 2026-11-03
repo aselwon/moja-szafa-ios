@@ -2,6 +2,7 @@ import Foundation
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var dataExports: (any DataExportService)?
     var aiConsent: (any AIConsentService)?
     let wardrobe: any WardrobeRepository
     let authentication: any AuthenticationService
@@ -24,6 +25,7 @@ struct AppDependencies: Sendable {
         let store = try OfflineStore(accountID: accountID, database: database, remote: client)
         var result = AppDependencies(wardrobe: store)
         result.aiConsent = client
+        result.dataExports = client.dataExports
         return result
     }
 
@@ -48,6 +50,7 @@ struct AppDependencies: Sendable {
             }
             var result = AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
             result.aiConsent = client
+            result.dataExports = client.dataExports
             return result
         } catch { return AppDependencies(wardrobe: UnconfiguredWardrobeRepository(), authentication: authentication) }
     }

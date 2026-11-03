@@ -254,3 +254,11 @@ struct APIWardrobeRepository: WardrobeRepository {
         return result
     }
 }
+
+// Construct from the same validated HTTPS origin and current-session provider.
+extension APIClient {
+    var dataExports: DataExportClient {
+        DataExportClient(baseURL: baseURL, publicAPIKey: publicAPIKey,
+                         accessToken: accessToken, unauthorized: unauthorized)
+    }
+}
