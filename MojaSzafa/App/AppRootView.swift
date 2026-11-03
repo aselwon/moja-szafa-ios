@@ -10,7 +10,7 @@ struct AppRootView: View {
                 .tabItem { Label("tab.today", systemImage: "sun.max") }
             NavigationStack { WardrobeView(repository: dependencies.wardrobe, accountID: accountID) }
                 .tabItem { Label("tab.wardrobe", systemImage: "tshirt") }
-            NavigationStack { OutfitsView() }
+            NavigationStack { OutfitsView(repository: dependencies.outfits, wardrobe: dependencies.wardrobe) }
                 .tabItem { Label("tab.outfits", systemImage: "square.stack") }
             NavigationStack { StatisticsView() }
                 .tabItem { Label("tab.statistics", systemImage: "chart.bar") }
