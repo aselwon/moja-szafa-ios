@@ -1,3 +1,4 @@
+import { validateRecognition, recognitionDraft } from './recognition.mjs';
 import { AIError } from './provider.mjs';
 
 // Trusted server composition only, never take these hooks or provider config from a job.
@@ -19,7 +20,9 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
       if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
       const response = await (job.kind === 'image_analysis' ? provider.analyzeImage(input) : provider.recommendOutfits(input));
       telemetry = response.telemetry;
-      const result = await validateResult(job, response.result, input);
+      const candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : response.result;
+      const validated = await validateResult(job, candidate, input);
+      const result = job.kind === 'image_analysis' ? recognitionDraft(validated) : validated;
       if (!result || typeof result !== 'object' || Array.isArray(result)) throw new AIError('result_invalid');
       output = { result, telemetry };
     } catch (error) {

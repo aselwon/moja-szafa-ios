@@ -8,6 +8,7 @@ import { adapterResponse } from '../ai/adapter.mjs';
 // Synthetic credential, no network and no default mock in production code.
 const env = { AI_ENDPOINT: 'https://provider.invalid/v1/chat/completions', AI_PROVIDER: 'fixture',
   AI_RECIPIENT: 'Test recipient', AI_API_KEY: 'synthetic', AI_IMAGE_MODEL: 'vision-v1', AI_OUTFIT_MODEL: 'outfit-v2' };
+const metadata = { category: 'top', colors: ['blue'], pattern: 'plain', seasons: ['summer'], formality: 2, confidence: 0.9, multiple_items: false };
 const image = { mimeType: 'image/png', base64: 'YQ==' };
 const outfits = { garments: [{ id: 'top', category: 'top' }], count: 1 };
 function fixture(options = {}) {
@@ -18,7 +19,7 @@ function fixture(options = {}) {
       calls.push({ url, ...request, json: JSON.parse(request.body) });
       if (options.transport) return options.transport(url, request);
       return Response.json({ model: JSON.parse(request.body).model, choices: [{ finish_reason: 'stop',
-        message: { content: JSON.stringify({ category: 'top' }) } }], usage: { prompt_tokens: 12, completion_tokens: 4 }, ...options.response });
+        message: { content: JSON.stringify(metadata) } }], usage: { prompt_tokens: 12, completion_tokens: 4 }, ...options.response });
     }
   });
   return { provider, calls };
@@ -41,7 +42,7 @@ test('separate operations use server models, versioned prompts and measured usag
   assert.equal(calls[2].json.model, 'outfit-v2');
   assert.equal(calls[0].redirect, 'error');
   assert.match(calls[0].json.messages[1].content[1].image_url.url, /^data:image\/png;base64,/);
-  assert.equal(first.telemetry.prompt_version, 'image-analysis-v1');
+  assert.equal(first.telemetry.prompt_version, 'image-analysis-v2');
   assert.equal(second.telemetry.prompt_version, 'outfit-generation-v1');
   assert.deepEqual(first.telemetry.usage, { input_tokens: 12, output_tokens: 4 });
   assert.equal(first.telemetry.latency_ms, 0);
@@ -120,7 +121,8 @@ test('worker integration persists validated result and private usage; authorizat
   assert.deepEqual(events, ['resolve', 'authorize', 'validate']);
   assert.equal(calls.length, 1);
   assert.equal(completion[1], 'success');
-  assert.deepEqual(completion[2].result, { category: 'top' });
+  assert.deepEqual(completion[2].result.metadata, metadata);
+  assert.equal(completion[2].result.state, 'draft');
   assert.equal(telemetry[0].job_id, job.id);
   assert.equal(telemetry[0].attempt, 1);
   assert(!JSON.stringify(telemetry).includes('private'));

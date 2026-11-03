@@ -5825,6 +5825,74 @@
         }
       },
       "comment": "T021: garment import form; editable metadata and validation."
+    },
+    "recognition.reviewRequired": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź i popraw sugestie przed zatwierdzeniem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review and correct the suggestions before confirming."
+          }
+        }
+      },
+      "comment": "Garment recognition draft review and manual correction."
+    },
+    "recognition.lowConfidence": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpoznanie jest niepewne. Sprawdź i popraw kategorię oraz pozostałe szczegóły."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognition is uncertain. Review and correct the category and other details."
+          }
+        }
+      },
+      "comment": "Garment recognition draft review and manual correction."
+    },
+    "recognition.multipleItems": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcie zawiera kilka ubrań. Wypełnij dane jednej rzeczy ręcznie lub wróć i wykadruj zdjęcie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The photo contains several garments. Enter one garment manually or go back and crop the photo."
+          }
+        }
+      },
+      "comment": "Garment recognition draft review and manual correction."
+    },
+    "recognition.reviewed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdzono i poprawiono dane jednej rzeczy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I reviewed and corrected the details of one garment"
+          }
+        }
+      },
+      "comment": "Garment recognition draft review and manual correction."
     }
   },
   "version": "1.0"

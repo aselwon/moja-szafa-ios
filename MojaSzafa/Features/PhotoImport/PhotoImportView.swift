@@ -20,6 +20,7 @@ struct PhotoImportView: View {
     private struct FormDraft: Identifiable {
         let id: UUID
         let value: GarmentFormValue?
+        let suggestions: GarmentSuggestions?
     }
     @State private var formDraft: FormDraft?
     @State private var requestingCamera = false
@@ -58,7 +59,8 @@ struct PhotoImportView: View {
                     Text(LocalizedStringKey(draft.status))
                     if draft.file != nil {
                         Button("garment.title") {
-                            do { formDraft = FormDraft(id: draft.id, value: try model.garmentValue(for: draft.id)) }
+                            do { formDraft = FormDraft(id: draft.id, value: try model.garmentValue(for: draft.id),
+                                                       suggestions: try? model.recognitionSuggestions(for: draft.id)) }
                             catch { model.message = "import.storageFailed" }
                         }.disabled(model.running)
                         Button("edit.title") { editing = draft }
@@ -84,7 +86,7 @@ struct PhotoImportView: View {
             selection = []
         }
         .sheet(item: $formDraft) { draft in
-            GarmentFormView(value: draft.value) { value in
+            GarmentFormView(value: draft.value, suggestions: draft.suggestions) { value in
                 try model.saveGarmentValue(value, for: draft.id)
             }
         }

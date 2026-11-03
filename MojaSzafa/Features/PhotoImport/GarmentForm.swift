@@ -15,17 +15,65 @@ struct GarmentFormValue: Codable, Equatable {
 }
 
 /// Only attributes AI is allowed to suggest. No price, brand or purchase date.
+struct GarmentRecognition: Codable {
+    let category: APIv1.Category
+    let colors: [String]
+    let pattern: String?
+    let seasons: [String]
+    let formality: Int?
+    let confidence: Double
+    let multiple_items: Bool
+
+    static let patterns = ["plain", "stripes", "checks", "dots", "floral", "graphic", "animal", "other"]
+    var requiresCorrection: Bool { confidence < 0.8 || category == .other || multiple_items }
+
+    /// Decode the private, validated worker result. Never trust review flags from the wire.
+    static func decodeDraft(_ data: Data) throws -> Self {
+        guard let envelope = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              envelope["schema_version"] as? String == "garment-recognition-v1",
+              envelope["state"] as? String == "draft",
+              let metadata = envelope["metadata"] as? [String: Any],
+              Set(metadata.keys) == Set(["category", "colors", "pattern", "seasons", "formality", "confidence", "multiple_items"])
+        else { throw GarmentFormInput.Validation.details }
+        let value = try JSONDecoder().decode(Self.self, from: JSONSerialization.data(withJSONObject: metadata))
+        guard value.confidence.isFinite, (0...1).contains(value.confidence),
+              Set(value.colors).count == value.colors.count,
+              Set(value.colors).isSubset(of: Set(GarmentFormInput.palette)),
+              Set(value.seasons).count == value.seasons.count,
+              Set(value.seasons).isSubset(of: Set(GarmentFormInput.seasons)),
+              value.pattern == nil || patterns.contains(value.pattern!),
+              value.formality == nil || (1...5).contains(value.formality!)
+        else { throw GarmentFormInput.Validation.details }
+        return value
+    }
+
+    var suggestions: GarmentSuggestions {
+        // Never merge several garments into one draft. Keep the manual form usable.
+        GarmentSuggestions(category: multiple_items ? .other : category,
+                           colors: multiple_items ? [] : colors,
+                           pattern: multiple_items ? nil : pattern,
+                           seasons: multiple_items ? [] : seasons,
+                           formality: multiple_items ? nil : formality,
+                           requiresCorrection: requiresCorrection, multipleItems: multiple_items)
+    }
+}
+
 struct GarmentSuggestions {
     var category: APIv1.Category
     var colors: [String]
     var pattern: String?
     var seasons: [String]
     var formality: Int?
+    var requiresCorrection = false
+    var multipleItems = false
 }
 
 struct GarmentFormInput {
     static let palette = ["black", "white", "gray", "beige", "brown", "red", "orange", "yellow", "green", "blue", "purple", "pink", "other"]
     static let seasons = ["spring", "summer", "autumn", "winter"]
+    var requiresCorrection = false
+    var multipleItems = false
+    var reviewed = false
     var name = ""
     var category: APIv1.Category = .other
     var colors: Set<String> = []
@@ -47,6 +95,8 @@ struct GarmentFormInput {
                 hasPurchaseDate = true; purchaseDate = date
             }
         } else if let suggestions {
+            requiresCorrection = suggestions.requiresCorrection
+            multipleItems = suggestions.multipleItems
             category = suggestions.category
             colors = Set(suggestions.colors.filter { Self.palette.contains($0) })
             pattern = suggestions.pattern ?? ""
@@ -57,6 +107,7 @@ struct GarmentFormInput {
 
     enum Validation: String, Error {
         case name = "garment.invalidName", price = "garment.invalidPrice"
+        case review = "recognition.reviewRequired"
         case details = "garment.invalidDetails", date = "garment.invalidDate"
     }
 
@@ -77,6 +128,7 @@ struct GarmentFormInput {
     }
 
     func validated(now: Date = Date()) throws -> GarmentFormValue {
+        guard !requiresCorrection || reviewed else { throw Validation.review }
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty, trimmedName.unicodeScalars.count <= 200 else { throw Validation.name }
         guard brand.unicodeScalars.count <= 200, pattern.unicodeScalars.count <= 200,
@@ -128,6 +180,10 @@ struct GarmentFormView: View {
                         }
                     }
                     Text("garment.correction")
+                    if input.requiresCorrection {
+                        Text(LocalizedStringKey(input.multipleItems ? "recognition.multipleItems" : "recognition.lowConfidence"))
+                        Toggle("recognition.reviewed", isOn: $input.reviewed)
+                    }
                 }
                 Section("garment.colors") {
                     ForEach(GarmentFormInput.palette, id: \.self) { color in
