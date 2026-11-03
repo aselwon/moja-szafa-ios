@@ -186,3 +186,47 @@ account tombstones and restrictive read policies. The migration runner defaults
 to 010. See [T017 contract, adapters, cleanup and retention gates](../docs/architecture/T017-account-deletion.md).
 The HTTP/worker modules require real deployment identity, storage and backup
 adapters; they do not simulate successful Apple revocation or backup erasure.
+
+
+## T026 manual outfits
+
+Migration `012_manual_outfits.sql` adds `api_v1_list_outfits` and
+`api_v1_save_outfit`; their request/response schemas are in `api/openapi-v1.json`.
+The configured iOS composition root injects this API into the Outfits tab.
+The default unconfigured application still reports service unavailable; no demo
+backend or deployment was introduced.
+
+Save replaces ordered membership atomically, checks ownership and live garment
+records under locks, checks the outfit base version, and uses the existing
+per-owner mutation ledger for replay. Archived garments are allowed in manual
+outfits and returned with current archive metadata for a visible warning.
+Only `outfits` and `outfit_items` change: historical `wear_event_items` do not.
+The collage uses the existing private thumbnail reader, without persisting URLs.
+
+Verification on an equipped environment:
+
+- Run `bash backend/tests/run-tests.sh` against disposable PostgreSQL 15 databases.
+  The new `tests/outfits.sql` runs on both clean-install and upgrade databases,
+  covering create/edit/favorite, replay, conflicts, foreign IDs, invalid selection,
+  archive metadata and historical membership preservation.
+- Run the existing macOS CI matrix / shared MojaSzafa XCTest scheme; new
+  `OutfitsTests` cover validation, timeout retry identity, editing and conflicts.
+- With a configured backend, create a named outfit from multiple photographed
+  garments, save, reopen, rename, replace an item and toggle favorite. Refresh and
+  confirm persistence; select Favorites only. Archive an included garment and
+  refresh: confirm the warning on its collage. Record a wear before editing and
+  verify that garment history retains the original membership afterward.
+- Check Polish/English, dark mode, accessibility text sizes and VoiceOver on iOS.
+  Interrupt a save: retry must use the same operation, and cancellation must let
+  the user leave the editor. Opening an outfit again resumes an unresolved save.
+
+Sandbox evidence: repository harness passes. Xcode and PostgreSQL executables
+are absent here, so build, XCTest, SQL execution and device screenshots are not
+claimed. No dependencies were installed and no services were contacted.
+
+Current boundary: outfit writes require connectivity. A failed save and its exact
+retry payload remain in the account's in-memory view model, including after the
+sheet closes; they are not a durable offline outbox and do not survive process
+termination. Refresh the server list after reopening the app to reconcile an
+ambiguous save. Existing configured service access remains necessary for the
+end-to-end flow.

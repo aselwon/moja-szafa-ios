@@ -2,6 +2,7 @@ import Foundation
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
     var dataExports: (any DataExportService)?
@@ -26,6 +27,7 @@ struct AppDependencies: Sendable {
         let database = OfflineDatabase(url: storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathExtension("sqlite"))
         let store = try OfflineStore(accountID: accountID, database: database, remote: client)
         var result = AppDependencies(wardrobe: store)
+        result.outfits = client
         result.aiConsent = client
         result.dataExports = client.dataExports
         return result
@@ -51,6 +53,7 @@ struct AppDependencies: Sendable {
                 try await model.accessToken()
             }
             var result = AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
+            result.outfits = client
             result.aiConsent = client
             result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,

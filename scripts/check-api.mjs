@@ -13,10 +13,10 @@ function visit(value) {
 visit(contract);
 const sql = (
   await Promise.all(
-    ['003_api.sql', '004_offline_sync.sql', '006_jobs.sql', '011_wardrobe_browse.sql'].map(name => read(`backend/migrations/${name}`)),
+    ['003_api.sql', '004_offline_sync.sql', '006_jobs.sql', '011_wardrobe_browse.sql', '012_manual_outfits.sql'].map(name => read(`backend/migrations/${name}`)),
   )
 ).join('\n');
-const swift = await read('MojaSzafa/Data/APIClient.swift') + await read('MojaSzafa/Data/OfflineStore.swift');
+const swift = await read('MojaSzafa/Data/APIClient.swift') + await read('MojaSzafa/Data/OfflineStore.swift') + await read('MojaSzafa/Features/Outfits/OutfitsModel.swift');
 const fixSql = await read('backend/migrations/005_fix_save_garment.sql');
 for (const route of Object.values(contract.paths)) {
   const operation = route.post.operationId;
