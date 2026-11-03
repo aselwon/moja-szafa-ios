@@ -128,9 +128,25 @@ final class PhotoImportModel: ObservableObject {
         }
     }
 
+    func garmentValue(for id: UUID) throws -> GarmentFormValue? {
+        let url = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return try JSONDecoder().decode(GarmentFormValue.self, from: Data(contentsOf: url))
+    }
+
+    func saveGarmentValue(_ value: GarmentFormValue, for id: UUID) throws {
+        guard !running, drafts.contains(where: { $0.id == id && $0.file != nil }) else {
+            throw PhotoImportError.invalidImage
+        }
+        let url = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
+        try JSONEncoder().encode(value).write(to: url, options: [.atomic, .completeFileProtection])
+    }
+
     func remove(_ id: UUID) {
         guard !running, let draft = drafts.first(where: { $0.id == id }) else { return }
         do {
+            let metadata = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
+            if FileManager.default.fileExists(atPath: metadata.path) { try FileManager.default.removeItem(at: metadata) }
             if let edited = draft.editedFile { try FileManager.default.removeItem(at: edited) }
             if let file = draft.file { try FileManager.default.removeItem(at: file) }
             drafts.removeAll { $0.id == id }

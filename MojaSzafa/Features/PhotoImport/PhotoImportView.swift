@@ -17,6 +17,11 @@ struct PhotoImportView: View {
     @State private var selection: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var editing: PhotoImportModel.Draft?
+    private struct FormDraft: Identifiable {
+        let id: UUID
+        let value: GarmentFormValue?
+    }
+    @State private var formDraft: FormDraft?
     @State private var requestingCamera = false
     @State private var cameraDenied = false
     @Environment(\.openURL) private var openURL
@@ -52,6 +57,10 @@ struct PhotoImportView: View {
                     }
                     Text(LocalizedStringKey(draft.status))
                     if draft.file != nil {
+                        Button("garment.title") {
+                            do { formDraft = FormDraft(id: draft.id, value: try model.garmentValue(for: draft.id)) }
+                            catch { model.message = "import.storageFailed" }
+                        }.disabled(model.running)
                         Button("edit.title") { editing = draft }
                             .disabled(model.running)
                     }
@@ -73,6 +82,11 @@ struct PhotoImportView: View {
             }
             model.start(loaders)
             selection = []
+        }
+        .sheet(item: $formDraft) { draft in
+            GarmentFormView(value: draft.value) { value in
+                try model.saveGarmentValue(value, for: draft.id)
+            }
         }
         .sheet(item: $editing) { draft in
             if let file = draft.file, let data = try? Data(contentsOf: file) {
