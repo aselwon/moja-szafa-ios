@@ -65,6 +65,7 @@ struct OutfitCollage: View {
 
 private struct OutfitEditor: View {
     @State var outfit: Outfit
+    @State private var exporting: Outfit?
     @ObservedObject var model: OutfitsModel
     @StateObject private var picker: WardrobeModel
     let wardrobe: any WardrobeRepository
@@ -89,6 +90,10 @@ private struct OutfitEditor: View {
                     }.accessibilityHint(Text("outfits.remove"))
                 }
             }.disabled(model.pending != nil || model.saving)
+            Section {
+                Button("outfits.export.title", systemImage: "square.and.arrow.up") { exporting = outfit }
+                    .disabled(outfit.garments.isEmpty)
+            }
             Section("outfits.choose") {
                 TextField("wardrobe.search", text: $picker.query.search)
                 Toggle("wardrobe.archived", isOn: $picker.query.archived)
@@ -124,6 +129,9 @@ private struct OutfitEditor: View {
         .toolbar { Button("outfits.cancel") { dismiss() }.disabled(model.saving) }
         .interactiveDismissDisabled(model.saving)
         .task(id: picker.query) { await picker.reload() }
+        .sheet(item: $exporting) { selected in
+            OutfitExportView(outfit: selected, repository: wardrobe)
+        }
     }
 
     private func toggle(_ garment: Garment) {

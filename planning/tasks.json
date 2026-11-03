@@ -1153,7 +1153,7 @@
         "T026"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "review",
       "epicId": "E07",
       "priority": 2,
       "milestone": "App Store 1.0",
