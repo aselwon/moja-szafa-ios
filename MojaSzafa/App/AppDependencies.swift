@@ -3,6 +3,8 @@ import CryptoKit
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var planner: any PlannerRepository = UnconfiguredPlannerRepository()
+    var plannerJournalURL: URL?
     var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
@@ -38,6 +40,8 @@ struct AppDependencies: Sendable {
         let store = try OfflineStore(accountID: accountID, database: database, remote: client)
         var result = AppDependencies(wardrobe: store)
         result.outfits = client
+        result.planner = client
+        result.plannerJournalURL = storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathComponent("planner-pending.json")
         result.aiConsent = client
         result.dataExports = client.dataExports
         return result
@@ -68,6 +72,9 @@ struct AppDependencies: Sendable {
             let store = try OfflineStore(accountID: userID, database: database, remote: client)
             var result = AppDependencies(wardrobe: store, authentication: authentication)
             result.outfits = client
+            result.planner = client
+            let plannerDirectory = storageDirectory.appendingPathComponent("Planner").appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString)
+            result.plannerJournalURL = plannerDirectory.appendingPathComponent("pending.json")
             result.aiConsent = client
             result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
@@ -77,6 +84,7 @@ struct AppDependencies: Sendable {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
                 try await store.invalidateAccount()
+                if FileManager.default.fileExists(atPath: plannerDirectory.path) { try FileManager.default.removeItem(at: plannerDirectory) }
                 try ProfileStore.local.remove(accountID: accountID)
                 let drafts = URL.applicationSupportDirectory.appendingPathComponent("PhotoDrafts")
                     .appendingPathComponent(accountID.uuidString)

@@ -6770,6 +6770,384 @@
         }
       },
       "comment": "Permanent garment deletion confirmation and consequences."
+    },
+    "planner.title": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planner"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.separate": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan nie jest noszeniem. Tylko osobne potwierdzenie zapisuje historię i wpływa na CPW."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A plan is not a wear. Only explicit confirmation records history and affects cost per wear."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.week": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Początek tygodnia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Week starting"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.day": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dzień planu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planned day"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.empty": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak planów w wybranym tygodniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No plans for this week."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.new": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaplanuj zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan an outfit"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.move": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przenieś plan"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move plan"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.delete": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń plan"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete plan"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.confirm": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdzam: noszone"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm I wore this"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.confirmed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszenie zapisane"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear recorded"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.confirmTitle": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisać rzeczywiste noszenie?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record an actual wear?"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.confirmMessage": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź tylko, jeśli ten zestaw był noszony wskazanego dnia. Ta akcja zmienia historię i CPW."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm only if you wore this outfit on the displayed date. This changes wear history and cost per wear."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.save": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz plan"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save plan"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.undo": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnij zmianę planu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo plan change"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.noOutfits": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najpierw zapisz zestaw w zakładce Zestawy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save an outfit in Outfits first."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.pending": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poprzednia zmiana czeka na potwierdzenie serwera. Ponów ją przed nowymi zmianami."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous change is awaiting server confirmation. Retry it before making another change."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.retryMutation": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponów tę samą zmianę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same change"
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.offline": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Plan nie został potwierdzony. Możesz bezpiecznie ponowić."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are offline. The change is not confirmed. You can safely retry."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.conflict": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan zmienił się na innym urządzeniu. Odśwież listę."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The plan changed on another device. Refresh the list."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.rejected": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można zapisać planu lub noszenia. Odśwież listę i sprawdź dzień oraz dostępność rzeczy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The plan or wear could not be saved. Refresh and check the date and garments."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
+    },
+    "planner.journalFailed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zapisu oczekującej zmiany. Nowe zmiany są zablokowane, aby uniknąć duplikatów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pending change could not be read. New changes are blocked to prevent duplicates."
+          }
+        }
+      },
+      "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
+      "extractionState": "manual"
     }
   },
   "version": "1.0"
