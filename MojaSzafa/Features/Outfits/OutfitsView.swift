@@ -3,11 +3,14 @@ import SwiftUI
 struct OutfitsView: View {
     @StateObject private var model: OutfitsModel
     let wardrobe: any WardrobeRepository
+    let wearStore: OfflineStore?
+    @State private var recording: SyncWear?
     @State private var editing: Outfit?
     @State private var favoritesOnly = false
 
-    init(repository: any OutfitRepository, wardrobe: any WardrobeRepository) {
+    init(repository: any OutfitRepository, wardrobe: any WardrobeRepository, wearStore: OfflineStore? = nil) {
         _model = StateObject(wrappedValue: OutfitsModel(repository: repository))
+        self.wearStore = wearStore
         self.wardrobe = wardrobe
     }
 
@@ -28,6 +31,9 @@ struct OutfitsView: View {
                         OutfitCollage(garments: outfit.garments, repository: wardrobe)
                     }
                 }.buttonStyle(.plain)
+                if wearStore != nil {
+                    Button("wear.today") { recording = WearEditor.newWear(garmentIDs: outfit.garments.map(\.id)) }
+                }
             }
             if model.nextCursor != nil {
                 Button("wardrobe.more") { Task { await model.load(more: true) } }.disabled(model.loading)
@@ -37,6 +43,9 @@ struct OutfitsView: View {
         .toolbar { Button("outfits.new") { editing = model.pendingDraft ?? Outfit() } }
         .task { await model.load() }
         .refreshable { await model.load() }
+        .sheet(item: $recording) { wear in
+            if let wearStore { NavigationStack { WearEditor(wear: wear, store: wearStore) } }
+        }
         .sheet(item: $editing) { outfit in
             NavigationStack { OutfitEditor(outfit: outfit, model: model, wardrobe: wardrobe) }
         }
@@ -65,6 +74,7 @@ struct OutfitCollage: View {
 
 private struct OutfitEditor: View {
     @State var outfit: Outfit
+    @State private var exporting: Outfit?
     @ObservedObject var model: OutfitsModel
     @StateObject private var picker: WardrobeModel
     let wardrobe: any WardrobeRepository
@@ -89,6 +99,10 @@ private struct OutfitEditor: View {
                     }.accessibilityHint(Text("outfits.remove"))
                 }
             }.disabled(model.pending != nil || model.saving)
+            Section {
+                Button("outfits.export.title", systemImage: "square.and.arrow.up") { exporting = outfit }
+                    .disabled(outfit.garments.isEmpty)
+            }
             Section("outfits.choose") {
                 TextField("wardrobe.search", text: $picker.query.search)
                 Toggle("wardrobe.archived", isOn: $picker.query.archived)
@@ -124,6 +138,9 @@ private struct OutfitEditor: View {
         .toolbar { Button("outfits.cancel") { dismiss() }.disabled(model.saving) }
         .interactiveDismissDisabled(model.saving)
         .task(id: picker.query) { await picker.reload() }
+        .sheet(item: $exporting) { selected in
+            OutfitExportView(outfit: selected, repository: wardrobe)
+        }
     }
 
     private func toggle(_ garment: Garment) {

@@ -75,7 +75,11 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/garment-deletion.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/outfits.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/offline-sync.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/wear-editing.sql"
     bash "$root/tests/api-concurrency.sh" "$database"
+    bash "$root/tests/wear-concurrency.sh" "$database"
+    # Explicit synthetic policy; production migration remains disabled by default.
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -c "UPDATE api_private.ai_policy SET enabled=true,image_enabled=true,daily_user_units=1000000,daily_global_units=1000000"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/jobs.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/consent.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/images.sql"
@@ -83,6 +87,8 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/deletion.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/suggestions.sql"
     bash "$root/tests/jobs-concurrency.sh" "$database"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/ai-runtime.sql"
+    bash "$root/tests/ai-runtime-concurrency.sh" "$database"
     # PostgreSQL clients may emit a randomly generated \restrict token.
     pg_dump --schema-only --schema=app --schema=api_private --no-owner --no-privileges "$database" | sed '/^\\restrict /d; /^\\unrestrict /d' > "$artifacts/${database}.sql"
 done

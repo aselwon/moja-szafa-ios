@@ -1621,22 +1621,21 @@
       }
     },
     "wear.history": {
-      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Historia noszenia"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Wear history"
           }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia noszeń"
+          }
         }
-      }
+      },
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika."
     },
     "wear.empty": {
       "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
@@ -6940,6 +6939,352 @@
         }
       },
       "comment": "Permanent garment deletion confirmation and consequences."
+    },
+    "wear.new": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add wear"
+          }
+        }
+      }
+    },
+    "wear.edit": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear event"
+          }
+        }
+      }
+    },
+    "wear.date": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data (RRRR-MM-DD)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date (YYYY-MM-DD)"
+          }
+        }
+      }
+    },
+    "wear.pending": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiany zapisane na urządzeniu oczekują na synchronizację."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes saved on this device await synchronization."
+          }
+        }
+      }
+    },
+    "wear.offline": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Możesz zapisywać noszenia na urządzeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline. You can save wear events on this device."
+          }
+        }
+      }
+    },
+    "wear.syncFailed": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizacja nie powiodła się. Zmiany lokalne pozostają zapisane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync failed. Local changes remain saved."
+          }
+        }
+      }
+    },
+    "wear.conflict": {
+      "comment": "Wear editing conflict recovery (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można wysłać tej zmiany. Zdarzenie lub jego rzeczy mogły zmienić się na serwerze."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This change cannot be sent. The event or its garments may have changed on the server."
+          }
+        }
+      }
+    },
+    "wear.keepLocal": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj moją zmianę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep my change"
+          }
+        }
+      }
+    },
+    "wear.invalid": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz od 1 do 100 rzeczy i poprawną datę, nie późniejszą niż dzisiaj."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose 1–100 garments and a valid date no later than today."
+          }
+        }
+      }
+    },
+    "wear.saveFailed": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zapisano zmiany. Spróbuj ponownie; jeśli trwa synchronizacja lub wystąpił konflikt, wróć do historii."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change was not saved. Retry; if sync is pending or a conflict occurred, return to history."
+          }
+        }
+      }
+    },
+    "wear.snapshotExplanation": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisujesz osobną listę rzeczy. Późniejsze zmiany zestawu nie zmienią tego noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saves a separate list of garments. Later outfit changes will not change this event."
+          }
+        }
+      }
+    },
+    "wear.historyEmpty": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zapisanych noszeń."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No wear events yet."
+          }
+        }
+      }
+    },
+    "wear.discardLocal": {
+      "comment": "Wear editing conflict recovery (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odrzuć lokalną zmianę i pobierz wersję z serwera"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard local change and load server version"
+          }
+        }
+      }
+    },
+    "wear.removeMissing": {
+      "comment": "Wear editing conflict recovery (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń niedostępną rzecz z noszenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove missing garment from this event"
+          }
+        }
+      }
+    },
+    "outfits.export.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępnisz tylko widoczne zdjęcia i poniższy tekst. Nazwy, ceny i identyfikatory nie są dodawane. Sprawdź, czy same zdjęcia nie zawierają prywatnych informacji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You will share only the photos shown and the text below. Names, prices and identifiers are not added. Check the photos themselves for private information."
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podgląd kolażu wybranego zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected outfit collage preview"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksportuj kolaż"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export collage"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.share": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępnij…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.caption": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mój zestaw • Moja Szafa"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My outfit • Moja Szafa"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wczytać wszystkich zdjęć. Sprawdź połączenie lub dodaj brakujące zdjęcia w szafie i spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load all photos. Check your connection or add missing photos in your wardrobe, then try again."
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
     }
   },
   "version": "1.0"

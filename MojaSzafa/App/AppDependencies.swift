@@ -1,8 +1,10 @@
 import Foundation
+import CryptoKit
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
     var suggestions: any SuggestionRepository = UnconfiguredSuggestionRepository()
+    var wearStore: OfflineStore?
     var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
@@ -17,6 +19,15 @@ struct AppDependencies: Sendable {
         let baseURL: URL
         let transport: any APITransport
         let publicAPIKey: String?
+        var identifier: String {
+            SHA256.hash(data: Data(baseURL.absoluteString.utf8)).map { String(format: "%02x", $0) }.joined()
+        }
+    }
+
+    /// Credentials from one configured gateway must never be sent to another.
+    var sessionStoreService: String {
+        let app = Bundle.main.bundleIdentifier ?? "pl.mojaszafa.app"
+        return "\(app).gateway.\(apiConnection?.identifier ?? "unconfigured")"
     }
 
     init(wardrobe: any WardrobeRepository, authentication: any AuthenticationService = UnconfiguredAuthenticationService()) {
@@ -35,8 +46,7 @@ struct AppDependencies: Sendable {
         return result
     }
 
-    /// For the approved gateway deployment. live() intentionally remains locked
-    /// until server identity policy and environment endpoints have been verified.
+    /// The native gateway uses the existing auth DTO and bearer-authenticated RPC contract.
     static func configured(baseURL: URL, authentication: any AuthenticationService,
                            transport: any APITransport, publicAPIKey: String? = nil) throws -> AppDependencies {
         _ = try APIClient(baseURL: baseURL, transport: transport, publicAPIKey: publicAPIKey) { throw AuthError.expired }
@@ -46,25 +56,27 @@ struct AppDependencies: Sendable {
     }
 
     @MainActor
-    func authenticated(using model: AuthenticationModel) -> AppDependencies {
+    func authenticated(using model: AuthenticationModel,
+                       storageDirectory: URL = .applicationSupportDirectory) -> AppDependencies {
         guard let connection = apiConnection else { return self }
         do {
+            guard let userID = model.session?.userID else { throw AuthError.expired }
             let client = try APIClient(baseURL: connection.baseURL, transport: connection.transport,
                                        publicAPIKey: connection.publicAPIKey,
                                        unauthorized: { token in await model.rejectSession(accessToken: token) }) {
-                try await model.accessToken()
+                try await model.accessToken(for: userID)
             }
-            guard let userID = model.session?.userID else { throw AuthError.expired }
-            let database = OfflineDatabase(url: URL.applicationSupportDirectory
-                .appendingPathComponent("Wardrobe").appendingPathComponent(userID.uuidString + ".sqlite"))
+            let database = OfflineDatabase(url: storageDirectory.appendingPathComponent("Wardrobe")
+                .appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString + ".sqlite"))
             let store = try OfflineStore(accountID: userID, database: database, remote: client)
             var result = AppDependencies(wardrobe: store, authentication: authentication)
+            result.wearStore = store
             result.outfits = client
             result.suggestions = client
             result.aiConsent = client
             result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
-                                                            accessToken: { try await model.accessToken() })
+                                                            accessToken: { try await model.accessToken(for: userID) })
             let accountID = model.session?.userID
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
@@ -83,6 +95,22 @@ struct AppDependencies: Sendable {
     }
 
     static func live() -> AppDependencies {
-        AppDependencies(wardrobe: UnconfiguredWardrobeRepository())
+        live(backendBaseURL: Bundle.main.object(forInfoDictionaryKey: "BackendBaseURL") as? String,
+             transport: URLSessionTransport.gateway())
+    }
+
+    /// Build settings supply only a public HTTPS gateway address. Empty, unresolved
+    /// or unsafe configuration remains explicitly unavailable without network calls.
+    static func live(backendBaseURL: String?, transport: any APITransport) -> AppDependencies {
+        guard let value = backendBaseURL?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty, !value.contains("$("), let url = URL(string: value) else {
+            return AppDependencies(wardrobe: UnconfiguredWardrobeRepository())
+        }
+        do {
+            let authentication = try AuthenticationClient(baseURL: url, transport: transport)
+            return try configured(baseURL: url, authentication: authentication, transport: transport)
+        } catch {
+            return AppDependencies(wardrobe: UnconfiguredWardrobeRepository())
+        }
     }
 }

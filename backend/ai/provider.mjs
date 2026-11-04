@@ -4,6 +4,7 @@ import { recognitionSchema } from './recognition.mjs';
 // Server-only Chat Completions protocol adapter. No SDK, default model or credentials.
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const label = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/.test(value);
+const modelID = value => label(value) || (typeof value === 'string' && /^@cf\/[a-z0-9-]+\/[a-z0-9._-]{1,100}$/.test(value));
 const integer = value => Number.isSafeInteger(value) && value >= 0;
 export class AIError extends Error {
   constructor(code) { super(code); this.name = 'AIError'; }
@@ -14,7 +15,7 @@ export function serverConfiguration(env) {
   let endpoint;
   try { endpoint = new URL(env.AI_ENDPOINT); } catch { fail('configuration_invalid'); }
   if (endpoint.protocol !== 'https:' || endpoint.username || endpoint.password || endpoint.search || endpoint.hash ||
-      !label(env.AI_PROVIDER) || !label(env.AI_IMAGE_MODEL) || !label(env.AI_OUTFIT_MODEL) ||
+      !label(env.AI_PROVIDER) || !modelID(env.AI_IMAGE_MODEL) || !modelID(env.AI_OUTFIT_MODEL) ||
       typeof env.AI_RECIPIENT !== 'string' || !env.AI_RECIPIENT.trim() ||
       typeof env.AI_API_KEY !== 'string' || !env.AI_API_KEY.trim() || /[\r\n]/.test(env.AI_API_KEY)) fail('configuration_invalid');
   const timeoutMs = Number(env.AI_TIMEOUT_MS ?? 30_000);
