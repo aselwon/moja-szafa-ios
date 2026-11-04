@@ -3,6 +3,8 @@ import CryptoKit
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var trips: any TripRepository = UnconfiguredTripRepository()
+    var tripJournalURL: URL?
     var planner: any PlannerRepository = UnconfiguredPlannerRepository()
     var plannerJournalURL: URL?
     var purchases: (any PurchaseRepository)?
@@ -62,6 +64,8 @@ struct AppDependencies: Sendable {
         result.purchases = client
         result.weather = client
         result.outfits = client
+        result.trips = client
+        result.tripJournalURL = storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathComponent("trip-pending.json")
         result.planner = client
         result.plannerJournalURL = storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathComponent("planner-pending.json")
         result.suggestions = client
@@ -99,6 +103,9 @@ struct AppDependencies: Sendable {
             result.apiConnection = connection
             result.wearStore = store
             result.outfits = client
+            result.trips = client
+            let tripDirectory = storageDirectory.appendingPathComponent("Trips").appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString)
+            result.tripJournalURL = tripDirectory.appendingPathComponent("pending.json")
             result.planner = client
             let plannerDirectory = storageDirectory.appendingPathComponent("Planner").appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString)
             result.plannerJournalURL = plannerDirectory.appendingPathComponent("pending.json")
@@ -115,6 +122,7 @@ struct AppDependencies: Sendable {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
                 try await store.invalidateAccount()
+                if FileManager.default.fileExists(atPath: tripDirectory.path) { try FileManager.default.removeItem(at: tripDirectory) }
                 if FileManager.default.fileExists(atPath: personalizationIntent.path) { try FileManager.default.removeItem(at: personalizationIntent) }
                 if FileManager.default.fileExists(atPath: plannerDirectory.path) { try FileManager.default.removeItem(at: plannerDirectory) }
                 if FileManager.default.fileExists(atPath: purchaseDrafts.path) { try FileManager.default.removeItem(at: purchaseDrafts) }

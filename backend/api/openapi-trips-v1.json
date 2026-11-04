@@ -1,0 +1,627 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Trip packing API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/rest/v1/rpc/api_v1_trips": {
+      "post": {
+        "operationId": "api_v1_trips",
+        "description": "Owned travel plans with strict unique garment budget, explicit missing categories and deliberate repeats. Packing never writes wear history.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "request"
+                ],
+                "properties": {
+                  "request": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/ListTrips"
+                      },
+                      {
+                        "$ref": "#/components/schemas/GetTrip"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SaveTrip"
+                      },
+                      {
+                        "$ref": "#/components/schemas/PackTrip"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success or safe error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TripSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TripPageSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TripChoice": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day",
+          "outfitID",
+          "outfitVersion"
+        ],
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "outfitID": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "outfitVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          }
+        }
+      },
+      "TripBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "destination",
+          "startsOn",
+          "endsOn",
+          "timezone",
+          "occasions",
+          "maxItems",
+          "days"
+        ],
+        "properties": {
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "occasions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 10,
+            "minItems": 1
+          },
+          "maxItems": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripChoice"
+            },
+            "maxItems": 30,
+            "minItems": 1
+          }
+        }
+      },
+      "TripDay": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day",
+          "outfitID",
+          "outfitVersion",
+          "outfitName",
+          "garments",
+          "missingCategories",
+          "unavailableIDs",
+          "repeated"
+        ],
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "outfitID": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "outfitVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "outfitName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "garments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WardrobeItem"
+            },
+            "maxItems": 100
+          },
+          "missingCategories": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "top",
+                "bottom",
+                "shoes"
+              ]
+            },
+            "maxItems": 3
+          },
+          "unavailableIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 100
+          },
+          "repeated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PackingItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "garment",
+          "packed"
+        ],
+        "properties": {
+          "garment": {
+            "$ref": "#/components/schemas/WardrobeItem"
+          },
+          "packed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TripPlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "destination",
+          "startsOn",
+          "endsOn",
+          "timezone",
+          "occasions",
+          "maxItems",
+          "days",
+          "packing"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "occasions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 10,
+            "minItems": 1
+          },
+          "maxItems": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripDay"
+            },
+            "maxItems": 30
+          },
+          "packing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackingItem"
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "TripSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "destination",
+          "startsOn",
+          "endsOn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ListTrips": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "const": "list"
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "GetTrip": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "id"
+        ],
+        "properties": {
+          "action": {
+            "const": "get"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SaveTrip": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationID",
+          "id",
+          "baseVersion",
+          "trip"
+        ],
+        "properties": {
+          "action": {
+            "const": "save"
+          },
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trip": {
+            "$ref": "#/components/schemas/TripBody"
+          }
+        }
+      },
+      "PackTrip": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationID",
+          "id",
+          "baseVersion",
+          "garmentID",
+          "packed"
+        ],
+        "properties": {
+          "action": {
+            "const": "pack"
+          },
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "garmentID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "packed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TripSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TripPlan"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "TripPageSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "items",
+              "nextCursor"
+            ],
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TripSummary"
+                },
+                "maxItems": 20
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              }
+            }
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "WardrobeItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string"
+          },
+          "priceGrosz": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "imageID": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "brand": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "seasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "initialWearHistory": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "count",
+                  "startDate"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "availability",
+          "priceGrosz",
+          "imageID",
+          "brand",
+          "colors",
+          "seasons",
+          "archived"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "request_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "unauthorized",
+                  "account_unavailable",
+                  "validation_failed",
+                  "version_conflict",
+                  "idempotency_conflict",
+                  "internal_error"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

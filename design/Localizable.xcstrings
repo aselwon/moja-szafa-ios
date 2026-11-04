@@ -9318,6 +9318,690 @@
       "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
       "extractionState": "manual"
     },
+    "trips.title": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyjazdy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trips"
+          }
+        }
+      }
+    },
+    "trips.separate": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakowanie nie jest noszeniem. Odhaczanie rzeczy nie zmienia historii ani CPW."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packing is not wearing. Checkmarks do not change wear history or cost per wear."
+          }
+        }
+      }
+    },
+    "trips.empty": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zapisanych wyjazdów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved trips."
+          }
+        }
+      }
+    },
+    "trips.new": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowy wyjazd"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New trip"
+          }
+        }
+      }
+    },
+    "trips.details": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szczegóły wyjazdu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trip details"
+          }
+        }
+      }
+    },
+    "trips.edit": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmień plan"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit plan"
+          }
+        }
+      }
+    },
+    "trips.packing": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista pakowania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packing checklist"
+          }
+        }
+      }
+    },
+    "trips.noItems": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wybrano jeszcze rzeczy do spakowania. Sprawdź brakujące kategorie w planie dni."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No garments selected yet. Review missing categories in the daily plan."
+          }
+        }
+      }
+    },
+    "trips.unavailable": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rzecz jest niedostępna, w praniu lub zarchiwizowana."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This garment is unavailable, in laundry or archived."
+          }
+        }
+      }
+    },
+    "trips.undoPacking": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnij ostatnie odhaczenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo last checkmark"
+          }
+        }
+      }
+    },
+    "trips.repeat": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Celowo użyta ponownie, aby ograniczyć bagaż"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intentionally reused to reduce luggage"
+          }
+        }
+      }
+    },
+    "trips.changed": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Część rzeczy jest teraz niedostępna lub usunięta. Zmień plan."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some garments are now unavailable or deleted. Review the plan."
+          }
+        }
+      }
+    },
+    "trips.missing": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brakujące kategorie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing categories"
+          }
+        }
+      }
+    },
+    "trips.category.top": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Góra"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top"
+          }
+        }
+      }
+    },
+    "trips.category.bottom": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dół"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom"
+          }
+        }
+      }
+    },
+    "trips.category.shoes": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buty"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoes"
+          }
+        }
+      }
+    },
+    "trips.destination": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miejsce wyjazdu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destination"
+          }
+        }
+      }
+    },
+    "trips.start": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Od"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        }
+      }
+    },
+    "trips.end": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Through"
+          }
+        }
+      }
+    },
+    "trips.occasions": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okazje, rozdzielone przecinkami"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Occasions, separated by commas"
+          }
+        }
+      }
+    },
+    "trips.maximum %lld": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maksymalnie %lld rzeczy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At most %lld garments"
+          }
+        }
+      }
+    },
+    "trips.count %lld %lld": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unikalne rzeczy: %1$lld / %2$lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unique garments: %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "trips.bounds": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Od 1 do 30 dni, do 100 unikalnych rzeczy. Daty są lokalnymi dniami, nie godzinami lotu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1–30 days, up to 100 unique garments. Dates are local days, not flight times."
+          }
+        }
+      }
+    },
+    "trips.invalidDates": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz poprawny zakres do 30 dni."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a valid range of up to 30 days."
+          }
+        }
+      }
+    },
+    "trips.daily": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestawy na dni"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily outfits"
+          }
+        }
+      }
+    },
+    "trips.manual": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz własne zapisane zestawy. Przycisk układania używa tylko wczytanych zestawów i celowo je powtarza. To nie jest analiza AI ani prognoza pogody; samodzielnie sprawdź okazje i warunki."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose your saved outfits. Arrange uses only loaded outfits and deliberately repeats garments. This is not AI analysis or a weather forecast; review occasions and conditions yourself."
+          }
+        }
+      }
+    },
+    "trips.noOutfits": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najpierw zapisz zestawy w swojej szafie albo pozostaw jawne braki."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save outfits first or leave explicit missing categories."
+          }
+        }
+      }
+    },
+    "trips.suggest": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ułóż z wczytanych zestawów"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrange loaded outfits"
+          }
+        }
+      }
+    },
+    "trips.choose": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz zestaw na ten dzień"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an outfit for this day"
+          }
+        }
+      }
+    },
+    "trips.overLimit": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przekroczono limit unikalnych rzeczy. Zmień zestawy lub limit."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The unique garment limit is exceeded. Change outfits or the limit."
+          }
+        }
+      }
+    },
+    "trips.save": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz wyjazd"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save trip"
+          }
+        }
+      }
+    },
+    "trips.leaveMissing": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pozostaw dzień z brakującymi kategoriami"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave this day with missing categories"
+          }
+        }
+      }
+    },
+    "trips.pending": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poprzednia zmiana czeka na potwierdzenie. Ponów dokładnie tę zmianę przed nową."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous change awaits confirmation. Retry that same change before making another."
+          }
+        }
+      }
+    },
+    "trips.retry": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponów tę samą zmianę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same change"
+          }
+        }
+      }
+    },
+    "trips.conflict": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyjazd lub zestaw zmienił się na innym urządzeniu. Odśwież i ponownie wybierz zestawy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The trip or outfit changed on another device. Refresh and choose outfits again."
+          }
+        }
+      }
+    },
+    "trips.rejected": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź daty, limit rzeczy, okazje i dostępność ubrań. Zmiana nie została przyjęta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check dates, garment limit, occasions and availability. The change was rejected."
+          }
+        }
+      }
+    },
+    "trips.offline": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Możesz bezpiecznie ponowić oczekującą zmianę."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are offline. You can safely retry the pending change."
+          }
+        }
+      }
+    },
+    "trips.journalFailed": {
+      "comment": "T043: travel plan and packing; never actual wear history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać oczekującej zmiany. Nowe zapisy są zablokowane, aby uniknąć duplikatów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pending change could not be read. New writes are blocked to prevent duplicates."
+          }
+        }
+      }
+    },
     "statistics.period.all": {
       "comment": "Wardrobe statistics: period.all",
       "extractionState": "manual",

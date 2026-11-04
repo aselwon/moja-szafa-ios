@@ -1,0 +1,9 @@
+# T043: trip packing
+
+Migration 021 and `api_v1_trips` persist destination, local dates/timezone, occasions, a unique-garment limit, owned outfit snapshots for each day and a packing checklist. Trips span 1–30 days and at most 100 unique garments; list pages contain at most 20 summaries. Server validation rejects foreign/stale outfits, duplicate/missing dates, unavailable garments and over-budget unions.
+
+The native Outfits → Trips flow supports manual day selection, transparent local arrangement from loaded saved outfits, deliberate garment repeats, real garment collages, explicit missing top/bottom/shoes categories, availability-change warnings, checklist undo and retry. Dress/jumpsuit covers top+bottom. Deleted/unavailable garments become visible gaps on refresh. The arrangement makes no AI or weather claim; occasions and suitability remain user-reviewed.
+
+Packing writes only trip state, never wear events or CPW. Exact-body operation replay and trip versions protect concurrent edits. Pending intents are persisted before sending, scoped to account/gateway, retained after ambiguous timeouts, removed on account deletion and blocked if corrupt. Owned data export includes the new travel fields. No new blob storage or external provider is introduced.
+
+Validation: `TripTests` passed 8/8 and `PlannerTests` passed 7/7 on a dedicated iPhone 17 simulator running iOS 26.5. Before integrating PR83, `backend/tests/run-tests.sh` passed on a fresh PostgreSQL 15 cluster, including clean install, upgrade, replay, rollback, checksum, security, recovery, and packing concurrency coverage. After integrating PR83, `node scripts/harness-check.mjs` passed all 63 checks, a Debug iOS Simulator build succeeded, and the combined gateway PostgreSQL HTTP suite passed 1/1 on a separate fresh PostgreSQL 15 cluster. Trip planning does not record wear history and does not request a weather forecast.
