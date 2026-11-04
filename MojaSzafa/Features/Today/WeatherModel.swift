@@ -153,9 +153,12 @@ final class WeatherModel {
                   value.isFinite, (-80...60).contains(value) else { return nil }
             temperature = value; source = .manual
         } else {
-            guard let forecast, now.timeIntervalSince(forecast.updatedAt) >= 0,
-                  now.timeIntervalSince(forecast.updatedAt) < 3600,
-                  forecast.validAt >= now else { return nil }
+            // Issuance time is supplied by the provider, not the time we fetched it.
+            // An older model run can still contain a valid upcoming hourly forecast.
+            guard let forecast, now.timeIntervalSince(forecast.updatedAt) >= -300,
+                  now.timeIntervalSince(forecast.updatedAt) <= 12 * 3600,
+                  forecast.validAt >= now,
+                  forecast.validAt.timeIntervalSince(now) <= 2 * 3600 else { return nil }
             temperature = forecast.celsius; source = .forecast
         }
         return OutfitWeatherContext(temperatureCelsius: temperature, source: source,

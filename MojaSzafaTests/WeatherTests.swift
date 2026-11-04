@@ -69,6 +69,21 @@ final class WeatherTests: XCTestCase {
         XCTAssertNil(model.forecast)
         XCTAssertNil(model.context())
     }
+
+    func testProviderIssueTimeCanPrecedeCurrentForecastWithoutInventingFreshness() async {
+        let service = WeatherFixture()
+        let now = Date()
+        service.fixedResult = CityForecast(celsius: 8.5, validAt: now.addingTimeInterval(1800),
+            updatedAt: now.addingTimeInterval(-3 * 3600),
+            attributionURL: URL(string: "https://api.met.no/")!,
+            attributionImageURL: URL(string: "https://example.invalid/mark")!)
+        let model = WeatherModel(service: service)
+        await model.select(city)
+        XCTAssertEqual(model.context(now: now)?.temperatureCelsius, 8.5)
+        XCTAssertEqual(model.forecast?.updatedAt, service.fixedResult?.updatedAt)
+        XCTAssertNil(model.context(now: now.addingTimeInterval(1801)))
+        XCTAssertNil(model.context(now: now.addingTimeInterval(-3 * 3600)))
+    }
 }
 
 @MainActor
@@ -78,8 +93,9 @@ private final class WeatherFixture: CityWeatherService {
     var offline = false
     var suspend = false
     var pending: CheckedContinuation<CityForecast, any Error>?
+    var fixedResult: CityForecast?
     var result: CityForecast {
-        CityForecast(celsius: 12, validAt: Date().addingTimeInterval(1800), updatedAt: Date(),
+        fixedResult ?? CityForecast(celsius: 12, validAt: Date().addingTimeInterval(1800), updatedAt: Date(),
                      attributionURL: URL(string: "https://example.invalid/legal")!,
                      attributionImageURL: URL(string: "https://example.invalid/mark")!)
     }
