@@ -144,6 +144,8 @@ private struct GarmentDetailView: View {
     @State private var saving = false
     @State private var statusMessage: String?
     @State private var conflict = false
+    @State private var confirmDeletion = false
+    @Environment(\.dismiss) private var dismiss
 
 
     var body: some View {
@@ -186,6 +188,10 @@ private struct GarmentDetailView: View {
                         Button("common.retry") { Task { await synchronizeStatus() } }
                     }
                 }.disabled(saving)
+                Section {
+                    Button("wardrobe.delete", role: .destructive) { confirmDeletion = true }
+                        .disabled(saving)
+                }
                 Section("wardrobe.history") {
                     Text("wardrobe.historyExplanation").font(.caption)
                     if detail.wornOn.isEmpty { Text("wardrobe.neverWorn") }
@@ -197,6 +203,20 @@ private struct GarmentDetailView: View {
             } else { ProgressView("common.loading") }
         }
         .navigationTitle("garment.details")
+        .confirmationDialog("wardrobe.delete", isPresented: $confirmDeletion, titleVisibility: .visible) {
+            Button("wardrobe.delete", role: .destructive) {
+                Task {
+                    saving = true
+                    defer { saving = false }
+                    do {
+                        try await repository.deleteGarment(id: id)
+                        detail = nil
+                        dismiss()
+                    } catch { statusMessage = "wardrobe.statusFailed" }
+                }
+            }
+            Button("common.cancel", role: .cancel) {}
+        } message: { Text("wardrobe.deleteExplanation") }
         .task(id: retry) {
             failure = false
             do {
