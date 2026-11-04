@@ -12,7 +12,7 @@ const cookie = 'synthetic-managed-session.signature%3D';
 const baseURL = 'https://ep-test.neonauth.eu-central-1.aws.neon.tech/db/auth';
 const close = server => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); });
 async function fixture(t) {
-  const state = { active: true, verified: true, tombstoned: false, sent: 0, inspections: 0, calls: [] };
+  const state = { active: true, verified: true, tombstoned: false, sent: 0, inspections: 0, calls: [], weatherCalls: 0 };
   const upstream = createServer(async (request, response) => {
     let body = '';
     for await (const chunk of request) body += chunk;
@@ -58,7 +58,11 @@ async function fixture(t) {
     },
     rpc: async (principal, operation, request) => ({ data: { owner: principal.owner, operation, request }, request_id: randomUUID() }),
   };
-  const gateway = createGateway({ auth, store });
+  const gateway = createGateway({ auth, store, forecast: async coordinates => {
+    state.weatherCalls++;
+    assert.deepEqual(coordinates, { latitude: 52.23, longitude: 21.01 });
+    return { celsius: 8.5, source: 'MET Norway' };
+  } });
   gateway.listen(0,'127.0.0.1'); await once(gateway,'listening');
   t.after(() => close(gateway));
   const url = `http://127.0.0.1:${gateway.address().port}`;
@@ -67,6 +71,21 @@ async function fixture(t) {
   }, body:JSON.stringify(body) });
   return { state, auth, store, call };
 }
+
+test('weather HTTP route rechecks managed session and account deletion before upstream access', async t => {
+  const f = await fixture(t);
+  const coordinates = { latitude: 52.23, longitude: 21.01 };
+  assert.equal((await f.call('/v1/weather', coordinates)).status, 401);
+  assert.equal(f.state.weatherCalls, 0);
+  const result = await f.call('/v1/weather', coordinates, cookie);
+  assert.equal(result.status, 200);
+  assert.equal((await result.json()).data.celsius, 8.5);
+  f.state.tombstoned = true;
+  assert.equal((await f.call('/v1/weather', coordinates, cookie)).status, 401);
+  f.state.tombstoned = false; f.state.active = false;
+  assert.equal((await f.call('/v1/weather', coordinates, cookie)).status, 401);
+  assert.equal(f.state.weatherCalls, 1);
+});
 
 test('real HTTP bridge delegates OTP and returns only managed signed session cookie in existing DTO', async t => {
   const f = await fixture(t);

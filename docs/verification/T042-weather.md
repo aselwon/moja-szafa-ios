@@ -33,9 +33,11 @@ Leaving Today clears state and rejects late lookup results.
   provider availability, not the complete app path.
 - Swift regression coverage includes the coarse authenticated request, fixed
   attribution, actual issuance timestamp, manual/offline fallback and late results.
-  The updated native build and runtime tests still require verification.
-- The route handler is implemented but must still be mounted in the gateway PR
-  and deployed. End-to-end authenticated native weather remains unverified.
+  The updated native Debug build-for-testing passed. Runtime simulator execution
+  remains pending.
+- The route is mounted in the integrated gateway and configured in its entry point.
+  Twelve targeted HTTP/provider tests pass, including revoked-session and deleted-account
+  rejection before upstream access. Deployment and end-to-end native weather remain unverified.
 - Outfit generation must still receive optional weather context and continue with
   nil after denied location or unavailable forecast. This remains incomplete.
 - Device acceptance remains: Allow Once/While Using/approximate/denied location,
