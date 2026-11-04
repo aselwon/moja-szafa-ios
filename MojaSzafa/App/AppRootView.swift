@@ -6,7 +6,7 @@ struct AppRootView: View {
 
     var body: some View {
         TabView {
-            NavigationStack { TodayView(dependencies: dependencies) }
+            NavigationStack { TodayView(dependencies: dependencies, accountID: accountID) }
                 .tabItem { Label("tab.today", systemImage: "sun.max") }
             NavigationStack { WardrobeView(repository: dependencies.wardrobe, accountID: accountID) }
                 .tabItem { Label("tab.wardrobe", systemImage: "tshirt") }

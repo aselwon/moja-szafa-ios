@@ -2,15 +2,36 @@ import SwiftUI
 
 struct TodayView: View {
     @StateObject private var model: SuggestionsModel
+    @State private var generationTask: Task<Void, Never>?
+    @State private var count = 3
+    @State private var showPrivacy = false
+    private let consent: (any AIConsentService)?
     @State private var replacement: ReplacementSelection?
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: AppDependencies, accountID: UUID) {
+        consent = dependencies.aiConsent
+        let intentURL = dependencies.generationIntentURL(accountID: accountID)
         _model = StateObject(wrappedValue: SuggestionsModel(source: dependencies.suggestions,
-            wardrobe: dependencies.wardrobe, outfits: dependencies.outfits, offline: dependencies.offline))
+            wardrobe: dependencies.wardrobe, outfits: dependencies.outfits, offline: dependencies.offline, intentURL: intentURL))
     }
 
     var body: some View {
         List {
+            Section {
+                Text("generation.count")
+                Stepper("\(count)", value: $count, in: 1...10)
+                    .accessibilityLabel(Text("generation.count"))
+                    .disabled(model.pendingGeneration != nil || model.generating)
+                Button(model.pendingGeneration == nil ? "generation.start" : "common.retry") {
+                    generationTask = Task { await model.generate(count: count) }
+                }.disabled(model.generating || model.loading || model.busy || model.saves.pending != nil)
+                if model.generating { ProgressView("generation.progress") }
+                if let status = model.generationStatus, status == .queued || status == .running {
+                    Text(LocalizedStringKey("generation.\(status.rawValue)"))
+                }
+                if let key = model.generationError { Text(LocalizedStringKey(key)) }
+                Button("privacy.title") { showPrivacy = true }
+            } header: { Text("generation.title") }
             if model.loading { ProgressView("common.loading") }
             if let key = model.errorKey {
                 Text(LocalizedStringKey(key))
@@ -37,21 +58,28 @@ struct TodayView: View {
                         } label: {
                             Label { Text(verbatim: garment.name) } icon: { Image(systemName: "arrow.triangle.2.circlepath") }
                         }.accessibilityHint(Text("suggestions.replace"))
-                        .disabled(model.busy || model.saves.pending != nil)
+                        .disabled(model.generating || model.busy || model.saves.pending != nil)
                     }
                     Button(LocalizedStringKey(suggestion.outfit.version > 0 ? "suggestions.saved" : "outfits.save")) {
                         Task { await model.save(suggestion.id) }
-                    }.disabled(model.busy || (model.saves.pending != nil && model.saves.pending?.id != suggestion.id))
+                    }.disabled(model.generating || model.busy || (model.saves.pending != nil && model.saves.pending?.id != suggestion.id))
                     Button(LocalizedStringKey(suggestion.worn ? "suggestions.worn" : "suggestions.wear")) {
                         Task { await model.wear(suggestion.id) }
-                    }.disabled(model.busy || suggestion.worn || model.saves.pending != nil)
+                    }.disabled(model.generating || model.busy || suggestion.worn || model.saves.pending != nil)
                 }
             }
             if model.saves.pending != nil { Text("outfits.pending") }
             if model.busy { ProgressView("common.loading") }
         }
         .navigationTitle("tab.today")
-        .task { await model.load() }
+        .task {
+            if model.pendingGeneration != nil { await model.generate(count: count) }
+            else { await model.load() }
+        }
+        .onDisappear { generationTask?.cancel() }
+        .sheet(isPresented: $showPrivacy) {
+            NavigationStack { AIPrivacyView(service: consent) }
+        }
         .refreshable { await model.load() }
         .sheet(item: $replacement) { selection in
             NavigationStack {

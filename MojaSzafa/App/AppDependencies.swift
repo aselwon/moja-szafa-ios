@@ -29,6 +29,12 @@ struct AppDependencies: Sendable {
         return "\(app).gateway.\(apiConnection?.identifier ?? "unconfigured")"
     }
 
+    func generationIntentURL(accountID: UUID) -> URL {
+        URL.applicationSupportDirectory.appendingPathComponent("GenerationIntents")
+            .appendingPathComponent(sessionStoreService)
+            .appendingPathComponent(accountID.uuidString + ".json")
+    }
+
     init(wardrobe: any WardrobeRepository, authentication: any AuthenticationService = UnconfiguredAuthenticationService()) {
         self.wardrobe = wardrobe
         self.authentication = authentication
@@ -69,18 +75,23 @@ struct AppDependencies: Sendable {
                 .appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString + ".sqlite"))
             let store = try OfflineStore(accountID: userID, database: database, remote: client)
             var result = AppDependencies(wardrobe: store, authentication: authentication)
+            result.apiConnection = connection
             result.outfits = client
             result.suggestions = client
             result.aiConsent = client
             result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
                                                             accessToken: { try await model.accessToken(for: userID) })
+            let generationIntent = result.generationIntentURL(accountID: userID)
             let accountID = model.session?.userID
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
                 try await store.invalidateAccount()
                 try ProfileStore.local.remove(accountID: accountID)
+                if FileManager.default.fileExists(atPath: generationIntent.path) {
+                    try FileManager.default.removeItem(at: generationIntent)
+                }
                 let drafts = URL.applicationSupportDirectory.appendingPathComponent("PhotoDrafts")
                     .appendingPathComponent(accountID.uuidString)
                 if FileManager.default.fileExists(atPath: drafts.path) { try FileManager.default.removeItem(at: drafts) }

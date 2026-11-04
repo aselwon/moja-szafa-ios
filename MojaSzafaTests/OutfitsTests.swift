@@ -188,3 +188,188 @@ private struct SuggestionsOfflineRemote: OfflineRemote {
     func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO { throw URLError(.notConnectedToInternet) }
     func save(_ operation: SaveWear) async throws -> SyncWear { throw URLError(.notConnectedToInternet) }
 }
+
+@MainActor
+final class GenerationTests: XCTestCase {
+    private func make(_ source: GenerationFixture, url: URL? = nil) -> SuggestionsModel {
+        SuggestionsModel(source: source, wardrobe: SuggestionWardrobe(items: []),
+            outfits: OutfitFixture(), offline: nil, intentURL: url, pollDelay: {})
+    }
+    func testAmbiguousAdmissionReplaysDurableIntentAfterRecreation() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("intent.json")
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let source = GenerationFixture(failAdmissionOnce: true)
+        let first = make(source, url: url)
+        await first.generate(count: 3, maxPolls: 1)
+        XCTAssertEqual(first.generationError, "outfits.offline")
+        let operation = try XCTUnwrap(first.pendingGeneration?.request.operation_id)
+        let restored = make(source, url: url)
+        await restored.generate(count: 9, maxPolls: 1)
+        let requests = await source.requests
+        XCTAssertEqual(requests.count, 2)
+        XCTAssertEqual(requests[0], requests[1])
+        XCTAssertEqual(requests[1].operation_id, operation)
+        XCTAssertEqual(requests[1].count, 3)
+        XCTAssertNil(restored.pendingGeneration)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+    }
+    func testBoundedPollingResumesJobWithoutReadmission() async {
+        let source = GenerationFixture(status: .running)
+        let model = make(source)
+        await model.generate(count: 2, maxPolls: 2)
+        XCTAssertEqual(model.generationError, "generation.waiting")
+        XCTAssertEqual(model.generationStatus, .running)
+        await model.generate(count: 7, maxPolls: 1)
+        let requests = await source.requests
+        let polls = await source.polls
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertEqual(polls, 3)
+    }
+    func testConsentAndQuotaNeverBecomeFalseSuccess() async {
+        for (code, key) in [("consent_required", "generation.consent"), ("quota_exceeded", "generation.quota"), ("ai_disabled", "generation.disabled")] {
+            let source = GenerationFixture(admissionError: code)
+            let model = make(source)
+            await model.generate(count: 2, maxPolls: 1)
+            XCTAssertEqual(model.generationError, key)
+            XCTAssertNotNil(model.pendingGeneration)
+            XCTAssertTrue(model.items.isEmpty)
+            let polls = await source.polls
+            XCTAssertEqual(polls, 0)
+        }
+    }
+    func testForeignResultRejectedAndPendingIntentRetained() async {
+        let model = make(GenerationFixture(wrongJob: true))
+        await model.generate(count: 2, maxPolls: 1)
+        XCTAssertEqual(model.generationError, "generation.failed")
+        XCTAssertNotNil(model.pendingGeneration)
+        XCTAssertTrue(model.items.isEmpty)
+    }
+    func testUnreadableIntentFailsClosedAndAccountFilesRemainSeparate() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let a = root.appendingPathComponent("account-a.json")
+        try Data("invalid".utf8).write(to: a)
+        let source = GenerationFixture()
+        let broken = make(source, url: a)
+        await broken.generate(count: 2, maxPolls: 1)
+        XCTAssertEqual(broken.generationError, "generation.storage")
+        let requests = await source.requests
+        XCTAssertEqual(requests.count, 0)
+        let other = make(source, url: root.appendingPathComponent("account-b.json"))
+        XCTAssertNil(other.pendingGeneration)
+        XCTAssertNil(other.generationError)
+    }
+    func testAccountViewCancellationStopsPollingButKeepsIntent() async throws {
+        let source = GenerationFixture(status: .running)
+        let model = SuggestionsModel(source: source, wardrobe: SuggestionWardrobe(items: []),
+            outfits: OutfitFixture(), offline: nil, pollDelay: { try await Task.sleep(for: .seconds(60)) })
+        let task = Task { await model.generate(count: 2) }
+        while await source.polls == 0 { await Task.yield() }
+        task.cancel()
+        await task.value
+        XCTAssertFalse(model.generating)
+        XCTAssertNotNil(model.pendingGeneration)
+        XCTAssertTrue(model.items.isEmpty)
+        XCTAssertNil(model.generationError)
+        let polls = await source.polls
+        XCTAssertEqual(polls, 1)
+    }
+    func testRequestWireDefaultsAndValidation() throws {
+        let request = GenerationRequest(operation_id: UUID(), count: 3)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
+        XCTAssertTrue(object["pinned_garment_id"] is NSNull)
+        XCTAssertTrue((object["occasion"] as? [String: Any])?["formality"] is NSNull)
+        XCTAssertEqual((object["preferences"] as? [String: [String]])?["colors"], [])
+        XCTAssertThrowsError(try GenerationRequest(operation_id: UUID(), count: 11).validate())
+    }
+}
+
+private actor GenerationFixture: SuggestionRepository {
+    var requests: [GenerationRequest] = []
+    var polls = 0
+    let jobID = UUID()
+    var failAdmissionOnce: Bool
+    let status: APIv1.JobStatus
+    let admissionError: String?
+    let wrongJob: Bool
+    let resultIDs: [UUID]
+    init(failAdmissionOnce: Bool = false, status: APIv1.JobStatus = .succeeded,
+         admissionError: String? = nil, wrongJob: Bool = false, resultIDs: [UUID] = []) {
+        self.failAdmissionOnce = failAdmissionOnce; self.status = status
+        self.admissionError = admissionError; self.wrongJob = wrongJob; self.resultIDs = resultIDs
+    }
+    func latestSuggestions() async throws -> SuggestionResult? { nil }
+    func generate(_ request: GenerationRequest) async throws -> GenerationAdmission {
+        requests.append(request)
+        if failAdmissionOnce { failAdmissionOnce = false; throw URLError(.timedOut) }
+        if let admissionError { throw APIv1.Failure(code: admissionError, message: "", requestID: UUID()) }
+        return GenerationAdmission(job_id: jobID, status: .queued)
+    }
+    func generationResult(jobID: UUID) async throws -> GenerationJob {
+        polls += 1
+        return GenerationJob(job_id: wrongJob ? UUID() : self.jobID, kind: .outfitGeneration, status: status,
+            result: status == .succeeded ? SuggestionResult(outfits: resultIDs.isEmpty ? [] : [.init(garment_ids: resultIDs, rationale: "For today")], shortfall_reason: nil) : nil,
+            error_code: nil)
+    }
+}
+
+extension GenerationTests {
+    func testLiveClientUsesFrozenAuthenticatedRPCs() async throws {
+        let transport = GenerationTransport()
+        let client = try APIClient(baseURL: URL(string: "https://gateway.example")!, transport: transport) { "signed-session" }
+        let request = GenerationRequest(operation_id: UUID(), count: 3)
+        let admitted = try await client.generate(request)
+        _ = try await client.generationResult(jobID: admitted.job_id)
+        let sent = await transport.requests
+        XCTAssertEqual(sent.map { $0.url!.lastPathComponent }, ["api_v1_generate_outfits", "api_v1_job_result"])
+        XCTAssertTrue(sent.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer signed-session" })
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: sent[0].httpBody!) as? [String: Any])
+        XCTAssertEqual((body["request"] as? [String: Any])?["operation_id"] as? String, request.operation_id.uuidString)
+    }
+}
+private actor GenerationTransport: APITransport {
+    var requests: [URLRequest] = []
+    let job = UUID()
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        requests.append(request)
+        var value: [String: Any] = ["job_id": job.uuidString, "status": "queued"]
+        if request.url!.lastPathComponent == "api_v1_job_result" {
+            value["kind"] = "outfit_generation"; value["result"] = NSNull(); value["error_code"] = NSNull()
+        }
+        let body = try JSONSerialization.data(withJSONObject: ["data": value, "request_id": UUID().uuidString])
+        return (body, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+    }
+}
+
+
+extension GenerationTests {
+    func testCompletedStaleResultAllowsFreshExplicitIntent() async throws {
+        let source = GenerationFixture(resultIDs: [UUID()])
+        let model = SuggestionsModel(source: source, wardrobe: SuggestionWardrobe(items: []),
+            outfits: OutfitFixture(), offline: nil)
+        await model.generate(count: 3, maxPolls: 1)
+        XCTAssertEqual(model.generationError, "generation.stale")
+        XCTAssertNil(model.pendingGeneration)
+        await model.generate(count: 3, maxPolls: 1)
+        let requests = await source.requests
+        XCTAssertEqual(requests.count, 2)
+        XCTAssertNotEqual(requests[0].operation_id, requests[1].operation_id)
+    }
+    func testCompletedResultWardrobeNetworkFailureKeepsExistingJob() async {
+        let source = GenerationFixture(resultIDs: [UUID()])
+        let model = SuggestionsModel(source: source, wardrobe: OfflineGenerationWardrobe(),
+            outfits: OutfitFixture(), offline: nil)
+        await model.generate(count: 3, maxPolls: 1)
+        let job = model.pendingGeneration?.jobID
+        XCTAssertNotNil(job)
+        XCTAssertEqual(model.generationError, "outfits.offline")
+        await model.generate(count: 3, maxPolls: 1)
+        XCTAssertEqual(model.pendingGeneration?.jobID, job)
+        let requests = await source.requests
+        XCTAssertEqual(requests.count, 1)
+    }
+}
+private struct OfflineGenerationWardrobe: WardrobeRepository {
+    func garments() async throws -> [Garment] { throw URLError(.notConnectedToInternet) }
+}
