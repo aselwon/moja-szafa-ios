@@ -6736,6 +6736,176 @@
         }
       },
       "comment": "T026 manual outfit builder: outfits.conflict"
+    },
+    "suggestions.name": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propozycja stylizacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outfit suggestion"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — name"
+    },
+    "suggestions.empty": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie ma jeszcze propozycji. Gotowe wyniki AI pojawią się tutaj."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No suggestions yet. Completed AI results will appear here."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — empty"
+    },
+    "suggestions.manualFallback": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Możesz zamienić rzecz ręcznie, także gdy AI nie działa."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can replace an item manually, even when AI is unavailable."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — manualFallback"
+    },
+    "suggestions.failed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wykonać akcji. Odśwież szafę i sprawdź dostępność rzeczy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not complete this action. Refresh your wardrobe and check item availability."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — failed"
+    },
+    "suggestions.edited": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestaw zmieniony ręcznie — poprzednie uzasadnienie AI jest nieaktualne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manually edited outfit — the previous AI rationale no longer applies."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — edited"
+    },
+    "suggestions.incomplete": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niekompletny zestaw. Brakuje:"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete outfit. Missing:"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — incomplete"
+    },
+    "suggestions.replace": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamień rzecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace item"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — replace"
+    },
+    "suggestions.saved": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz zmiany zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save outfit changes"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — saved"
+    },
+    "suggestions.wear": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszę dzisiaj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear today"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — wear"
+    },
+    "suggestions.worn": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszenie zapisane na urządzeniu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear recorded on this device"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — worn"
     }
   },
   "version": "1.0"
