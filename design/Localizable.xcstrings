@@ -10289,6 +10289,294 @@
           }
         }
       }
+    },
+    "review.title": {
+      "comment": "Wardrobe review: title",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wardrobe review"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przegląd szafy"
+          }
+        }
+      }
+    },
+    "review.rule": {
+      "comment": "Wardrobe review: rule",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active garments with at most two recorded wear days in the last 90 days. Recent estimated history is excluded because its wear dates are unknown."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktywne rzeczy z najwyżej dwoma zapisanymi dniami noszenia w ostatnich 90 dniach. Niedawna historia szacowana jest pomijana, bo nie znamy dat noszeń."
+          }
+        }
+      }
+    },
+    "review.local": {
+      "comment": "Wardrobe review: local",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep hides an item from this review on this device. It does not change the wardrobe or wear history. You can show kept items and undo this choice."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj ukrywa rzecz z tego przeglądu na tym urządzeniu. Nie zmienia szafy ani historii noszeń. Możesz pokazać zachowane rzeczy i cofnąć wybór."
+          }
+        }
+      }
+    },
+    "review.showKept": {
+      "comment": "Wardrobe review: showKept",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show kept items"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż zachowane rzeczy"
+          }
+        }
+      }
+    },
+    "review.empty": {
+      "comment": "Wardrobe review: empty",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No items to review"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak rzeczy do przeglądu"
+          }
+        }
+      }
+    },
+    "review.days": {
+      "comment": "Wardrobe review: days",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded days in the last 90 days"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisane dni w ostatnich 90 dniach"
+          }
+        }
+      }
+    },
+    "review.remind": {
+      "comment": "Wardrobe review: remind",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find a saved outfit"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przypomnij zestaw"
+          }
+        }
+      }
+    },
+    "review.keep": {
+      "comment": "Wardrobe review: keep",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj"
+          }
+        }
+      }
+    },
+    "review.undoKeep": {
+      "comment": "Wardrobe review: undoKeep",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to review"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywróć do przeglądu"
+          }
+        }
+      }
+    },
+    "review.archive": {
+      "comment": "Wardrobe review: archive",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to archive"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przenieś do archiwum"
+          }
+        }
+      }
+    },
+    "review.savedOnly": {
+      "comment": "Wardrobe review: savedOnly",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved outfits containing this garment. Viewing a set does not record a wear or run AI."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisane zestawy z tą rzeczą. Oglądanie zestawu nie zapisuje noszenia ani nie uruchamia AI."
+          }
+        }
+      }
+    },
+    "review.noOutfits": {
+      "comment": "Wardrobe review: noOutfits",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved outfit contains this garment. You can create one in the Outfits tab."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie ma zapisanego zestawu z tą rzeczą. Możesz utworzyć go w zakładce Zestawy."
+          }
+        }
+      }
+    },
+    "review.storage": {
+      "comment": "Wardrobe review: storage",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your local review choices could not be read or saved safely."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się bezpiecznie odczytać lub zapisać lokalnych decyzji przeglądu."
+          }
+        }
+      }
+    },
+    "review.archiveFailed": {
+      "comment": "Wardrobe review: archiveFailed",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not confirm archiving. Reload the wardrobe before trying again."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się potwierdzić archiwizacji. Odśwież szafę przed kolejną próbą."
+          }
+        }
+      }
+    },
+    "review.reset": {
+      "comment": "Wardrobe review recovery: reset",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset local review choices"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zresetuj lokalne decyzje przeglądu"
+          }
+        }
+      }
+    },
+    "review.resetExplanation": {
+      "comment": "Wardrobe review recovery: resetExplanation",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show all eligible items again on this device. Garments and wear history will not change."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż ponownie wszystkie pasujące rzeczy na tym urządzeniu. Ubrania i historia noszeń pozostaną bez zmian."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -41,6 +41,11 @@ struct AppDependencies: Sendable {
             .appendingPathComponent(sessionStoreService).appendingPathComponent(accountID.uuidString)
     }
 
+    func reviewDecisionsURL(accountID: UUID) -> URL {
+        URL.applicationSupportDirectory.appendingPathComponent("WardrobeReview")
+            .appendingPathComponent(sessionStoreService).appendingPathComponent(accountID.uuidString + ".json")
+    }
+
     func personalizationIntentURL(accountID: UUID) -> URL {
         URL.applicationSupportDirectory.appendingPathComponent("PersonalizationIntents")
             .appendingPathComponent(sessionStoreService).appendingPathComponent(accountID.uuidString + ".json")
@@ -117,12 +122,14 @@ struct AppDependencies: Sendable {
             let purchaseDrafts = result.purchaseDirectory(accountID: userID)
             let generationIntent = result.generationIntentURL(accountID: userID)
             let personalizationIntent = result.personalizationIntentURL(accountID: userID)
+            let reviewDecisions = result.reviewDecisionsURL(accountID: userID)
             let accountID = model.session?.userID
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
                 try await store.invalidateAccount()
                 if FileManager.default.fileExists(atPath: tripDirectory.path) { try FileManager.default.removeItem(at: tripDirectory) }
+                if FileManager.default.fileExists(atPath: reviewDecisions.path) { try FileManager.default.removeItem(at: reviewDecisions) }
                 if FileManager.default.fileExists(atPath: personalizationIntent.path) { try FileManager.default.removeItem(at: personalizationIntent) }
                 if FileManager.default.fileExists(atPath: plannerDirectory.path) { try FileManager.default.removeItem(at: plannerDirectory) }
                 if FileManager.default.fileExists(atPath: purchaseDrafts.path) { try FileManager.default.removeItem(at: purchaseDrafts) }

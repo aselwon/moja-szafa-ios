@@ -8,6 +8,23 @@ final class OfflineStoreTests: XCTestCase {
     }
     private let fields = APIv1.GarmentFields(name: "Shirt", category: .top, priceGrosz: 80000, availability: .available)
 
+    func testArchiveFromReviewPreservesLatestAvailabilityAndWearHistory() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let id = try await store.saveGarment(fields: fields)
+        _ = try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [id])
+        try await store.synchronize()
+        _ = try await store.setStatus(id: id, availability: .laundry, archived: false)
+        let before = await store.status().wears
+        let result = try await store.setArchived(id: id, archived: true)
+        XCTAssertTrue(result.garment.archived)
+        XCTAssertEqual(result.garment.availability, .laundry)
+        let after = await store.status().wears
+        XCTAssertEqual(after, before)
+    }
+
     func testStatisticsReadsDurableOfflineSnapshotAndHonorsAccountDeletion() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }

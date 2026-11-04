@@ -114,6 +114,7 @@ extension GarmentDetail {
 }
 
 protocol WardrobeRepository: Sendable {
+    func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail
     func statisticsSnapshot() async throws -> StatisticsSnapshot
     func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail
     func deleteGarment(id: UUID) async throws
@@ -126,6 +127,7 @@ protocol WardrobeRepository: Sendable {
 }
 
 extension WardrobeRepository {
+    func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func statisticsSnapshot() async throws -> StatisticsSnapshot { throw RepositoryError.backendNotConfigured }
     func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func deleteGarment(id: UUID) async throws { throw RepositoryError.backendNotConfigured }
