@@ -3,6 +3,8 @@ import CryptoKit
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var planner: any PlannerRepository = UnconfiguredPlannerRepository()
+    var plannerJournalURL: URL?
     var purchases: (any PurchaseRepository)?
     var weather: (any WeatherForecastRepository)?
     var suggestions: any SuggestionRepository = UnconfiguredSuggestionRepository()
@@ -60,6 +62,8 @@ struct AppDependencies: Sendable {
         result.purchases = client
         result.weather = client
         result.outfits = client
+        result.planner = client
+        result.plannerJournalURL = storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathComponent("planner-pending.json")
         result.suggestions = client
         result.aiConsent = client
         result.dataExports = client.dataExports
@@ -95,6 +99,9 @@ struct AppDependencies: Sendable {
             result.apiConnection = connection
             result.wearStore = store
             result.outfits = client
+            result.planner = client
+            let plannerDirectory = storageDirectory.appendingPathComponent("Planner").appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString)
+            result.plannerJournalURL = plannerDirectory.appendingPathComponent("pending.json")
             result.suggestions = client
             result.aiConsent = client
             result.dataExports = client.dataExports
@@ -109,6 +116,7 @@ struct AppDependencies: Sendable {
                 guard model.session?.userID == accountID else { return }
                 try await store.invalidateAccount()
                 if FileManager.default.fileExists(atPath: personalizationIntent.path) { try FileManager.default.removeItem(at: personalizationIntent) }
+                if FileManager.default.fileExists(atPath: plannerDirectory.path) { try FileManager.default.removeItem(at: plannerDirectory) }
                 if FileManager.default.fileExists(atPath: purchaseDrafts.path) { try FileManager.default.removeItem(at: purchaseDrafts) }
                 try ProfileStore.local.remove(accountID: accountID)
                 if FileManager.default.fileExists(atPath: generationIntent.path) {
