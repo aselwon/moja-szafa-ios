@@ -83,6 +83,7 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/images.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/exports.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/deletion.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/suggestions.sql"
     bash "$root/tests/jobs-concurrency.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/ai-runtime.sql"
     bash "$root/tests/ai-runtime-concurrency.sh" "$database"
