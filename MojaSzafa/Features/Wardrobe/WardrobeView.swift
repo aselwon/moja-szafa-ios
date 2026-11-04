@@ -168,6 +168,15 @@ private struct GarmentDetailView: View {
                     if let price = detail.garment.priceGrosz {
                         LabeledContent("garment.price", value: (Decimal(price) / 100).formatted(.currency(code: "PLN")))
                     } else { Text("wardrobe.noPrice") }
+                    LabeledContent {
+                        if let grosz = detail.costPerWear.roundedGrosz {
+                            Text((Decimal(grosz) / 100).formatted(.currency(code: "PLN")))
+                        } else if detail.costPerWear.priceGrosz == nil {
+                            Text("wardrobe.noPrice")
+                        } else {
+                            Text("cpw.neverWorn")
+                        }
+                    } label: { Text("cpw.lifetime") }
                     ForEach(detail.garment.colors, id: \.self) { Text(LocalizedStringKey("garment.color." + $0)) }
                     ForEach(detail.garment.seasons, id: \.self) { Text(LocalizedStringKey("garment.season." + $0)) }
                 }

@@ -55,6 +55,32 @@ struct GarmentDetail: Decodable, Sendable {
     var cached = false
 }
 
+/// Exact lifetime ratio. Store the numerator and denominator; round only when
+/// rendering currency. No model-generated values or binary floating point.
+struct CostPerWear: Equatable, Sendable {
+    let priceGrosz: Int64?
+    let wearDays: Int
+
+    init(priceGrosz: Int64?, wornOn: [String]) {
+        self.priceGrosz = priceGrosz.flatMap { $0 >= 0 ? $0 : nil }
+        self.wearDays = Set(wornOn).count
+    }
+
+    var roundedGrosz: Int64? {
+        guard let priceGrosz, wearDays > 0 else { return nil }
+        let days = Int64(wearDays)
+        let whole = priceGrosz / days
+        let remainder = priceGrosz % days
+        // Half-up without doubling a remainder or adding to the numerator:
+        // both could overflow for valid large prices.
+        return whole + (remainder >= days / 2 + days % 2 ? 1 : 0)
+    }
+}
+
+extension GarmentDetail {
+    var costPerWear: CostPerWear { CostPerWear(priceGrosz: garment.priceGrosz, wornOn: wornOn) }
+}
+
 protocol WardrobeRepository: Sendable {
     func deleteGarment(id: UUID) async throws
     func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail
