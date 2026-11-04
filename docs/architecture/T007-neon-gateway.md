@@ -155,3 +155,22 @@ Official API sources checked on 2026-11-04:
 
 The provisioned branch's read-only `/open-api/generate-schema` was inspected for
 the actual send-OTP, sign-in, get-session and sign-out request/response shapes.
+
+## Isolated feature deployment evidence
+
+On 2026-11-04, bootstrap and migrations 001–013 were applied transactionally to
+Neon feature branch `br-autumn-thunder-b95q6xfp`, then bootstrap was reapplied.
+No managed identity fixtures, email challenges or app profiles were created.
+Metadata verified gateway session binding permission, denial of direct managed
+session reads, and denial of identity-erasure approval. Staging was untouched.
+
+`backend/deploy/moja-szafa-gateway-feature.service` installs a separate loopback
+service on port 18081 using a dynamic OS identity, private state directory,
+resource limits and a read-only application installation. Install the source at
+`/opt/moja-szafa-gateway-feature`, dependencies with `npm ci --prefix
+backend/gateway --ignore-scripts`, and image requirements in its `.venv`.
+Root-only `/etc/moja-szafa/gateway-feature.env` supplies the variables above,
+feature-specific Auth URL and a dedicated `szafa_gateway_feature` database LOGIN
+that has only `szafa_gateway` membership. Its credentials and signing key are
+provisioned outside Git. The unit does not expose a public port or enable a
+reverse proxy. Resolve feature Auth defaults before allowing real sign-in.
