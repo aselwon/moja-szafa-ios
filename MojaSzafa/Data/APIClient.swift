@@ -346,9 +346,9 @@ extension APIClient {
         try await wardrobeImage(imageID: imageID, original: false)
     }
 
-    func wardrobeImage(imageID: UUID, original: Bool) async throws -> Data {
+    func wardrobeImage(imageID: UUID, original: Bool, purchase: Bool = false) async throws -> Data {
         let variant = original ? "original" : "thumbnail"
-        let path = "/v1/images/\(imageID.uuidString.lowercased())/\(variant)"
+        let path = "/v1/\(purchase ? "purchase-images" : "images")/\(imageID.uuidString.lowercased())/\(variant)"
         let token = try await accessToken()
         guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
         func request(_ url: URL, method: String) -> URLRequest {
@@ -373,5 +373,36 @@ extension APIClient {
         else { throw APIClientError.invalidResponse }
         try Task.checkCancellation()
         return bytes
+    }
+}
+
+extension APIClient {
+    func candidatePhoto(imageID: UUID) async throws -> Data {
+        try await wardrobeImage(imageID: imageID, original: false, purchase: true)
+    }
+    func uploadCandidatePhoto(candidateID: UUID, imageID: UUID, data: Data) async throws {
+        guard !data.isEmpty, data.count <= 12 * 1_048_576 else { throw APIClientError.invalidRequest }
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
+        let origin = URL(string: "https://\(baseURL.host!)\(baseURL.port.map { ":\($0)" } ?? "")")!
+        func send(_ url: URL, method: String, body: Data, type: String) async throws -> Data {
+            try Task.checkCancellation()
+            var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
+            request.httpMethod = method; request.httpBody = body; request.timeoutInterval = 30
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue(type, forHTTPHeaderField: "Content-Type")
+            let (result, response) = try await transport.send(request)
+            if response.statusCode == 401 { await unauthorized(token) }
+            guard response.statusCode == 200 else { throw APIClientError.http(status: response.statusCode, requestID: nil) }
+            try Task.checkCancellation(); return result
+        }
+        let body = try JSONEncoder().encode(["candidate_id":candidateID.uuidString.lowercased(), "operation_id":imageID.uuidString.lowercased()])
+        let prepared = try await send(origin.appendingPathComponent("/v1/purchase-images/uploads"), method: "POST", body: body, type: "application/json")
+        struct Upload: Decodable { let image_id: UUID; let upload_url: String }
+        let upload = try JSONDecoder().decode(Upload.self, from: prepared)
+        guard upload.image_id == imageID, let components = URLComponents(string: upload.upload_url), components.scheme == nil, components.host == nil,
+              components.path == "/v1/purchase-images/uploads/\(imageID.uuidString.lowercased())", components.fragment == nil,
+              let url = URL(string: upload.upload_url, relativeTo: origin)?.absoluteURL else { throw APIClientError.invalidResponse }
+        _ = try await send(url, method: "PUT", body: data, type: "image/jpeg")
     }
 }

@@ -78,16 +78,17 @@ export class DataExports {
         await append(Buffer.alloc((512 - bytes.length % 512) % 512));
       };
       const snapshot = structuredClone(row.snapshot);
-      const images = snapshot.garment_images;
+      const images = [...snapshot.garment_images.map(image => ({ image, folder: 'photos' })),
+        ...(snapshot.purchase_images ?? []).map(image => ({ image, folder: 'purchase-photos' }))];
       const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/heic': 'heic', 'image/webp': 'webp' };
-      for (const image of images) {
+      for (const { image, folder } of images) {
         if (!uuid(image.id) || !extensions[image.content_type]) denied();
         const key = image.object_key;
         await this.command('image', owner, id, { image: image.id, key });
         const bytes = await this.storage.get(key);
         await this.check(owner, id);
         await this.command('image', owner, id, { image: image.id, key });
-        image.archive_path = `photos/${image.id}.${extensions[image.content_type]}`;
+        image.archive_path = `${folder}/${image.id}.${extensions[image.content_type]}`;
         delete image.object_key;
         await entry(image.archive_path, bytes);
       }

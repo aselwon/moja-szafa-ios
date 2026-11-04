@@ -18,7 +18,7 @@ async function body(request, limit) {
 // Mount behind TLS with header/body timeouts and per-account/concurrency limits.
 // authenticate must verify issuer, audience, signature, expiry and session state.
 // It receives only the Authorization header, never an owner supplied in JSON.
-export function imageHandler(pipeline, authenticate) {
+export function imageHandler(pipeline, authenticate, { prefix = '/v1/images', parentField = 'garment_id' } = {}) {
   if (typeof authenticate !== 'function') throw new Error('verified_authenticator_required');
   return async (request, response) => {
     const requestID = randomUUID();
@@ -30,11 +30,13 @@ export function imageHandler(pipeline, authenticate) {
       const identity = await authenticate(request.headers.authorization);
       if (!identity) throw new Error('image_access_denied');
       const url = new URL(request.url, 'https://private.invalid');
+      if (!url.pathname.startsWith(prefix + '/')) return json(404, { code: 'not_found' });
+      url.pathname = '/v1/images/' + url.pathname.slice(prefix.length + 1);
       if (request.method === 'POST' && url.pathname === '/v1/images/uploads') {
         const input = JSON.parse((await body(request, 4096)).toString('utf8'));
-        const prepared = await pipeline.prepare(identity, input.garment_id, input.operation_id);
+        const prepared = await pipeline.prepare(identity, input[parentField], input.operation_id);
         const { upload_token, ...metadata } = prepared;
-        return json(200, { ...metadata, upload_url: `/v1/images/uploads/${prepared.image_id}?token=${upload_token}` });
+        return json(200, { ...metadata, upload_url: `${prefix}/uploads/${prepared.image_id}?token=${upload_token}` });
       }
       const upload = /^\/v1\/images\/uploads\/([a-f0-9-]{36})$/.exec(url.pathname);
       if (request.method === 'PUT' && upload) {
@@ -45,7 +47,7 @@ export function imageHandler(pipeline, authenticate) {
       const image = /^\/v1\/images\/([a-f0-9-]{36})\/(original|thumbnail)(\/url)?$/.exec(url.pathname);
       if (image && request.method === 'POST' && image[3]) {
         const token = await pipeline.downloadToken(identity, image[1], image[2]);
-        return json(200, { url: `/v1/images/${image[1]}/${image[2]}?token=${token}`, expires_in: 60 });
+        return json(200, { url: `${prefix}/${image[1]}/${image[2]}?token=${token}`, expires_in: 60 });
       }
       if (image && request.method === 'GET' && !image[3]) {
         const token = url.searchParams.get('token');

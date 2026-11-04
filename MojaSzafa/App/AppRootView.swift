@@ -8,7 +8,10 @@ struct AppRootView: View {
         TabView {
             NavigationStack { TodayView(dependencies: dependencies) }
                 .tabItem { Label("tab.today", systemImage: "sun.max") }
-            NavigationStack { WardrobeView(repository: dependencies.wardrobe, accountID: accountID) }
+            NavigationStack {
+                WardrobeView(repository: dependencies.wardrobe, accountID: accountID)
+                    .toolbar { NavigationLink("purchase.title") { PurchasePreviewView(dependencies: dependencies, accountID: accountID) } }
+            }
                 .tabItem { Label("tab.wardrobe", systemImage: "tshirt") }
             NavigationStack { OutfitsView(repository: dependencies.outfits, wardrobe: dependencies.wardrobe) }
                 .tabItem { Label("tab.outfits", systemImage: "square.stack") }

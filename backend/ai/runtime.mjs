@@ -1,3 +1,4 @@
+import { validatePurchaseFit } from '../purchases/candidate.mjs';
 import { execFile } from 'node:child_process';
 import { isAbsolute } from 'node:path';
 import { privateFiles } from '../images/pipeline.mjs';
@@ -35,7 +36,7 @@ export function createRuntime({query=runtimeQuery,storage,validateOutfits}) {
         if(!Buffer.isBuffer(bytes)||!bytes.length||bytes.length>3*1024*1024)fail();
         return {mimeType:'image/jpeg',base64:bytes.toString('base64')};
       }
-      if(job.kind!=='outfit_generation')fail();
+      if(!['outfit_generation','purchase_fit'].includes(job.kind))fail();
       return input;
     },
     async authorizeRecipient(job,recipient) {
@@ -46,7 +47,11 @@ export function createRuntime({query=runtimeQuery,storage,validateOutfits}) {
     async validateResult(job,result,input) {
       identity(job);
       if(job.kind==='image_analysis')return validateRecognition(result);
-      if(job.kind!=='outfit_generation'||typeof validateOutfits!=='function')fail();
+      if(!['outfit_generation','purchase_fit'].includes(job.kind)||typeof validateOutfits!=='function')fail();
+      if(job.kind==='purchase_fit') {
+        const raw={outfits:result.outfits.map(({garment_ids,rationale})=>({garment_ids,rationale})),shortfall_reason:result.shortfall_reason};
+        return validatePurchaseFit(raw,input);
+      }
       return validateOutfits(result,input);
     },
     async recordTelemetry(record) {
