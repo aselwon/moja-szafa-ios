@@ -11,6 +11,21 @@
   },
   "tasks": [
     {
+      "id": "FIXMAIN-0779094",
+      "title": "Napraw czerwony main (0779094)",
+      "description": "CI na main @ 0779094 jest czerwone: CI: cancelled. Odtwórz błąd lokalnie (`node scripts/harness-check.mjs` oraz kroki z .github/workflows) i napraw go minimalną zmianą: formatowanie (np. prettier --write na zmienionych plikach), autofix lintu, zepsuty test lub konfiguracja CI. Nie zmieniaj funkcjonalności i nie usuwaj testów.",
+      "acceptance": [
+        "CI na main jest zielone (wszystkie joby, które padły: CI: cancelled).",
+        "`node scripts/harness-check.mjs` przechodzi lokalnie.",
+        "Bez zmian funkcjonalności i bez usuwania testów."
+      ],
+      "status": "todo",
+      "priority": "high",
+      "tier": "worker",
+      "harnessFixMain": true,
+      "dependsOn": []
+    },
+    {
       "id": "FIXMAIN-0a437e3",
       "title": "Napraw czerwony main (0a437e3)",
       "description": "CI na main @ 0a437e3 jest czerwone: CI: failure. Odtwórz błąd lokalnie (`node scripts/harness-check.mjs` oraz kroki z .github/workflows) i napraw go minimalną zmianą: formatowanie (np. prettier --write na zmienionych plikach), autofix lintu, zepsuty test lub konfiguracja CI. Nie zmieniaj funkcjonalności i nie usuwaj testów.",
@@ -759,7 +774,7 @@
         "T027"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "done",
       "epicId": "E05",
       "priority": 2,
       "milestone": "App Store 1.0",
