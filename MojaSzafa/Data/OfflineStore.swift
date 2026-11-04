@@ -113,12 +113,20 @@ struct SaveWear: Codable, Sendable {
     let wear: SyncWear
 }
 
+struct WearVisibility: Codable, Sendable {
+    let operationID: UUID
+    let id: UUID
+    let baseVersion: Int64
+    let action: String
+}
+
 struct DeleteGarment: Codable, Sendable {
     let operationID: UUID
     let garmentID: UUID
 }
 
 protocol OfflineRemote: Sendable {
+    func visibility(_ operation: WearVisibility) async throws -> SyncWear
     func delete(_ operation: DeleteGarment) async throws
     func snapshot() async throws -> SyncSnapshot
     func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO
@@ -127,11 +135,18 @@ protocol OfflineRemote: Sendable {
 }
 
 extension OfflineRemote {
+    func visibility(_ operation: WearVisibility) async throws -> SyncWear { throw RepositoryError.backendNotConfigured }
     func delete(_ operation: DeleteGarment) async throws { throw RepositoryError.backendNotConfigured }
     func image(id: UUID, original: Bool) async throws -> Data { throw RepositoryError.backendNotConfigured }
 }
 
 extension APIClient: OfflineRemote {
+    func visibility(_ operation: WearVisibility) async throws -> SyncWear {
+        let result: APIv1.Success<SyncWear> = try await call("api_v1_wear_visibility", operation)
+        guard result.data.id == operation.id, result.data.version > operation.baseVersion,
+              result.data.deleted == (operation.action == "remove") else { throw APIClientError.invalidResponse }
+        return result.data
+    }
     func delete(_ operation: DeleteGarment) async throws {
         let result: APIv1.Success<Bool> = try await call("api_v1_delete_garment", operation)
         guard result.data else { throw APIClientError.invalidResponse }
@@ -164,6 +179,7 @@ actor OfflineStore: WardrobeRepository {
         let garment: APIv1.SaveGarment?
         let wear: SaveWear?
         var deletion: DeleteGarment? = nil
+        var visibility: WearVisibility? = nil
         var sent = false
         var attempts = 0
         var retryAfter = Date.distantPast
@@ -176,6 +192,7 @@ actor OfflineStore: WardrobeRepository {
         var garments: [SyncGarment] = []
         var wears: [SyncWear] = []
         var outbox: [Pending] = []
+        var lastRemovedWearID: UUID? = nil
     }
     private let database: OfflineDatabase
     private let remote: any OfflineRemote
@@ -334,7 +351,54 @@ actor OfflineStore: WardrobeRepository {
         try saveWear(wear)
     }
 
+    /// Preserve an exact operation in the same durable outbox as normal edits.
+    func setWearRemoved(id: UUID, version: Int64, removed: Bool) throws {
+        try requireActive()
+        guard let old = state.wears.first(where: { $0.id == id }), old.version == version,
+              old.deleted != removed else { throw OfflineError.conflict }
+        var next = state
+        if let pending = state.outbox.first(where: { $0.visibility?.id == id }) {
+            // An unsent removal can be undone entirely offline. Once sent, its
+            // outcome is ambiguous until the identical operation is replayed.
+            guard !pending.sent, pending.failure == nil else { throw OfflineError.pendingChange }
+            next.outbox.removeAll { $0.id == pending.id }
+            next.wears.removeAll { $0.id == id }
+            next.wears.append(SyncWear(id: id, version: version, deleted: removed,
+                wornOn: old.wornOn, timezone: old.timezone, garmentIDs: old.garmentIDs))
+            next.lastRemovedWearID = removed ? id : nil
+            try commit(next)
+            return
+        }
+        guard !state.outbox.contains(where: { $0.wear?.wear.id == id }) else { throw OfflineError.pendingChange }
+        if version == 0 {
+            // A local-only event normally has a creation intent, checked above.
+            throw OfflineError.pendingChange
+        }
+        let operation = WearVisibility(operationID: UUID(), id: id, baseVersion: version, action: removed ? "remove" : "restore")
+        next.outbox.append(Pending(id: operation.operationID, garment: nil, wear: nil, visibility: operation))
+        next.wears.removeAll { $0.id == id }
+        next.wears.append(SyncWear(id: id, version: version, deleted: removed, wornOn: old.wornOn, timezone: old.timezone, garmentIDs: old.garmentIDs))
+        next.lastRemovedWearID = removed ? id : nil
+        try commit(next)
+    }
+
+    func discardVisibilityConflict(id: UUID) async throws {
+        try requireActive()
+        guard !syncing, let pending = state.outbox.first(where: { $0.visibility?.id == id }), pending.failure != nil else { throw OfflineError.pendingChange }
+        syncing = true
+        defer { syncing = false }
+        let snapshot = try await remote.snapshot()
+        try requireActive()
+        guard snapshot.accountID == state.accountID else { throw OfflineError.accountMismatch }
+        var next = state
+        next.outbox.removeAll { $0.id == pending.id }
+        next.lastRemovedWearID = nil
+        try commit(next)
+        try merge(snapshot)
+    }
+
     private func saveWear(_ wear: SyncWear) throws {
+        guard !state.outbox.contains(where: { $0.visibility?.id == wear.id }) else { throw OfflineError.pendingChange }
         try wear.validate()
         guard wear.garmentIDs.allSatisfy({ id in state.garments.contains { $0.id == id && !$0.deleted } }) else {
             throw APIClientError.invalidRequest
@@ -447,7 +511,16 @@ actor OfflineStore: WardrobeRepository {
                 if let index = started.outbox.firstIndex(where: { $0.id == id }) { started.outbox[index].sent = true }
                 try commit(started)
                 do {
-                    if let operation = pending.deletion {
+                    if let operation = pending.visibility {
+                        let wear = try await remote.visibility(operation)
+                        try requireActive()
+                        var next = state
+                        next.wears.removeAll { $0.id == wear.id }
+                        next.wears.append(wear)
+                        next.outbox.removeAll { $0.id == id }
+                        scrubDeletedMembership(&next)
+                        try commit(next)
+                    } else if let operation = pending.deletion {
                         try await remote.delete(operation)
                         try requireActive()
                         var next = state
@@ -516,6 +589,11 @@ actor OfflineStore: WardrobeRepository {
         }
         for wear in snapshot.wears {
             guard wear.version > 0 else { throw APIClientError.invalidResponse }
+            if next.outbox.contains(where: { $0.visibility?.id == wear.id }) {
+                // A successful-but-unacknowledged operation must replay even if
+                // the snapshot already includes its tombstone or restoration.
+                continue
+            }
             if let pending = next.outbox.firstIndex(where: { $0.wear?.wear.id == wear.id }) {
                 if wear.deleted {
                     next.outbox[pending].failure = "version_conflict"
