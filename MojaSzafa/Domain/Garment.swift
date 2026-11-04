@@ -56,6 +56,7 @@ struct GarmentDetail: Decodable, Sendable {
 }
 
 protocol WardrobeRepository: Sendable {
+    func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail
     func garments() async throws -> [Garment]
     func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage
     func detail(id: UUID) async throws -> GarmentDetail
@@ -64,6 +65,9 @@ protocol WardrobeRepository: Sendable {
 }
 
 extension WardrobeRepository {
+    func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
+        throw RepositoryError.backendNotConfigured
+    }
     func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage {
         query.page(try await garments(), offset: offset, limit: limit, cached: false)
     }

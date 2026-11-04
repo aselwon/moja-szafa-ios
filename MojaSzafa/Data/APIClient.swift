@@ -12,9 +12,10 @@ enum APIv1 {
         let category: Category
         let priceGrosz: Int64?
         let availability: Availability
+        var archived: Bool? = nil
 
         enum CodingKeys: String, CodingKey {
-            case name, category, availability
+            case name, category, availability, archived
             case priceGrosz = "price_grosz"
         }
         func validate() throws {
@@ -28,6 +29,7 @@ enum APIv1 {
             try c.encode(category, forKey: .category)
             try c.encode(priceGrosz, forKey: .priceGrosz)
             try c.encode(availability, forKey: .availability)
+            try c.encodeIfPresent(archived, forKey: .archived)
         }
     }
     struct GarmentDTO: Decodable, Sendable, Equatable {
@@ -37,8 +39,9 @@ enum APIv1 {
         let category: Category
         let priceGrosz: Int64?
         let availability: Availability
+        var archived: Bool? = nil
         enum CodingKeys: String, CodingKey {
-            case id, version, name, category, availability
+            case id, version, name, category, availability, archived
             case priceGrosz = "price_grosz"
         }
         func validate() throws {

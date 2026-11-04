@@ -64,6 +64,47 @@ RESET ROLE;
 UPDATE app.wear_events SET deleted_at = now() WHERE id = '30000000-0000-0000-0000-000000000001';
 SET LOCAL ROLE authenticated;
 SELECT pg_temp.assert_true(app.api_v1_garment_detail('{"id":"10000000-0000-0000-0000-000000000001"}')->'data'->'wornOn' = '["2026-01-01"]', 'undo one event preserves second event');
+-- Status updates use the same version/idempotency boundary as other edits.
+DO $$ DECLARE
+    gid uuid := '10000000-0000-0000-0000-000000000001';
+    version_value bigint;
+    request jsonb;
+    result jsonb;
+    before_detail jsonb;
+    status text;
+BEGIN
+    before_detail := app.api_v1_garment_detail(jsonb_build_object('id',gid))->'data';
+    FOREACH status IN ARRAY ARRAY['available','laundry','unavailable'] LOOP
+        SELECT version INTO version_value FROM app.garments WHERE id = gid;
+        request := jsonb_build_object('operation_id',gen_random_uuid(),'garment_id',gid,'base_version',version_value,
+            'garment',jsonb_build_object('name','Item 0001','category','top','price_grosz',1,'availability',status,'archived',true));
+        result := app.api_v1_save_garment(request);
+        PERFORM pg_temp.assert_true(result->'data'->>'availability' = status AND result->'data'->>'archived' = 'true','status and archive independent');
+        PERFORM pg_temp.assert_true(app.api_v1_save_garment(request) = result,'status replay is idempotent');
+        PERFORM pg_temp.assert_true(app.api_v1_save_garment(jsonb_set(request,'{operation_id}',to_jsonb(gen_random_uuid())))->'error'->>'code' = 'version_conflict','stale device cannot overwrite status');
+        PERFORM pg_temp.assert_true(app.api_v1_garment_detail(jsonb_build_object('id',gid))->'data'->'wornOn' = before_detail->'wornOn','history unchanged');
+        PERFORM pg_temp.assert_true(app.api_v1_garment_detail(jsonb_build_object('id',gid))->'data'->'garment'->'priceGrosz' = before_detail->'garment'->'priceGrosz','CPW price unchanged');
+        PERFORM pg_temp.assert_true(EXISTS (SELECT FROM jsonb_array_elements(app.api_v1_sync_snapshot('{}')->'data'->'garments') g
+            WHERE g->>'id' = gid::text AND g->'fields'->>'archived' = 'true' AND g->'fields'->>'availability' = status),'second-device snapshot includes both states');
+    END LOOP;
+    SELECT version INTO version_value FROM app.garments WHERE id = gid;
+    request := jsonb_set(request,'{base_version}',to_jsonb(version_value));
+    request := jsonb_set(request,'{operation_id}',to_jsonb(gen_random_uuid()));
+    request := request #- '{garment,archived}';
+    PERFORM pg_temp.assert_true(app.api_v1_save_garment(request)->'data'->>'archived' = 'true','legacy writes preserve archive');
+    SELECT version INTO version_value FROM app.garments WHERE id = gid;
+    request := jsonb_set(request,'{base_version}',to_jsonb(version_value));
+    request := jsonb_set(request,'{operation_id}',to_jsonb(gen_random_uuid()));
+    request := jsonb_set(request,'{garment,archived}','false');
+    result := app.api_v1_save_garment(request);
+    PERFORM pg_temp.assert_true(result->'data'->>'archived' = 'false' AND result->'data'->>'availability' = 'unavailable','unarchive preserves availability');
+    request := jsonb_set(request,'{operation_id}',to_jsonb(gen_random_uuid()));
+    request := jsonb_set(request,'{garment,archived}','null');
+    PERFORM pg_temp.assert_true(app.api_v1_save_garment(request)->'error'->>'code' = 'validation_failed','null archive rejected');
+    request := jsonb_set(request,'{garment,archived}','true');
+    request := jsonb_set(request,'{garment_id}','"20000000-0000-0000-0000-000000000001"');
+    PERFORM pg_temp.assert_true(app.api_v1_save_garment(request)->'error'->>'code' = 'version_conflict','foreign garment inaccessible');
+END $$;
 RESET ROLE;
 UPDATE app.profiles SET deleted_at = now() WHERE user_id = '00000000-0000-0000-0000-000000000091';
 SET LOCAL ROLE authenticated;
