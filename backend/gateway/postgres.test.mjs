@@ -16,7 +16,8 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   await admin.query(`CREATE DATABASE ${database}`);
   const ownerPool = new Pool({ database, max: 2 });
   const runtimeRole = `${database}_login`;
-  const runtime = new Pool({ database, max: 3, user: runtimeRole, password: 'gateway-test-only' });
+  const runtimePassword = randomUUID();
+  const runtime = new Pool({ database, max: 3, user: runtimeRole, password: runtimePassword });
   t.after(async () => {
     await runtime.end(); await ownerPool.end();
     await admin.query(`DROP DATABASE ${database}`);
@@ -29,7 +30,7 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
       "expiresAt" timestamptz, "impersonatedBy" text);`);
   const bootstrap = await readFile(new URL('../deploy/neon-bootstrap.sql', import.meta.url),'utf8');
   await ownerPool.query(bootstrap);
-  await ownerPool.query(`CREATE ROLE ${runtimeRole} LOGIN NOINHERIT PASSWORD 'gateway-test-only'; GRANT szafa_gateway TO ${runtimeRole};`);
+  await ownerPool.query(`CREATE ROLE ${runtimeRole} LOGIN NOINHERIT PASSWORD '${runtimePassword}'; GRANT szafa_gateway TO ${runtimeRole};`);
   await ownerPool.query(bootstrap); // Reapplication is safe before or after app migrations.
   for (const file of (await readdir(new URL('../migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort()) {
     await ownerPool.query(await readFile(new URL(`../migrations/${file}`,import.meta.url),'utf8'));
