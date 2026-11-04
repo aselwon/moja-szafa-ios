@@ -53,23 +53,22 @@ struct AppDependencies: Sendable {
                                        unauthorized: { token in await model.rejectSession(accessToken: token) }) {
                 try await model.accessToken()
             }
-            var result = AppDependencies(wardrobe: APIWardrobeRepository(client: client), authentication: authentication)
-            if let accountID = model.session?.userID {
-                result.wearStore = try OfflineStore(accountID: accountID,
-                    database: OfflineDatabase(url: URL.applicationSupportDirectory.appendingPathComponent("WearHistory")
-                        .appendingPathComponent(accountID.uuidString).appendingPathExtension("sqlite")), remote: client)
-            }
+            guard let userID = model.session?.userID else { throw AuthError.expired }
+            let database = OfflineDatabase(url: URL.applicationSupportDirectory
+                .appendingPathComponent("Wardrobe").appendingPathComponent(userID.uuidString + ".sqlite"))
+            let store = try OfflineStore(accountID: userID, database: database, remote: client)
+            var result = AppDependencies(wardrobe: store, authentication: authentication)
+            result.wearStore = store
             result.outfits = client
             result.aiConsent = client
             result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
                                                             accessToken: { try await model.accessToken() })
             let accountID = model.session?.userID
-            let wearStore = result.wearStore
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
-                try await wearStore?.invalidateAccount()
+                try await store.invalidateAccount()
                 try ProfileStore.local.remove(accountID: accountID)
                 let drafts = URL.applicationSupportDirectory.appendingPathComponent("PhotoDrafts")
                     .appendingPathComponent(accountID.uuidString)

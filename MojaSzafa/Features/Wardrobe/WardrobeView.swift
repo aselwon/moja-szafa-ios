@@ -4,6 +4,7 @@ struct WardrobeView: View {
     @StateObject private var model: WardrobeModel
     @StateObject private var imports: PhotoImportModel
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.scenePhase) private var scenePhase
 
     init(repository: any WardrobeRepository, accountID: UUID) {
         _imports = StateObject(wrappedValue: PhotoImportModel(directory: URL.applicationSupportDirectory
@@ -65,6 +66,10 @@ struct WardrobeView: View {
             await model.reload()
         }
         .refreshable { await model.reload() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await model.reload() } }
+        }
+        .onAppear { Task { await model.load() } }
     }
 
     private var controls: some View {
@@ -136,6 +141,10 @@ private struct GarmentDetailView: View {
     @State private var failure = false
     @State private var retry = 0
     @State private var showOriginal = false
+    @State private var saving = false
+    @State private var statusMessage: String?
+    @State private var conflict = false
+
 
     var body: some View {
         List {
@@ -156,6 +165,27 @@ private struct GarmentDetailView: View {
                     ForEach(detail.garment.colors, id: \.self) { Text(LocalizedStringKey("garment.color.\($0)")) }
                     ForEach(detail.garment.seasons, id: \.self) { Text(LocalizedStringKey("garment.season.\($0)")) }
                 }
+                Section("wardrobe.availability") {
+                    Picker("wardrobe.availability", selection: Binding(
+                        get: { detail.garment.availability },
+                        set: { update(availability: $0, archived: detail.garment.archived) })) {
+                        ForEach(APIv1.Availability.allCases, id: \.self) {
+                            Text(LocalizedStringKey("wardrobe.\($0.rawValue)")).tag($0)
+                        }
+                    }
+                    Toggle("wardrobe.archived", isOn: Binding(
+                        get: { detail.garment.archived },
+                        set: { update(availability: detail.garment.availability, archived: $0) }))
+                    Text("wardrobe.statusExplanation").font(.caption)
+                    if saving { ProgressView("common.loading") }
+                    if let statusMessage { Text(LocalizedStringKey(statusMessage)) }
+                    if conflict {
+                        Button("wardrobe.useServer") { resolve(keepLocal: false) }
+                        Button("wardrobe.keepLocal") { resolve(keepLocal: true) }
+                    } else if statusMessage != nil {
+                        Button("common.retry") { Task { await synchronizeStatus() } }
+                    }
+                }.disabled(saving)
                 Section("wardrobe.history") {
                     Text("wardrobe.historyExplanation").font(.caption)
                     if detail.wornOn.isEmpty { Text("wardrobe.neverWorn") }
@@ -173,7 +203,46 @@ private struct GarmentDetailView: View {
                 let result = try await repository.detail(id: id)
                 try Task.checkCancellation()
                 detail = result
+                await synchronizeStatus()
             } catch { if !Task.isCancelled { failure = true } }
         }
     }
+    private func update(availability: APIv1.Availability, archived: Bool) {
+        Task {
+            saving = true
+            defer { saving = false }
+            do {
+                detail = try await repository.setStatus(id: id, availability: availability, archived: archived)
+                await synchronizeStatus()
+            } catch { statusMessage = "wardrobe.statusFailed" }
+        }
+    }
+
+    private func synchronizeStatus() async {
+        guard let store = repository as? OfflineStore else { return }
+        do {
+            try await store.synchronize()
+            let state = await store.status()
+            let pending = state.outbox.first { $0.garment?.garmentID == id }
+            conflict = pending?.failure == "version_conflict"
+            statusMessage = conflict ? "wardrobe.statusConflict" : (pending == nil ? nil : "wardrobe.statusPending")
+            detail = try await store.detail(id: id)
+        } catch {
+            conflict = (error as? APIv1.Failure)?.code == "version_conflict"
+            statusMessage = conflict ? "wardrobe.statusConflict" : "wardrobe.statusPending"
+        }
+    }
+
+    private func resolve(keepLocal: Bool) {
+        guard let store = repository as? OfflineStore else { return }
+        Task {
+            saving = true
+            defer { saving = false }
+            do {
+                try await store.resolveGarment(id: id, keepLocal: keepLocal)
+                await synchronizeStatus()
+            } catch { statusMessage = "wardrobe.statusFailed" }
+        }
+    }
+
 }

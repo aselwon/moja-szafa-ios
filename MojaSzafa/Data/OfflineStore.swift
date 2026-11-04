@@ -76,7 +76,7 @@ struct SyncGarment: Codable, Sendable {
                 availability: fields.availability, priceGrosz: fields.priceGrosz,
                 imageID: metadata?.imageID, brand: metadata?.brand,
                 colors: metadata?.colors ?? [], seasons: metadata?.seasons ?? [],
-                archived: metadata?.archived ?? false)
+                archived: fields.archived ?? metadata?.archived ?? false)
     }
 }
 
@@ -193,7 +193,7 @@ actor OfflineStore: WardrobeRepository {
             // Sync failures remain inspectable in status; local data stays readable.
         }
         try requireActive()
-        return state.garments.filter { !$0.deleted }.map { Garment(id: $0.id, name: $0.fields.name) }
+        return state.garments.filter { !$0.deleted }.map(\.display)
     }
 
     /// Refresh the durable metadata snapshot on the first page only. Subsequent
@@ -231,6 +231,15 @@ actor OfflineStore: WardrobeRepository {
         let data = try await remote.image(id: id, original: original)
         try requireActive()
         return data
+    }
+
+    func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
+        try requireActive()
+        guard let item = state.garments.first(where: { $0.id == id && !$0.deleted }) else { throw OfflineError.invalidState }
+        try saveGarment(id: id, fields: APIv1.GarmentFields(name: item.fields.name,
+            category: item.fields.category, priceGrosz: item.fields.priceGrosz,
+            availability: availability, archived: archived))
+        return try await detail(id: id)
     }
 
     @discardableResult
@@ -392,7 +401,7 @@ actor OfflineStore: WardrobeRepository {
                         var next = state
                         next.garments.removeAll { $0.id == dto.id }
                         next.garments.append(SyncGarment(id: dto.id, version: dto.version, deleted: false,
-                            fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability),
+                            fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability, archived: dto.archived ?? operation.garment.archived),
                             metadata: state.garments.first { $0.id == dto.id }?.metadata))
                         next.outbox.removeAll { $0.id == id }
                         try commit(next)
