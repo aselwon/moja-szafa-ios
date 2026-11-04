@@ -51,6 +51,62 @@ final class OfflineStoreTests: XCTestCase {
         XCTAssertEqual(days, 1)
     }
 
+    func testInitialHistoryOfflineReplayAndOverlapConfirmation() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let id = try await store.saveGarment(fields: fields)
+        try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [id])
+        try await store.recordWear(wornOn: "2026-01-02", timezone: "Europe/Warsaw", garmentIDs: [id])
+        try await store.synchronize()
+        let history = InitialWearHistory(count: 9, startDate: "2026-01-02")
+        do { _ = try await store.setInitialHistory(id: id, history: history, confirmOverlap: false); XCTFail("Unconfirmed overlap") }
+        catch { XCTAssertEqual(error as? APIClientError, .invalidRequest) }
+        _ = try await store.setInitialHistory(id: id, history: history, confirmOverlap: true)
+        let restarted = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let local = try await restarted.detail(id: id)
+        XCTAssertEqual(local.costPerWear.wearDays, 10)
+        XCTAssertTrue(local.costPerWear.isEstimated)
+        XCTAssertEqual(local.wornOn.count, 2)
+        await remote.timeoutNextWrite()
+        do { try await restarted.synchronize(); XCTFail("Expected lost response") } catch is URLError {}
+        do { _ = try await restarted.setInitialHistory(id: id, history: nil, confirmOverlap: false); XCTFail("Sent intent is immutable") }
+        catch { XCTAssertEqual(error as? OfflineError, .pendingChange) }
+        let replay = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        try await replay.synchronize(now: .distantFuture)
+        let requests = await remote.initialRequests
+        XCTAssertEqual(requests.count, 2)
+        XCTAssertEqual(requests[0], requests[1])
+        _ = try await replay.setInitialHistory(id: id, history: nil, confirmOverlap: false)
+        try await replay.synchronize(now: .distantFuture)
+        let cleared = try await replay.detail(id: id)
+        XCTAssertEqual(cleared.costPerWear.wearDays, 2)
+        XCTAssertFalse(cleared.costPerWear.isEstimated)
+        XCTAssertEqual(cleared.wornOn, local.wornOn)
+        let clearData = await remote.initialRequests.last!
+        let encoded = try XCTUnwrap(JSONSerialization.jsonObject(with: clearData) as? [String: Any])
+        XCTAssertTrue(encoded["history"] is NSNull)
+    }
+
+    func testInitialHistoryConflictCanDiscardWithoutChangingDiary() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let id = try await store.saveGarment(fields: fields)
+        try await store.synchronize()
+        _ = try await store.setInitialHistory(id: id, history: InitialWearHistory(count: 5, startDate: "2026-01-01"), confirmOverlap: false)
+        await remote.change(id: id, deleted: false)
+        do { try await store.synchronize(); XCTFail("Stale estimate must conflict") } catch let error as APIv1.Failure { XCTAssertEqual(error.code, "version_conflict") }
+        try await store.discardInitialHistoryConflict(id: id)
+        let detail = try await store.detail(id: id)
+        XCTAssertNil(detail.garment.initialWearHistory)
+        XCTAssertTrue(detail.wornOn.isEmpty)
+        let status = await store.status()
+        XCTAssertTrue(status.outbox.isEmpty)
+    }
+
     func testPermanentDeletionSurvivesRestartAndStaleSnapshot() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
@@ -466,6 +522,8 @@ private actor SyncTestRemote: OfflineRemote {
     private var timeout = false
     private var wearReplay: [UUID: SyncWear] = [:]
     private(set) var wearRequests: [Data] = []
+    private(set) var initialRequests: [Data] = []
+    private var initialReplay: [UUID: SyncGarment] = [:]
     private(set) var visibilityRequests: [Data] = []
     private var wearTimeout = false
     private var deleted = false
@@ -512,6 +570,22 @@ private actor SyncTestRemote: OfflineRemote {
         wearReplay[operation.operationID] = result
         if wearTimeout { wearTimeout = false; throw URLError(.timedOut) }
         return result
+    }
+    func initialHistory(_ operation: SaveInitialHistory) throws -> SyncGarment {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        initialRequests.append(try encoder.encode(operation))
+        if let saved = initialReplay[operation.operationID] { return saved }
+        guard let old = garments.first(where: { $0.id == operation.id }), !old.deleted,
+              old.version == operation.baseVersion else { throw failure("version_conflict") }
+        var metadata = old.display
+        metadata.initialWearHistory = operation.history
+        let saved = SyncGarment(id: old.id, version: old.version + 1, deleted: false, fields: old.fields, metadata: metadata)
+        garments.removeAll { $0.id == old.id }
+        garments.append(saved)
+        initialReplay[operation.operationID] = saved
+        if timeout { timeout = false; throw URLError(.timedOut) }
+        return saved
     }
     func changeWear(id: UUID, deleted: Bool) {
         let old = wears.first { $0.id == id }!

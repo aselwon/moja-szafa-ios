@@ -451,6 +451,32 @@
           },
           "archived": {
             "type": "boolean"
+          },
+          "initialWearHistory": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "count",
+                  "startDate"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            ]
           }
         },
         "required": [
