@@ -1,5 +1,7 @@
 import { validateRecognition, recognitionDraft } from './recognition.mjs';
+import { validateOutfits } from './outfits.mjs';
 import { AIError } from './provider.mjs';
+import { selectCandidates, eligibleGarments } from './candidates.mjs';
 
 // Trusted server composition only, never take these hooks or provider config from a job.
 // resolveInput checks current ownership/availability and loads normalized private bytes.
@@ -15,17 +17,30 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
     if (!['image_analysis', 'outfit_generation'].includes(job.kind)) return { outcome: 'permanent' };
     let telemetry;
     let output;
+    let providerCall = 1;
     try {
       let input = await resolveInput(job);
-      if (job.kind === 'outfit_generation') input = eligibleInput(input);
+      if (job.kind === 'outfit_generation') input = selectCandidates(input, job.user_id);
       if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
-      const response = await (job.kind === 'image_analysis' ? provider.analyzeImage(input) : provider.recommendOutfits(input));
+      let response;
+      try {
+        response = await (job.kind === 'image_analysis' ? provider.analyzeImage(input) : provider.recommendOutfits(input));
+      } catch (error) {
+        if (job.kind !== 'outfit_generation' || !(error instanceof AIError) || error.message !== 'outfit_json_invalid') throw error;
+        // Account for the first charged response before permitting one JSON repair.
+        await recordTelemetry({ job_id: job.id, attempt: job.attempt, provider_call: providerCall, ...error.telemetry });
+        providerCall = 2;
+        input = selectCandidates(await resolveInput(job), job.user_id);
+        if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
+        response = await provider.recommendOutfits(input, { repairJSON: true });
+      }
       telemetry = response.telemetry;
-      const candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : response.result;
+      let candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : validateOutfits(response.result, input);
       if (job.kind === 'outfit_generation') {
         // Resolve again after the provider await: laundry/archive may have changed.
-        const current = eligibleInput(await resolveInput(job));
+        const current = { garments: eligibleGarments(await resolveInput(job), job.user_id) };
         assertEligibleResult(candidate, input, current);
+        candidate = validateOutfits(response.result, { ...input, garments: current.garments });
       }
       const validated = await validateResult(job, candidate, input);
       const result = job.kind === 'image_analysis' ? recognitionDraft(validated) : validated;
@@ -33,24 +48,17 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
       output = { result, telemetry };
     } catch (error) {
       telemetry ??= error instanceof AIError ? error.telemetry : undefined;
-      if (telemetry) await recordTelemetry({ job_id: job.id, attempt: job.attempt, ...telemetry, status: telemetry.status === 'success' ? 'result_rejected' : telemetry.status });
+      if (telemetry) await recordTelemetry({ job_id: job.id, attempt: job.attempt, provider_call: providerCall, ...telemetry, status: telemetry.status === 'success' ? 'result_rejected' : telemetry.status });
       // No automatic retries: timeouts/transport/5xx may already have incurred a charge.
       return { outcome: 'permanent' };
     }
     // A failed telemetry write must not cause an immediate second provider request.
-    // Production sink must be durable and deduplicate by job_id + attempt.
-    await recordTelemetry({ job_id: job.id, attempt: job.attempt, ...telemetry });
+    // Production sink must be durable and deduplicate by job_id + attempt + provider_call.
+    await recordTelemetry({ job_id: job.id, attempt: job.attempt, provider_call: providerCall, ...telemetry });
     return { outcome: 'success', output };
   };
 }
 
-// Trusted resolver supplies explicit current status; missing status fails closed.
-function eligibleInput(input) {
-  if (!Array.isArray(input?.garments)) throw new AIError('input_invalid');
-  const garments = input.garments.filter(g => g.availability === 'available' && g.archived === false);
-  if (!garments.length) throw new AIError('no_available_garments');
-  return { ...input, garments };
-}
 function assertEligibleResult(result, sent, current) {
   const allowed = new Set(current.garments.map(g => g.id));
   const supplied = new Set(sent.garments.map(g => g.id));
