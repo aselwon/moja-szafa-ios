@@ -17,8 +17,8 @@ These results exercise deterministic code, not model quality or prompt effective
 
 | Prompt | SHA-256 (version and text) | Valid responses | Rejected responses | Failed cases | Presented ID violations | Human usefulness |
 | --- | --- | --- | --- | --- | --- | --- |
-| outfit-generation-v2 | 839fb35f6ecff8efd3d4f515dcbf497e686014b9bc576ea56588866a3b4d9722 | Not run | Not run | Not run | Not measured | Not reviewed |
-| outfit-generation-v3-eval | 2008c73018769c3b07fd13a955f07e42f7ecef6ad3cc3bd10c18d2c5dcaf657c | Not run | Not run | Not run | Not measured | Not reviewed |
+| outfit-generation-v3 | 4f31305f5ff6e7d43cd8bd3410cbac28e4abb5f3c6b2662f0bd78118ad2f3abc | Not run | Not run | Not run | Not measured | Not reviewed |
+| outfit-generation-v3-eval | e8348c43bfe0bf2d28d8507e0fb8e4539363e748d7e4b9a4f4f55b1eaa993daa | Not run | Not run | Not run | Not measured | Not reviewed |
 
 The baseline is the production prompt. The candidate adds explicit preference-conflict and winter-layer guidance; it is not enabled in production. Both use the same dataset and server validation. No improvement is claimed without paired responses. Category accuracy is not measurable with this text-only suite.
 
@@ -28,4 +28,4 @@ No provider calls or human reviews were performed. Model quality, latency, cost 
 
 Run the paired protocol in README.md with an authorized model and budget, review all responses blind, and regenerate this report. Verify zero ownership/nonexistent-ID violations in presented results; inspect rejected responses separately. Recognition requires a separate rights-cleared labeled photo set and the >=90% category gate. No image-classification evidence is claimed here.
 
-Notes are currently removed by production candidate selection. Injection cases verify this boundary; they do not demonstrate model resistance to instructions embedded in photos or future note-enabled prompts. Weather is represented by season metadata, not a live forecast.
+Notes are currently removed by production candidate selection. Injection cases verify this boundary; they do not demonstrate model resistance to instructions embedded in photos or future note-enabled prompts. These synthetic cases represent weather through season metadata; they do not evaluate the optional live-forecast or manual-temperature context.

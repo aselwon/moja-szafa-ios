@@ -5,6 +5,7 @@ import { GatewayStore } from './store.mjs';
 import { loadRPCOperations } from './contracts.mjs';
 import { createGateway } from './server.mjs';
 import { privateFiles } from '../images/pipeline.mjs';
+import { createWeatherProvider } from '../weather/met.mjs';
 
 async function main() {
   const env = process.env;
@@ -27,7 +28,7 @@ async function main() {
   const store = new GatewayStore(pool, operations);
   const server = createGateway({ auth: new ManagedAuth({ baseURL: env.NEON_AUTH_BASE_URL }), store,
     storage: privateFiles(env.PRIVATE_IMAGE_DIRECTORY), signingKey: Buffer.from(env.IMAGE_SIGNING_KEY, 'hex'),
-    exportDirectory: env.EXPORT_DIRECTORY });
+    exportDirectory: env.EXPORT_DIRECTORY, forecast: createWeatherProvider() });
   const port = Number(env.PORT ?? 8080);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('invalid_port');
   server.listen(port, '127.0.0.1', () => process.stdout.write('gateway_ready\n'));

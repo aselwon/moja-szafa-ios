@@ -44,7 +44,7 @@ ${scores ? `Observed valid-response delta (candidate minus baseline): ${scores[1
 
 Run the paired protocol in README.md with an authorized model and budget, review all responses blind, and regenerate this report. Verify zero ownership/nonexistent-ID violations in presented results; inspect rejected responses separately. Recognition requires a separate rights-cleared labeled photo set and the >=90% category gate. No image-classification evidence is claimed here.
 
-Notes are currently removed by production candidate selection. Injection cases verify this boundary; they do not demonstrate model resistance to instructions embedded in photos or future note-enabled prompts. Weather is represented by season metadata, not a live forecast.
+Notes are currently removed by production candidate selection. Injection cases verify this boundary; they do not demonstrate model resistance to instructions embedded in photos or future note-enabled prompts. These synthetic cases represent weather through season metadata; they do not evaluate the optional live-forecast or manual-temperature context.
 `;
 }
 
