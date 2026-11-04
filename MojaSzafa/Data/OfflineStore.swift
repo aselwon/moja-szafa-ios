@@ -302,6 +302,17 @@ actor OfflineStore: WardrobeRepository {
         return data
     }
 
+    func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail {
+        try requireActive()
+        guard let item = state.garments.first(where: { $0.id == id && !$0.deleted }) else { throw OfflineError.invalidState }
+        // Keep the latest availability in the same actor transaction; a stale
+        // review row must not change a newer laundry/unavailable selection.
+        try saveGarment(id: id, fields: APIv1.GarmentFields(name: item.fields.name,
+            category: item.fields.category, priceGrosz: item.fields.priceGrosz,
+            availability: item.fields.availability, archived: archived))
+        return try await detail(id: id)
+    }
+
     func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
         try requireActive()
         guard let item = state.garments.first(where: { $0.id == id && !$0.deleted }) else { throw OfflineError.invalidState }
