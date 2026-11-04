@@ -81,9 +81,10 @@ Local verification: complete fresh/upgrade/replay PostgreSQL 15 suite in a
 disposable container, including four concurrent confirmation connections; owner
 and foreign-image checks; explicit confirmation; image transfer and expiry;
 export projection; text-only purchase dispatch and repair-budget fencing.
-The JavaScript harness and Debug build-for-testing pass. Five Swift regression
+The JavaScript harness and Debug build-for-testing pass. Nine Swift regression
 tests compile (durable create/upload retry, confirmation retry, wire nullability,
-job resume without duplicate admission, corrupt-journal fail-closed behavior).
+job resume without duplicate admission, corrupt-journal fail-closed behavior,
+stale/failed advice removal and competing photo-selection cancellation).
 Runtime simulator execution and live end-to-end provider acceptance remain to be
 performed in the coordinated CI/runtime window. No live database migration,
 provider request, deployment, paid-plan change or planning-status update was made.

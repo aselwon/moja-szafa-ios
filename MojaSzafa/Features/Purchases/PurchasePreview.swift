@@ -137,7 +137,13 @@ final class PurchasePreviewModel: ObservableObject {
         guard !busy else { return }
         guard let repository else { message = "foundation.serviceUnavailable"; return }
         busy = true; defer { busy = false }
-        do { let list = try await repository.candidates(); try Task.checkCancellation(); items = list }
+        do {
+            let list = try await repository.candidates()
+            try Task.checkCancellation()
+            items = list
+            let visible = Set(list.map(\.id))
+            matches = matches.filter { visible.contains($0.key) }
+        }
         catch { fail(error) }
     }
     func create(name: String, price: Int64?, metadata: PurchaseMetadata, photo: Data?) async {
@@ -207,6 +213,7 @@ final class PurchasePreviewModel: ObservableObject {
     }
     func check(_ id: UUID, maxPolls: Int = 60) async {
         guard readable, !busy, let repository else { return }
+        matches[id] = nil
         busy = true; message = nil; defer { busy = false }
         do {
             var next = journal
@@ -254,16 +261,38 @@ final class PurchasePreviewModel: ObservableObject {
     }
 }
 
+@MainActor
+final class PurchasePhotoSelection: ObservableObject {
+    @Published private(set) var data: Data?
+    @Published private(set) var failed = false
+    private var generation = UUID()
+    func select(load: @MainActor () async throws -> Data?,
+                normalize: @MainActor (Data) async throws -> Data = { try await PhotoProcessor().normalize($0) }) async {
+        guard !Task.isCancelled else { return }
+        let token = UUID(); generation = token
+        data = nil; failed = false
+        do {
+            guard let bytes = try await load() else { return }
+            let normalized = try await normalize(bytes)
+            try Task.checkCancellation()
+            guard generation == token else { return }
+            data = normalized
+        } catch {
+            guard !Task.isCancelled, generation == token else { return }
+            data = nil; failed = true
+        }
+    }
+}
+
 struct PurchasePreviewView: View {
     @StateObject private var model: PurchasePreviewModel
     @State private var selection: PhotosPickerItem?
-    @State private var photo: Data?
+    @StateObject private var photos = PurchasePhotoSelection()
     @State private var name = ""
     @State private var price = ""
     @State private var metadata = PurchaseMetadata()
     @State private var confirming: PurchaseCandidate?
     @State private var task: Task<Void, Never>?
-    @State private var photoFailed = false
     let consent: (any AIConsentService)?
     let accountID: UUID
     init(dependencies: AppDependencies, accountID: UUID) {
@@ -295,8 +324,8 @@ struct PurchasePreviewView: View {
                 }
                 Group {
                 PhotosPicker(selection: $selection, matching: .images) { Label("purchase.photo", systemImage: "photo") }
-                if let photo, let image = UIImage(data: photo) { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 160) }
-                if photoFailed { Text("purchase.photoFailed") }
+                if let photo = photos.data, let image = UIImage(data: photo) { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 160) }
+                if photos.failed { Text("purchase.photoFailed") }
                 TextField("garment.name", text: $name)
                 Picker("garment.category", selection: $metadata.category) {
                     ForEach(APIv1.Category.allCases, id: \.self) { Text(LocalizedStringKey("garment.category.\($0.rawValue)")).tag($0) }
@@ -313,8 +342,8 @@ struct PurchasePreviewView: View {
                 }
                 }.disabled(model.journal.draft != nil)
                 Button(model.journal.draft == nil ? "purchase.create" : "common.retry") {
-                    task = Task { await model.create(name: name, price: priceGrosz, metadata: metadata, photo: photo) }
-                }.disabled(model.busy || (model.journal.draft == nil && (photo == nil || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (!price.isEmpty && priceGrosz == nil))))
+                    task = Task { await model.create(name: name, price: priceGrosz, metadata: metadata, photo: photos.data) }
+                }.disabled(model.busy || (model.journal.draft == nil && (photos.data == nil || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (!price.isEmpty && priceGrosz == nil))))
             } header: { Text("purchase.new") }
             .disabled(model.busy)
             if let message = model.message { Text(LocalizedStringKey(message)) }
@@ -343,12 +372,7 @@ struct PurchasePreviewView: View {
         .refreshable { await model.load() }
         .onDisappear { task?.cancel() }
         .task(id: selection) {
-            guard let selection else { return }
-            do {
-                guard let bytes = try await selection.loadTransferable(type: Data.self) else { throw PhotoImportError.invalidImage }
-                let normalized = try await PhotoProcessor().normalize(bytes)
-                try Task.checkCancellation(); photo = normalized; photoFailed = false
-            } catch { if !(error is CancellationError) { photoFailed = true } }
+            await photos.select { try await selection?.loadTransferable(type: Data.self) }
         }
         .confirmationDialog("purchase.confirmQuestion", isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } })) {
             Button("purchase.confirm") { if let id = confirming?.id { task = Task { await model.confirm(id) } }; confirming = nil }
