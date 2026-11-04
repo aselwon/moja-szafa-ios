@@ -1926,19 +1926,19 @@
       }
     },
     "purchase.title": {
-      "comment": "T003: purchase; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T044: temporary purchase preview interface, not user data.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sprawdź zakup"
+            "value": "Przed zakupem"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check a potential purchase"
+            "value": "Before buying"
           }
         }
       }
@@ -1962,19 +1962,19 @@
       }
     },
     "purchase.confirm": {
-      "comment": "T003: purchase; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T044: temporary purchase preview interface, not user data.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kupiłem — dodaj do szafy"
+            "value": "Potwierdź zakup"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Purchased — add to wardrobe"
+            "value": "Confirm purchase"
           }
         }
       }
@@ -7859,6 +7859,510 @@
         }
       },
       "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "purchase.temporary": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To kandydat tymczasowy. Nie należy jeszcze do Twojej szafy. Zdjęcie wygasa po 7 dniach."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a temporary candidate, not an owned garment. Its photo expires after 7 days."
+          }
+        }
+      }
+    },
+    "purchase.metadataOnly": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI porównuje ręcznie podane cechy z Twoją szafą. Nie analizuje tego zdjęcia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI compares the details you enter with your wardrobe. It does not analyze this photo."
+          }
+        }
+      }
+    },
+    "purchase.noForecast": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie prognozujemy przyszłego kosztu noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We do not predict future cost per wear."
+          }
+        }
+      }
+    },
+    "purchase.photo": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose photo"
+          }
+        }
+      }
+    },
+    "purchase.photoFailed": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zdjęcia. Wybierz inne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The photo could not be read. Choose another."
+          }
+        }
+      }
+    },
+    "purchase.price": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena PLN (opcjonalnie)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price PLN (optional)"
+          }
+        }
+      }
+    },
+    "purchase.formality": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formalność 1–5"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formality 1–5"
+          }
+        }
+      }
+    },
+    "purchase.unknown": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wiem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        }
+      }
+    },
+    "purchase.create": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz kandydata"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save candidate"
+          }
+        }
+      }
+    },
+    "purchase.new": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozważana rzecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potential purchase"
+          }
+        }
+      }
+    },
+    "purchase.check": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź dopasowanie AI"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check AI compatibility"
+          }
+        }
+      }
+    },
+    "purchase.manualFallback": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Możesz też samodzielnie porównać rzecz ze swoją szafą."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can also compare this item with your wardrobe yourself."
+          }
+        }
+      }
+    },
+    "purchase.discard": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odrzuć kandydata"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard candidate"
+          }
+        }
+      }
+    },
+    "purchase.confirmQuestion": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czy ta rzecz jest już Twoja?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do you own this item now?"
+          }
+        }
+      }
+    },
+    "purchase.confirmDetail": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopiero potwierdzenie doda ubranie i zdjęcie do Twojej szafy. Nie doda dni noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmation adds the garment and photo to your wardrobe. It does not add wear days."
+          }
+        }
+      }
+    },
+    "purchase.storage": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zapisanych działań. Nie wysyłamy nowych żądań, aby uniknąć duplikatów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved actions could not be read. New requests are paused to avoid duplicates."
+          }
+        }
+      }
+    },
+    "purchase.purchased": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodano do szafy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to your wardrobe."
+          }
+        }
+      }
+    },
+    "purchase.stale": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szafa zmieniła się. Sprawdź dopasowanie ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe changed. Check compatibility again."
+          }
+        }
+      }
+    },
+    "purchase.noMatches": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI nie znalazło dopasowania. Możesz porównać rzeczy ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI found no match. You can compare items manually."
+          }
+        }
+      }
+    },
+    "purchase.aiFailed": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdzenie AI nie powiodło się. Spróbuj ponownie lub porównaj ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI matching failed. Retry or compare manually."
+          }
+        }
+      }
+    },
+    "purchase.pending": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopasowania są w przygotowaniu. Ponowne sprawdzenie odczyta to samo zadanie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matches are pending. Checking again will read the same job."
+          }
+        }
+      }
+    },
+    "purchase.consent": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapoznaj się z informacją o AI i udziel zgody w ustawieniach prywatności."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the AI disclosure and grant consent in privacy settings."
+          }
+        }
+      }
+    },
+    "purchase.quota": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osiągnięto limit AI. Spróbuj później lub porównaj ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI limit was reached. Try later or compare manually."
+          }
+        }
+      }
+    },
+    "purchase.aiUnavailable": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI jest niedostępne. Możesz porównać rzecz ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI is unavailable. You can compare the item manually."
+          }
+        }
+      }
+    },
+    "purchase.expired": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kandydat wygasł lub jest niedostępny."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This candidate expired or is unavailable."
+          }
+        }
+      }
+    },
+    "purchase.account": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesja jest niedostępna. Zaloguj się ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session is unavailable. Sign in again."
+          }
+        }
+      }
+    },
+    "purchase.failed": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się ukończyć działania. Ponowienie zachowa jego identyfikator."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The action could not be completed. Retrying preserves its identifier."
+          }
+        }
+      }
+    },
+    "purchase.savedDraft": {
+      "comment": "T044: retry uses the already saved candidate details.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponowienie zachowa zapisane zdjęcie i opis. Odrzuć szkic, jeśli chcesz je zmienić."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry keeps the saved photo and details. Discard the draft to change them."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

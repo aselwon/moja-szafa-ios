@@ -1,7 +1,8 @@
+import { validatePurchaseFit } from '../purchases/candidate.mjs';
 import { validateRecognition, recognitionDraft } from './recognition.mjs';
 import { validateOutfits } from './outfits.mjs';
 import { AIError } from './provider.mjs';
-import { selectCandidates, eligibleGarments } from './candidates.mjs';
+import { candidateMetadata, selectCandidates, eligibleGarments } from './candidates.mjs';
 
 // Trusted server composition only, never take these hooks or provider config from a job.
 // resolveInput checks current ownership/availability and loads normalized private bytes.
@@ -14,33 +15,35 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
     throw new AIError('configuration_invalid');
   }
   return async job => {
-    if (!['image_analysis', 'outfit_generation'].includes(job.kind)) return { outcome: 'permanent' };
+    if (!['image_analysis', 'outfit_generation', 'purchase_fit'].includes(job.kind)) return { outcome: 'permanent' };
     let telemetry;
     let output;
     let providerCall = 1;
     try {
       let input = await resolveInput(job);
-      if (job.kind === 'outfit_generation') input = selectCandidates(input, job.user_id);
+      if (job.kind !== 'image_analysis') input = prepareInput(input, job);
       if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
       let response;
       try {
         response = await (job.kind === 'image_analysis' ? provider.analyzeImage(input) : provider.recommendOutfits(input));
       } catch (error) {
-        if (job.kind !== 'outfit_generation' || !(error instanceof AIError) || error.message !== 'outfit_json_invalid') throw error;
+        if (!['outfit_generation','purchase_fit'].includes(job.kind) || !(error instanceof AIError) || error.message !== 'outfit_json_invalid') throw error;
         // Account for the first charged response before permitting one JSON repair.
         await recordTelemetry({ job_id: job.id, attempt: job.attempt, provider_call: providerCall, ...error.telemetry });
         providerCall = 2;
-        input = selectCandidates(await resolveInput(job), job.user_id);
+        input = prepareInput(await resolveInput(job), job);
         if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
         response = await provider.recommendOutfits(input, { repairJSON: true });
       }
       telemetry = response.telemetry;
-      let candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : validateOutfits(response.result, input);
-      if (job.kind === 'outfit_generation') {
+      let candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : validateRecommendation(response.result, input, job);
+      if (job.kind !== 'image_analysis') {
         // Resolve again after the provider await: laundry/archive may have changed.
-        const current = { garments: eligibleGarments(await resolveInput(job), job.user_id) };
+        const refreshed = await resolveInput(job);
+        const current = { garments: eligibleGarments(refreshed, job.user_id) };
+        if (job.kind === 'purchase_fit' && JSON.stringify(candidateMetadata(refreshed.purchase_candidate)) !== JSON.stringify(input.purchase_candidate)) throw new AIError('result_invalid');
         assertEligibleResult(candidate, input, current);
-        candidate = validateOutfits(response.result, { ...input, garments: current.garments });
+        candidate = validateRecommendation(response.result, { ...input, garments: current.garments }, job);
       }
       const validated = await validateResult(job, candidate, input);
       const result = job.kind === 'image_analysis' ? recognitionDraft(validated) : validated;
@@ -67,4 +70,15 @@ function assertEligibleResult(result, sent, current) {
     outfit.garment_ids.some(id => !allowed.has(id) || !supplied.has(id)))) {
     throw new AIError('result_invalid');
   }
+}
+
+function prepareInput(raw, job) {
+  const selected = selectCandidates(raw, job.user_id);
+  if (job.kind !== 'purchase_fit') return selected;
+  const candidate = candidateMetadata(raw.purchase_candidate);
+  if (selected.garments.some(g => g.id === candidate.id)) throw new AIError('result_invalid');
+  return { ...selected, purchase_candidate: candidate };
+}
+function validateRecommendation(raw, input, job) {
+  return job.kind === 'purchase_fit' ? validatePurchaseFit(raw, input) : validateOutfits(raw, input);
 }

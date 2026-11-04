@@ -59,3 +59,6 @@ await import('../backend/tests/ai-runtime.test.mjs');
 
 await import('../backend/tests/weather-context.test.mjs');
 await import('../backend/tests/ai-evaluation.test.mjs');
+
+await import('../backend/tests/purchase-candidate.test.mjs');
+await import('../backend/tests/purchase-runtime.test.mjs');
