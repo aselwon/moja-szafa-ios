@@ -76,6 +76,8 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/outfits.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/planner.sql"
     bash "$root/tests/planner-concurrency.sh" "$database"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/trips.sql"
+    bash "$root/tests/trips-concurrency.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/offline-sync.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/wear-editing.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/initial-wear-history.sql"
