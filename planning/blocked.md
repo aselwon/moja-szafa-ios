@@ -31,3 +31,11 @@
 - Ostatni błąd (bez sekretów): CI: failure
 - Hipoteza: lokalny `node scripts/harness-check.mjs` przeszedł, CI na GitHubie nie.
 - Pytanie do właściciela: poprawić gałąź `task/T024` (nowy push → harness ponownie sprawdzi CI i zmerguje) albo zamknąć PR.
+
+## FIXMAIN-0a437e3 — 2026-11-04
+
+- Gałąź / PR: https://github.com/aselwon/moja-szafa-ios/pull/64 (otwarty, NIE zmergowany)
+- Co próbowano: harness auto-merge; CI czerwone na b29b787
+- Ostatni błąd (bez sekretów): CI: cancelled
+- Hipoteza: lokalny `node scripts/harness-check.mjs` przeszedł, CI na GitHubie nie.
+- Pytanie do właściciela: poprawić gałąź `task/FIXMAIN-0a437e3` (nowy push → harness ponownie sprawdzi CI i zmerguje) albo zamknąć PR.
