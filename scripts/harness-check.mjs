@@ -57,3 +57,4 @@ await import('../backend/tests/weather-http.test.mjs');
 await import('../backend/tests/ai-runtime.test.mjs');
 
 await import('../backend/tests/weather-context.test.mjs');
+await import('../backend/tests/ai-evaluation.test.mjs');
