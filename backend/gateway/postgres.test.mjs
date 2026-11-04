@@ -107,6 +107,17 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.equal(restored.body.data?.wornOn,'2026-01-01');
   assert.deepEqual(restored.body.data?.garmentIDs,[garment]);
 
+  const prefs = {action:'preferences',operationID:randomUUID(),baseVersion:0,excludedCategories:['top'],colors:['blue']};
+  const personalized=await call('api_v1_personalization',prefs);
+  assert.equal(personalized.status,200);
+  assert.equal(personalized.body.data?.version,1,JSON.stringify(personalized.body));
+  assert.deepEqual((await call('api_v1_personalization',prefs)).body,personalized.body);
+  assert.deepEqual((await call('api_v1_personalization',{action:'get'},tokenB)).body.data?.excludedCategories,[]);
+  const reset=await call('api_v1_personalization',{action:'reset',operationID:randomUUID(),baseVersion:1});
+  assert.equal(reset.body.data?.version,2);
+  assert.deepEqual(reset.body.data?.excludedCategories,[]);
+  assert.equal((await call('api_v1_personalization',{...prefs,operationID:randomUUID()})).body.error?.code,'version_conflict');
+
   const image = await store.command(a,'images','prepare',{garment,id:randomUUID()});
   assert(image?.id);
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,
