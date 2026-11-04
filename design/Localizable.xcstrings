@@ -6736,6 +6736,40 @@
         }
       },
       "comment": "T026 manual outfit builder: outfits.conflict"
+    },
+    "wardrobe.delete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently delete"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń trwale"
+          }
+        }
+      },
+      "comment": "Permanent garment deletion confirmation and consequences."
+    },
+    "wardrobe.deleteExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive to keep your history. Permanent deletion cannot be undone: photos and links to outfits, trips and wear history will be removed; statistics and cost per wear may change. Offline deletion is queued until you reconnect."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiwizacja zachowuje historię. Trwałego usunięcia nie można cofnąć: zdjęcia i powiązania z zestawami, wyjazdami oraz historią noszenia zostaną usunięte; statystyki i koszt noszenia mogą się zmienić. Usunięcie offline czeka w kolejce na połączenie."
+          }
+        }
+      },
+      "comment": "Permanent garment deletion confirmation and consequences."
     }
   },
   "version": "1.0"

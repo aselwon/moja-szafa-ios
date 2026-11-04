@@ -56,6 +56,7 @@ struct GarmentDetail: Decodable, Sendable {
 }
 
 protocol WardrobeRepository: Sendable {
+    func deleteGarment(id: UUID) async throws
     func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail
     func garments() async throws -> [Garment]
     func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage
@@ -65,6 +66,7 @@ protocol WardrobeRepository: Sendable {
 }
 
 extension WardrobeRepository {
+    func deleteGarment(id: UUID) async throws { throw RepositoryError.backendNotConfigured }
     func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
         throw RepositoryError.backendNotConfigured
     }
