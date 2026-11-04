@@ -28,6 +28,39 @@ final class OfflineStoreTests: XCTestCase {
         catch { XCTAssertEqual(error as? OfflineError, .conflict) }
     }
 
+    func testDeletingGarmentPreservesUnsentWearEditBaseVersionAfterRestart() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let removed = try await store.saveGarment(fields: fields)
+        let retained = try await store.saveGarment(fields: fields)
+        let wearID = try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [removed, retained])
+        try await store.synchronize()
+        let initial = await store.status()
+        let saved = try XCTUnwrap(initial.wears.first { $0.id == wearID })
+        XCTAssertGreaterThan(saved.version, 0)
+        try await store.editWear(SyncWear(id: saved.id, version: saved.version, deleted: false,
+            wornOn: "2026-01-02", timezone: saved.timezone, garmentIDs: saved.garmentIDs))
+        let before = await store.status()
+        let original = try XCTUnwrap(before.outbox.first { $0.wear != nil }?.wear)
+        try await store.deleteGarment(id: removed)
+        let restarted = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let after = await restarted.status()
+        let pending = try XCTUnwrap(after.outbox.first { $0.wear != nil })
+        let edited = try XCTUnwrap(pending.wear)
+        XCTAssertFalse(pending.sent)
+        XCTAssertEqual(edited.operationID, original.operationID)
+        XCTAssertEqual(edited.wear.version, saved.version)
+        XCTAssertEqual(edited.wear.garmentIDs, [retained])
+        XCTAssertEqual(edited.wear.wornOn, "2026-01-02")
+        // The server still recognizes this as an edit of the existing event.
+        let accepted = try await remote.save(edited)
+        XCTAssertEqual(accepted.version, saved.version + 1)
+        let counts = await remote.counts()
+        XCTAssertEqual(counts[1], 1)
+    }
+
     func testDeletionWinsOverInFlightSave() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }

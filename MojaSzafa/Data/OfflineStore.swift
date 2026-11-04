@@ -284,7 +284,7 @@ actor OfflineStore: WardrobeRepository {
                     next.outbox[index].failure = "version_conflict"
                 } else {
                     let remaining = wear.wear.garmentIDs.filter { !deleted.contains($0) }
-                    let replacement = SyncWear(id: wear.wear.id, version: 0, deleted: false,
+                    let replacement = SyncWear(id: wear.wear.id, version: wear.wear.version, deleted: false,
                         wornOn: wear.wear.wornOn, timezone: wear.wear.timezone, garmentIDs: remaining)
                     next.outbox[index] = Pending(id: wear.operationID, garment: nil,
                         wear: SaveWear(operationID: wear.operationID, wear: replacement))

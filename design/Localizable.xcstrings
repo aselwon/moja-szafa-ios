@@ -1634,7 +1634,8 @@
             "value": "Historia noszeń"
           }
         }
-      }
+      },
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika."
     },
     "wear.empty": {
       "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
