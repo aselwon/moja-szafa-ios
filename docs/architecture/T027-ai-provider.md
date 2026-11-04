@@ -122,3 +122,7 @@ provider charges and worker crash recovery on staging. No paid calls, account
 changes, deployment or external verification were performed. Require existing
 GitHub validation/PostgreSQL and macOS Debug/Staging/Release CI jobs to pass; Xcode
 and hosted CI are not available as local evidence in this Linux sandbox.
+
+T034 follow-up: database quota, conservative cost envelopes and the dispatch kill
+switch are now specified in [T034 AI cost controls](T034-ai-cost-controls.md).
+These hold worst-case spend separately from token telemetry and provider invoices.

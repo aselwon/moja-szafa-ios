@@ -65,6 +65,8 @@ for database in "$fresh" "$upgrade"; do
     # Replay must skip applied migrations, not recreate tables or change data.
     bash "$root/migrate.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/schema.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/ai-cost-fixture.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/ai-costs.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/api.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/wardrobe.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/garment-deletion.sql"
@@ -77,6 +79,7 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/exports.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/deletion.sql"
     bash "$root/tests/jobs-concurrency.sh" "$database"
+    bash "$root/tests/ai-cost-concurrency.sh" "$database"
     # PostgreSQL clients may emit a randomly generated \restrict token.
     pg_dump --schema-only --schema=app --schema=api_private --no-owner --no-privileges "$database" | sed '/^\\restrict /d; /^\\unrestrict /d' > "$artifacts/${database}.sql"
 done

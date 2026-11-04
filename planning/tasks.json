@@ -888,7 +888,7 @@
         "T033"
       ],
       "tier": "planner",
-      "status": "todo",
+      "status": "review",
       "epicId": "E05",
       "priority": 2,
       "milestone": "App Store 1.0",
