@@ -47,6 +47,13 @@ final class AuthenticationModel {
         do { _ = try await accessToken() } catch { show(error) }
     }
 
+    func accessToken(for accountID: UUID) async throws -> String {
+        guard session?.userID == accountID else { throw AuthError.expired }
+        let token = try await accessToken()
+        guard session?.userID == accountID else { throw AuthError.expired }
+        return token
+    }
+
     func accessToken() async throws -> String {
         guard let current = session else { throw AuthError.expired }
         if current.expiresAt.timeIntervalSinceNow > 60 { return current.accessToken }

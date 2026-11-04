@@ -356,8 +356,20 @@ actor OfflineStore: WardrobeRepository {
         try requireActive()
         guard let old = state.wears.first(where: { $0.id == id }), old.version == version,
               old.deleted != removed else { throw OfflineError.conflict }
-        guard !state.outbox.contains(where: { $0.wear?.wear.id == id || $0.visibility?.id == id }) else { throw OfflineError.pendingChange }
         var next = state
+        if let pending = state.outbox.first(where: { $0.visibility?.id == id }) {
+            // An unsent removal can be undone entirely offline. Once sent, its
+            // outcome is ambiguous until the identical operation is replayed.
+            guard !pending.sent, pending.failure == nil else { throw OfflineError.pendingChange }
+            next.outbox.removeAll { $0.id == pending.id }
+            next.wears.removeAll { $0.id == id }
+            next.wears.append(SyncWear(id: id, version: version, deleted: removed,
+                wornOn: old.wornOn, timezone: old.timezone, garmentIDs: old.garmentIDs))
+            next.lastRemovedWearID = removed ? id : nil
+            try commit(next)
+            return
+        }
+        guard !state.outbox.contains(where: { $0.wear?.wear.id == id }) else { throw OfflineError.pendingChange }
         if version == 0 {
             // A local-only event normally has a creation intent, checked above.
             throw OfflineError.pendingChange

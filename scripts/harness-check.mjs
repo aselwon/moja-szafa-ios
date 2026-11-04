@@ -4,6 +4,7 @@ import "./check-ios.mjs";
 import "./check-api.mjs";
 import "./check-environments.mjs";
 import "./check-secrets.mjs";
+import "./check-collisions.mjs";
 
 const required = ["id", "title", "description", "acceptance", "dependsOn", "tier", "status"];
 const allowedStatuses = new Set(["todo", "in_progress", "review", "done", "blocked"]);
@@ -47,8 +48,18 @@ await import('../backend/tests/deletion.test.mjs');
 
 await import('../backend/tests/recognition.test.mjs');
 
+await import('../backend/tests/gateway.test.mjs');
 await import('../backend/tests/candidates.test.mjs');
 
 await import('../backend/tests/outfit-generation.test.mjs');
+await import('../backend/tests/ai-runtime.test.mjs');
 
+await import('../backend/tests/weather-provider.test.mjs');
+await import('../backend/tests/weather-http.test.mjs');
+await import('../backend/tests/ai-runtime.test.mjs');
+
+await import('../backend/tests/weather-context.test.mjs');
 await import('../backend/tests/ai-evaluation.test.mjs');
+
+await import('../backend/tests/purchase-candidate.test.mjs');
+await import('../backend/tests/purchase-runtime.test.mjs');

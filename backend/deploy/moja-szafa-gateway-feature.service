@@ -1,0 +1,32 @@
+[Unit]
+Description=Moja Szafa isolated feature gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/opt/moja-szafa-gateway-feature
+EnvironmentFile=/etc/moja-szafa/gateway-feature.env
+Environment=PATH=/opt/moja-szafa-gateway-feature/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/node /opt/moja-szafa-gateway-feature/backend/gateway/main.mjs
+Restart=on-failure
+RestartSec=5
+StateDirectory=moja-szafa-gateway-feature
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=384M
+TasksMax=32
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

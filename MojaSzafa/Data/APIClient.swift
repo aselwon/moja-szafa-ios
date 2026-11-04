@@ -1,5 +1,46 @@
 import Foundation
 
+extension APIClient: WeatherForecastRepository {
+    func forecast(latitude: Double, longitude: Double) async throws -> CityForecast {
+        guard latitude.isFinite, longitude.isFinite, abs(latitude) <= 90, abs(longitude) <= 180 else {
+            throw APIClientError.invalidRequest
+        }
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains(where: { $0.isWhitespace }) else { throw APIClientError.invalidConfiguration }
+        var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
+        components.path = "/v1/weather"
+        var request = URLRequest(url: components.url!, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.httpMethod = "POST"; request.timeoutInterval = 15
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode([
+            "latitude": (latitude * 100).rounded() / 100,
+            "longitude": (longitude * 100).rounded() / 100
+        ])
+        let (data, response) = try await transport.send(request)
+        if response.statusCode == 401 { await unauthorized(token) }
+        guard response.statusCode == 200, response.url == request.url, data.count <= 16384 else {
+            throw APIClientError.http(status: response.statusCode, requestID: nil)
+        }
+        struct Forecast: Decodable {
+            let celsius: Double; let validAt: String; let updatedAt: String
+            let source: String; let attributionURL: String; let licenseURL: String
+        }
+        struct Envelope: Decodable { let data: Forecast }
+        let value = try JSONDecoder().decode(Envelope.self, from: data).data
+        let dates = ISO8601DateFormatter()
+        guard value.celsius.isFinite, (-80...60).contains(value.celsius),
+              value.source == "MET Norway", value.attributionURL == "https://api.met.no/",
+              value.licenseURL == "https://creativecommons.org/licenses/by/4.0/",
+              let valid = dates.date(from: value.validAt), let updated = dates.date(from: value.updatedAt) else {
+            throw APIClientError.invalidResponse
+        }
+        try Task.checkCancellation()
+        return CityForecast(celsius: value.celsius, validAt: valid, updatedAt: updated,
+            attributionURL: URL(string: value.attributionURL)!, attributionImageURL: nil)
+    }
+}
+
 /// Wire contracts are versioned independently from domain/view models.
 enum APIv1 {
     enum Category: String, Codable, Sendable, CaseIterable {
@@ -139,10 +180,30 @@ protocol APITransport: Sendable {
 
 struct URLSessionTransport: APITransport {
     let session: URLSession
+
+    static func gateway() -> URLSessionTransport {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpShouldSetCookies = false
+        configuration.httpCookieStorage = nil
+        configuration.urlCredentialStorage = nil
+        configuration.urlCache = nil
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+        return URLSessionTransport(session: URLSession(configuration: configuration,
+            delegate: GatewayRedirectPolicy(), delegateQueue: nil))
+    }
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw APIClientError.invalidResponse }
         return (data, http)
+    }
+}
+
+/// Never forward an OTP, opaque session token or private request to a redirect.
+final class GatewayRedirectPolicy: NSObject, URLSessionTaskDelegate, Sendable {
+    func urlSession(_ session: URLSession, task: URLSessionTask,
+                    willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
+                    completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
+        completionHandler(nil)
     }
 }
 
@@ -326,9 +387,9 @@ extension APIClient {
         try await wardrobeImage(imageID: imageID, original: false)
     }
 
-    func wardrobeImage(imageID: UUID, original: Bool) async throws -> Data {
+    func wardrobeImage(imageID: UUID, original: Bool, purchase: Bool = false) async throws -> Data {
         let variant = original ? "original" : "thumbnail"
-        let path = "/v1/images/\(imageID.uuidString.lowercased())/\(variant)"
+        let path = "/v1/\(purchase ? "purchase-images" : "images")/\(imageID.uuidString.lowercased())/\(variant)"
         let token = try await accessToken()
         guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
         func request(_ url: URL, method: String) -> URLRequest {
@@ -353,5 +414,36 @@ extension APIClient {
         else { throw APIClientError.invalidResponse }
         try Task.checkCancellation()
         return bytes
+    }
+}
+
+extension APIClient {
+    func candidatePhoto(imageID: UUID) async throws -> Data {
+        try await wardrobeImage(imageID: imageID, original: false, purchase: true)
+    }
+    func uploadCandidatePhoto(candidateID: UUID, imageID: UUID, data: Data) async throws {
+        guard !data.isEmpty, data.count <= 12 * 1_048_576 else { throw APIClientError.invalidRequest }
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
+        let origin = URL(string: "https://\(baseURL.host!)\(baseURL.port.map { ":\($0)" } ?? "")")!
+        func send(_ url: URL, method: String, body: Data, type: String) async throws -> Data {
+            try Task.checkCancellation()
+            var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
+            request.httpMethod = method; request.httpBody = body; request.timeoutInterval = 30
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue(type, forHTTPHeaderField: "Content-Type")
+            let (result, response) = try await transport.send(request)
+            if response.statusCode == 401 { await unauthorized(token) }
+            guard response.statusCode == 200 else { throw APIClientError.http(status: response.statusCode, requestID: nil) }
+            try Task.checkCancellation(); return result
+        }
+        let body = try JSONEncoder().encode(["candidate_id":candidateID.uuidString.lowercased(), "operation_id":imageID.uuidString.lowercased()])
+        let prepared = try await send(origin.appendingPathComponent("/v1/purchase-images/uploads"), method: "POST", body: body, type: "application/json")
+        struct Upload: Decodable { let image_id: UUID; let upload_url: String }
+        let upload = try JSONDecoder().decode(Upload.self, from: prepared)
+        guard upload.image_id == imageID, let components = URLComponents(string: upload.upload_url), components.scheme == nil, components.host == nil,
+              components.path == "/v1/purchase-images/uploads/\(imageID.uuidString.lowercased())", components.fragment == nil,
+              let url = URL(string: upload.upload_url, relativeTo: origin)?.absoluteURL else { throw APIClientError.invalidResponse }
+        _ = try await send(url, method: "PUT", body: data, type: "image/jpeg")
     }
 }

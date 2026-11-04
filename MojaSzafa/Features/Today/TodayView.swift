@@ -2,15 +2,46 @@ import SwiftUI
 
 struct TodayView: View {
     @StateObject private var model: SuggestionsModel
+    @State private var weather: WeatherModel
+    @State private var generationTask: Task<Void, Never>?
+    @State private var count = 3
+    @State private var showPrivacy = false
+    private let consent: (any AIConsentService)?
     @State private var replacement: ReplacementSelection?
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: AppDependencies, accountID: UUID) {
+        _weather = State(initialValue: WeatherModel(service: AppleCityWeatherService(repository: dependencies.weather)))
+        consent = dependencies.aiConsent
+        let intentURL = dependencies.generationIntentURL(accountID: accountID)
         _model = StateObject(wrappedValue: SuggestionsModel(source: dependencies.suggestions,
-            wardrobe: dependencies.wardrobe, outfits: dependencies.outfits, offline: dependencies.offline))
+            wardrobe: dependencies.wardrobe, outfits: dependencies.outfits, offline: dependencies.offline, intentURL: intentURL))
+    }
+
+    private var generationWeather: GenerationWeatherContext? {
+        guard let context = weather.context() else { return nil }
+        return GenerationWeatherContext(temperature_celsius: context.temperatureCelsius,
+            source: context.source == .manual ? "manual" : "forecast",
+            valid_until: context.source == .forecast ? weather.forecast.map { Int($0.validAt.timeIntervalSince1970) } : nil)
     }
 
     var body: some View {
         List {
+            WeatherControls(weather: weather)
+            Section {
+                Text("generation.count")
+                Stepper("\(count)", value: $count, in: 1...10)
+                    .accessibilityLabel(Text("generation.count"))
+                    .disabled(model.pendingGeneration != nil || model.generating)
+                Button(model.pendingGeneration == nil ? "generation.start" : "common.retry") {
+                    generationTask = Task { await model.generate(count: count, weather: generationWeather) }
+                }.disabled(model.generating || model.loading || model.busy || model.saves.pending != nil)
+                if model.generating { ProgressView("generation.progress") }
+                if let status = model.generationStatus, status == .queued || status == .running {
+                    Text(LocalizedStringKey("generation.\(status.rawValue)"))
+                }
+                if let key = model.generationError { Text(LocalizedStringKey(key)) }
+                Button("privacy.title") { showPrivacy = true }
+            } header: { Text("generation.title") }
             if model.loading { ProgressView("common.loading") }
             if let key = model.errorKey {
                 Text(LocalizedStringKey(key))
@@ -37,21 +68,28 @@ struct TodayView: View {
                         } label: {
                             Label { Text(verbatim: garment.name) } icon: { Image(systemName: "arrow.triangle.2.circlepath") }
                         }.accessibilityHint(Text("suggestions.replace"))
-                        .disabled(model.busy || model.saves.pending != nil)
+                        .disabled(model.generating || model.busy || model.saves.pending != nil)
                     }
                     Button(LocalizedStringKey(suggestion.outfit.version > 0 ? "suggestions.saved" : "outfits.save")) {
                         Task { await model.save(suggestion.id) }
-                    }.disabled(model.busy || (model.saves.pending != nil && model.saves.pending?.id != suggestion.id))
+                    }.disabled(model.generating || model.busy || (model.saves.pending != nil && model.saves.pending?.id != suggestion.id))
                     Button(LocalizedStringKey(suggestion.worn ? "suggestions.worn" : "suggestions.wear")) {
                         Task { await model.wear(suggestion.id) }
-                    }.disabled(model.busy || suggestion.worn || model.saves.pending != nil)
+                    }.disabled(model.generating || model.busy || suggestion.worn || model.saves.pending != nil)
                 }
             }
             if model.saves.pending != nil { Text("outfits.pending") }
             if model.busy { ProgressView("common.loading") }
         }
         .navigationTitle("tab.today")
-        .task { await model.load() }
+        .task {
+            if model.pendingGeneration != nil { await model.generate(count: count, weather: generationWeather) }
+            else { await model.load() }
+        }
+        .onDisappear { generationTask?.cancel(); weather.clear() }
+        .sheet(isPresented: $showPrivacy) {
+            NavigationStack { AIPrivacyView(service: consent) }
+        }
         .refreshable { await model.load() }
         .sheet(item: $replacement) { selection in
             NavigationStack {
@@ -116,6 +154,63 @@ private struct SuggestionReplacementPicker: View {
     }
 }
 
+private struct WeatherControls: View {
+    @Bindable var weather: WeatherModel
+    var body: some View {
+        Group {
+            Section {
+                Text("weather.optional")
+                TextField("weather.city", text: $weather.query)
+                    .textContentType(.addressCity)
+                Button("weather.search") { Task { await weather.search() } }
+                    .disabled(weather.busy || weather.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Button("weather.locate", systemImage: "location") { Task { await weather.locate() } }
+                    .disabled(weather.busy)
+                ForEach(Array(weather.cities.enumerated()), id: \.offset) { _, city in
+                    Button(city.name) { Task { await weather.select(city) } }
+                        .disabled(weather.busy)
+                }
+                if weather.busy { ProgressView() }
+                if let message = weather.message { Text(LocalizedStringKey(message)) }
+            } header: { Text("weather.title") }
+            if let city = weather.city {
+                Section {
+                    Text(city.name)
+                    LabeledContent("weather.timeZone", value: city.timeZone.identifier)
+                    if let forecast = weather.forecast {
+                        Text(Measurement(value: forecast.celsius, unit: UnitTemperature.celsius), format: .measurement(width: .abbreviated, usage: .asProvided))
+                        LabeledContent("weather.validAt", value: date(forecast.validAt, zone: city.timeZone))
+                        LabeledContent("weather.updatedAt", value: date(forecast.updatedAt, zone: city.timeZone))
+                        TimelineView(.periodic(from: .now, by: 60)) { timeline in
+                            if !weather.useManualTemperature && weather.context(now: timeline.date) == nil {
+                                Text("weather.stale")
+                            }
+                        }
+                        Link(forecast.source, destination: forecast.attributionURL)
+                        if let license = forecast.licenseURL {
+                            Link("CC BY 4.0", destination: license)
+                        }
+                    }
+                    Button("weather.refresh") { Task { await weather.select(city) } }.disabled(weather.busy)
+                }
+            }
+            Section {
+                Toggle("weather.manual", isOn: $weather.useManualTemperature)
+                if weather.useManualTemperature {
+                    TextField("weather.temperature", text: $weather.manualTemperature)
+                    Text("weather.range")
+                }
+                Text("weather.fallback")
+                Button("weather.clear") { weather.clear() }
+            }
+        }
+    }
+    private func date(_ value: Date, zone: TimeZone) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium; formatter.timeStyle = .short; formatter.timeZone = zone
+        return formatter.string(from: value)
+    }
+}
 
 struct WearHistoryView: View {
     var store: OfflineStore? = nil
@@ -155,7 +250,7 @@ struct WearHistoryView: View {
                 }
                 if let removed = state.wears.first(where: { $0.id == state.lastRemovedWearID && $0.deleted }) {
                     Button("wear.undoRemoval") { Task { await visibility(removed, removed: false) } }
-                        .disabled(loading || state.outbox.contains { $0.visibility?.id == removed.id })
+                        .disabled(loading || state.outbox.contains { $0.visibility?.id == removed.id && $0.sent })
                 }
                 ForEach(state.outbox.filter { $0.visibility != nil && $0.failure != nil }, id: \.id) { pending in
                     Text("wear.conflict")
@@ -177,7 +272,7 @@ struct WearHistoryView: View {
                         }
                     }
                     Button("wear.remove", role: .destructive) { Task { await visibility(wear, removed: true) } }
-                        .disabled(loading || state.outbox.contains { $0.visibility?.id == wear.id || ($0.wear?.wear.id == wear.id && $0.sent) })
+                        .disabled(loading || state.outbox.contains { $0.visibility?.id == wear.id || $0.wear?.wear.id == wear.id })
                 }
             }
             Button("common.retry") { Task { await reload() } }.disabled(loading || store == nil)
