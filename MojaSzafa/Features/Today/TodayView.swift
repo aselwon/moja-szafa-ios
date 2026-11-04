@@ -123,15 +123,26 @@ struct WearHistoryView: View {
     @State private var editing: SyncWear?
     @State private var errorKey: String?
     @State private var loading = false
+    @State private var selectedDate = Date()
+    private var selectedDay: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: selectedDate)
+    }
 
     var body: some View {
         List {
+            DatePicker("wear.historyDate", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
+                .datePickerStyle(.graphical)
             if loading { ProgressView("common.loading") }
             if store == nil { Text("foundation.serviceUnavailable") }
             if let errorKey { Text(LocalizedStringKey(errorKey)) }
             if let state {
                 if !state.outbox.isEmpty { Text("wear.pending") }
-                if state.wears.filter({ !$0.deleted }).isEmpty { Text("wear.historyEmpty") }
+                if state.wears.filter({ !$0.deleted && $0.wornOn == selectedDay }).isEmpty { Text("wear.historyEmpty") }
                 ForEach(state.outbox.filter { $0.wear != nil && ["version_conflict", "validation_failed"].contains($0.failure ?? "") }, id: \.id) { pending in
                     if let wear = pending.wear?.wear {
                         Text("wear.conflict")
@@ -142,7 +153,20 @@ struct WearHistoryView: View {
                         }
                     }
                 }
-                ForEach(state.wears.filter { !$0.deleted }.sorted { $0.wornOn > $1.wornOn }) { wear in
+                if let removed = state.wears.first(where: { $0.id == state.lastRemovedWearID && $0.deleted }) {
+                    Button("wear.undoRemoval") { Task { await visibility(removed, removed: false) } }
+                        .disabled(loading || state.outbox.contains { $0.visibility?.id == removed.id })
+                }
+                ForEach(state.outbox.filter { $0.visibility != nil && $0.failure != nil }, id: \.id) { pending in
+                    Text("wear.conflict")
+                    Button("wear.discardLocal") {
+                        Task {
+                            do { try await store?.discardVisibilityConflict(id: pending.visibility!.id); await reload() }
+                            catch { errorKey = "wear.syncFailed" }
+                        }
+                    }
+                }
+                ForEach(state.wears.filter { !$0.deleted && $0.wornOn == selectedDay }.sorted { $0.id.uuidString < $1.id.uuidString }) { wear in
                     Button { editing = wear } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: wear.wornOn).font(.headline)
@@ -152,19 +176,28 @@ struct WearHistoryView: View {
                             }.joined(separator: ", "))
                         }
                     }
+                    Button("wear.remove", role: .destructive) { Task { await visibility(wear, removed: true) } }
+                        .disabled(loading || state.outbox.contains { $0.visibility?.id == wear.id || ($0.wear?.wear.id == wear.id && $0.sent) })
                 }
             }
             Button("common.retry") { Task { await reload() } }.disabled(loading || store == nil)
         }
-        .navigationTitle("tab.today")
+        .navigationTitle("wear.history")
         .toolbar {
-            Button("wear.new") { editing = WearEditor.newWear() }.disabled(store == nil || loading)
+            Button("wear.new") { editing = WearEditor.newWear(day: selectedDay) }.disabled(store == nil || loading)
         }
         .task { await reload() }
         .refreshable { await reload() }
         .sheet(item: $editing, onDismiss: { Task { await reload() } }) { wear in
             if let store { NavigationStack { WearEditor(wear: wear, store: store) } }
         }
+    }
+
+    @MainActor private func visibility(_ wear: SyncWear, removed: Bool) async {
+        do {
+            try await store?.setWearRemoved(id: wear.id, version: wear.version, removed: removed)
+            await reload()
+        } catch { errorKey = "wear.saveFailed" }
     }
 
     @MainActor private func reload() async {
@@ -200,13 +233,13 @@ struct WearEditor: View {
         _selected = State(initialValue: Set(wear.garmentIDs))
     }
 
-    static func newWear(garmentIDs: [UUID] = []) -> SyncWear {
+    static func newWear(garmentIDs: [UUID] = [], day: String? = nil) -> SyncWear {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.timeZone = .current
         formatter.dateFormat = "yyyy-MM-dd"
-        return SyncWear(id: UUID(), version: 0, deleted: false, wornOn: formatter.string(from: Date()),
+        return SyncWear(id: UUID(), version: 0, deleted: false, wornOn: day ?? formatter.string(from: Date()),
                         timezone: TimeZone.current.identifier, garmentIDs: garmentIDs)
     }
 

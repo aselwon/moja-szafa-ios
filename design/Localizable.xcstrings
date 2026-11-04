@@ -7176,6 +7176,54 @@
           }
         }
       }
+    },
+    "wear.historyDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History date"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data w historii"
+          }
+        }
+      }
+    },
+    "wear.undoRemoval": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo removal"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnij usunięcie"
+          }
+        }
+      }
+    },
+    "wear.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove wear entry"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń wpis noszenia"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

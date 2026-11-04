@@ -1,0 +1,90 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Wear history visibility",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/rest/v1/rpc/api_v1_wear_visibility": {
+      "post": {
+        "operationId": "api_v1_wear_visibility",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "type": "object",
+                    "required": [
+                      "operationID",
+                      "id",
+                      "baseVersion",
+                      "action"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "operationID": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "baseVersion": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "remove",
+                          "restore"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Versioned wear record or standard error envelope"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
