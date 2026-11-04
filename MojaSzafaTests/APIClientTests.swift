@@ -140,8 +140,9 @@ private actor DeletionTransport: APITransport {
         XCTAssertEqual(request.httpMethod, "POST")
         let root = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
         let payload = try XCTUnwrap(root["request"] as? [String: Any])
-        XCTAssertEqual((payload["operation_id"] as? String)?.lowercased(), operation.operationID.uuidString.lowercased())
-        XCTAssertEqual((payload["garment_id"] as? String)?.lowercased(), operation.garmentID.uuidString.lowercased())
+        XCTAssertEqual(Set(payload.keys), ["operationID", "garmentID"])
+        XCTAssertEqual((payload["operationID"] as? String)?.lowercased(), operation.operationID.uuidString.lowercased())
+        XCTAssertEqual((payload["garmentID"] as? String)?.lowercased(), operation.garmentID.uuidString.lowercased())
         return (try JSONSerialization.data(withJSONObject: ["data": true, "request_id": UUID().uuidString]), response(request))
     }
 }

@@ -72,6 +72,9 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,
     'privileged image commands must overwrite a supplied owner with the current session owner');
   await assert.rejects(store.command(a,'images','sweep',{}),/Unsupported operation/);
+  const deleted = await call('api_v1_delete_garment',{operationID:randomUUID(),garmentID:garment});
+  assert.equal(deleted.status,200);
+  assert.equal(deleted.body.data,true,'native camelCase delete payload reaches the canonical gateway route and SQL');
   await assert.rejects(runtime.query('SELECT * FROM neon_auth.session'),/permission denied/);
   await assert.rejects(runtime.query('SELECT * FROM auth.users'),/permission denied/);
   assert.equal((await runtime.query("SELECT nullif(current_setting('request.jwt.claim.sub',true),'') AS owner")).rows[0].owner,null,'identity does not leak through pool');
