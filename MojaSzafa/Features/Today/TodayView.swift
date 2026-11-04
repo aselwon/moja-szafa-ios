@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct TodayView: View {
-    @State private var weather = WeatherModel(service: AppleCityWeatherService())
+    @State private var weather: WeatherModel
+
+    init(repository: (any WeatherForecastRepository)? = nil) {
+        _weather = State(initialValue: WeatherModel(service: AppleCityWeatherService(repository: repository)))
+    }
 
     var body: some View {
         Form {
@@ -33,14 +37,9 @@ struct TodayView: View {
                                 Text("weather.stale")
                             }
                         }
-                        Link(destination: forecast.attributionURL) {
-                            VStack(alignment: .leading) {
-                                AsyncImage(url: forecast.attributionImageURL) { image in
-                                    image.resizable().scaledToFit().frame(height: 20)
-                                } placeholder: { Text("Apple Weather") }
-                                Text("weather.attribution")
-                            }
-                            .padding(8).background(.white).foregroundStyle(.black)
+                        Link(forecast.source, destination: forecast.attributionURL)
+                        if let license = forecast.licenseURL {
+                            Link("CC BY 4.0", destination: license)
                         }
                     }
                     Button("weather.refresh") { Task { await weather.select(city) } }.disabled(weather.busy)

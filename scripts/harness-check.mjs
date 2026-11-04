@@ -52,3 +52,4 @@ await import('../backend/tests/candidates.test.mjs');
 await import('../backend/tests/outfit-generation.test.mjs');
 
 await import('../backend/tests/weather-provider.test.mjs');
+await import('../backend/tests/weather-http.test.mjs');

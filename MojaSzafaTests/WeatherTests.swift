@@ -3,6 +3,15 @@ import XCTest
 
 @MainActor
 final class WeatherTests: XCTestCase {
+    func testAuthenticatedForecastUsesCoarseBodyAndFixedAttribution() async throws {
+        let client = try APIClient(baseURL: URL(string: "https://gateway.example/rest/v1")!,
+            transport: ForecastTransport()) { "valid-session" }
+        let result = try await client.forecast(latitude: 52.2297, longitude: 21.0122)
+        XCTAssertEqual(result.celsius, 8.5)
+        XCTAssertEqual(result.source, "MET Norway")
+        XCTAssertNil(result.attributionImageURL)
+        XCTAssertEqual(result.updatedAt, ISO8601DateFormatter().date(from: "2026-11-04T09:17:25Z"))
+    }
     private let city = WeatherCity(name: "Tokyo", latitude: 35.7, longitude: 139.7,
                                    timeZone: TimeZone(identifier: "Asia/Tokyo")!)
 
@@ -83,6 +92,18 @@ final class WeatherTests: XCTestCase {
         XCTAssertEqual(model.forecast?.updatedAt, service.fixedResult?.updatedAt)
         XCTAssertNil(model.context(now: now.addingTimeInterval(1801)))
         XCTAssertNil(model.context(now: now.addingTimeInterval(-3 * 3600)))
+    }
+}
+
+private struct ForecastTransport: APITransport {
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        XCTAssertEqual(request.url?.absoluteString, "https://gateway.example/v1/weather")
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer valid-session")
+        let body = try JSONDecoder().decode([String: Double].self, from: request.httpBody!)
+        XCTAssertEqual(body, ["latitude": 52.23, "longitude": 21.01])
+        let data = Data(#"{"data":{"celsius":8.5,"validAt":"2026-11-04T12:00:00Z","updatedAt":"2026-11-04T09:17:25Z","source":"MET Norway","attributionURL":"https://api.met.no/","licenseURL":"https://creativecommons.org/licenses/by/4.0/"}}"#.utf8)
+        return (data, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
     }
 }
 

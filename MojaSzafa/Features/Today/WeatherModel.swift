@@ -1,7 +1,6 @@
 import Foundation
 import Observation
 import CoreLocation
-import WeatherKit
 
 struct WeatherCity: Equatable, Sendable {
     let name: String
@@ -15,7 +14,13 @@ struct CityForecast: Sendable {
     let validAt: Date
     let updatedAt: Date
     let attributionURL: URL
-    let attributionImageURL: URL
+    let attributionImageURL: URL?
+    var source: String = "MET Norway"
+    var licenseURL: URL? = URL(string: "https://creativecommons.org/licenses/by/4.0/")
+}
+
+protocol WeatherForecastRepository: Sendable {
+    func forecast(latitude: Double, longitude: Double) async throws -> CityForecast
 }
 
 @MainActor
@@ -36,7 +41,10 @@ final class AppleCityWeatherService: NSObject, CityWeatherService, @preconcurren
     private var pending: CheckedContinuation<CLLocation, any Error>?
     private var timeout: Task<Void, Never>?
 
-    override init() {
+    private let repository: (any WeatherForecastRepository)?
+
+    init(repository: (any WeatherForecastRepository)? = nil) {
+        self.repository = repository
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
@@ -108,16 +116,8 @@ final class AppleCityWeatherService: NSObject, CityWeatherService, @preconcurren
     }
 
     func forecast(for city: WeatherCity) async throws -> CityForecast {
-        let service = WeatherService.shared
-        let weather = try await service.weather(for: CLLocation(latitude: city.latitude, longitude: city.longitude))
-        let attribution = try await service.attribution
-        let now = Date()
-        guard let hour = weather.hourlyForecast.forecast.first(where: { $0.date >= now }) else {
-            throw CityWeatherError.unavailable
-        }
-        return CityForecast(celsius: hour.temperature.converted(to: .celsius).value,
-                            validAt: hour.date, updatedAt: now, attributionURL: attribution.legalPageURL,
-                            attributionImageURL: attribution.combinedMarkLightURL)
+        guard let repository else { throw CityWeatherError.unavailable }
+        return try await repository.forecast(latitude: city.latitude, longitude: city.longitude)
     }
 }
 
