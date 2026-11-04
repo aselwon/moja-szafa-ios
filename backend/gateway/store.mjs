@@ -10,6 +10,8 @@ export class GatewayStore {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
+      // The LOGIN is NOINHERIT; activate only the narrow gateway role per transaction.
+      await client.query('SET LOCAL ROLE szafa_gateway');
       await client.query("SET LOCAL statement_timeout = '10s'");
       const value = await work(client);
       await client.query('COMMIT');
@@ -33,16 +35,16 @@ export class GatewayStore {
     });
   }
   async challenge(email) {
-    const result = await this.pool.query('SELECT gateway_private.start_email_challenge($1::text) AS id', [email]);
+    const result = await this.transaction(client => client.query('SELECT gateway_private.start_email_challenge($1::text) AS id', [email]));
     if (!result.rows[0]?.id) throw new GatewayError('rate_limited', 429);
     return result.rows[0].id;
   }
   async attempt(id) {
-    const result = await this.pool.query('SELECT gateway_private.email_challenge_attempt($1::uuid) AS email', [id]);
+    const result = await this.transaction(client => client.query('SELECT gateway_private.email_challenge_attempt($1::uuid) AS email', [id]));
     if (!result.rows[0]?.email) throw new GatewayError('authentication_rejected', 401);
     return result.rows[0].email;
   }
-  async consume(id) { await this.pool.query('SELECT gateway_private.consume_email_challenge($1::uuid)', [id]); }
+  async consume(id) { await this.transaction(client => client.query('SELECT gateway_private.consume_email_challenge($1::uuid)', [id])); }
   async command(principal, kind, action, data) {
     return this.transaction(async client => {
       await this.bind(client, principal);

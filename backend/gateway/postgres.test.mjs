@@ -15,10 +15,12 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   const admin = new Pool({ database: 'postgres', max: 1 });
   await admin.query(`CREATE DATABASE ${database}`);
   const ownerPool = new Pool({ database, max: 2 });
-  const runtime = new Pool({ database, max: 3, options: '-c role=szafa_gateway' });
+  const runtimeRole = `${database}_login`;
+  const runtime = new Pool({ database, max: 3, user: runtimeRole, password: 'gateway-test-only' });
   t.after(async () => {
     await runtime.end(); await ownerPool.end();
-    await admin.query(`DROP DATABASE ${database}`); await admin.end();
+    await admin.query(`DROP DATABASE ${database}`);
+    await admin.query(`DROP ROLE IF EXISTS ${runtimeRole}`); await admin.end();
   });
   // Test-only shape of provider-owned identity tables; never applied to Neon.
   await ownerPool.query(`CREATE SCHEMA neon_auth;
@@ -27,6 +29,7 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
       "expiresAt" timestamptz, "impersonatedBy" text);`);
   const bootstrap = await readFile(new URL('../deploy/neon-bootstrap.sql', import.meta.url),'utf8');
   await ownerPool.query(bootstrap);
+  await ownerPool.query(`CREATE ROLE ${runtimeRole} LOGIN NOINHERIT PASSWORD 'gateway-test-only'; GRANT szafa_gateway TO ${runtimeRole};`);
   await ownerPool.query(bootstrap); // Reapplication is safe before or after app migrations.
   for (const file of (await readdir(new URL('../migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort()) {
     await ownerPool.query(await readFile(new URL(`../migrations/${file}`,import.meta.url),'utf8'));
