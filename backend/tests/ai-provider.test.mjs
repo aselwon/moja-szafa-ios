@@ -43,7 +43,7 @@ test('separate operations use server models, versioned prompts and measured usag
   assert.equal(calls[0].redirect, 'error');
   assert.match(calls[0].json.messages[1].content[1].image_url.url, /^data:image\/png;base64,/);
   assert.equal(first.telemetry.prompt_version, 'image-analysis-v2');
-  assert.equal(second.telemetry.prompt_version, 'outfit-generation-v1');
+  assert.equal(second.telemetry.prompt_version, 'outfit-generation-v2');
   assert.deepEqual(first.telemetry.usage, { input_tokens: 12, output_tokens: 4 });
   assert.equal(first.telemetry.latency_ms, 0);
   assert.equal(JSON.stringify(first).includes(env.AI_API_KEY), false);
@@ -189,7 +189,7 @@ test('outfit executor excludes laundry, unavailable and archived garments before
     const execute = createAIExecutor({
       provider: { recipient: 'fixture', analyzeImage: async () => {}, recommendOutfits: async input => {
         sent = input.garments.map(g => g.id);
-        return { result: { outfits: [{ garment_ids: ['available'] }] }, telemetry: { status: 'success' } };
+        return { result: { outfits: [{ garment_ids: ['available'], rationale: 'Top; missing bottom and shoes.' }], shortfall_reason: null }, telemetry: { status: 'success' } };
       } },
       resolveInput: async () => ({ count: 1, garments: [
         { id: 'available', user_id: 'owner', category: 'top', availability: 'available', archived: changed && resolves++ > 0 },

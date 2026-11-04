@@ -49,3 +49,5 @@ await import('../backend/tests/recognition.test.mjs');
 
 await import('../backend/tests/gateway.test.mjs');
 await import('../backend/tests/candidates.test.mjs');
+
+await import('../backend/tests/outfit-generation.test.mjs');
