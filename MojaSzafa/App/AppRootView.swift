@@ -19,6 +19,12 @@ struct AppRootView: View {
         }
     }
 
+    private var tripsLink: some View {
+        NavigationLink("trips.title") {
+            TripsView(repository: dependencies.trips, outfits: dependencies.outfits, wardrobe: dependencies.wardrobe, journalURL: dependencies.tripJournalURL)
+        }
+    }
+
     var body: some View {
         TabView {
             NavigationStack { TodayView(dependencies: dependencies, accountID: accountID, personalization: personalization).toolbar {
@@ -31,7 +37,7 @@ struct AppRootView: View {
                     .toolbar { NavigationLink("purchase.title") { PurchasePreviewView(dependencies: dependencies, accountID: accountID) } }
             }
                 .tabItem { Label("tab.wardrobe", systemImage: "tshirt") }
-            NavigationStack { OutfitsView(repository: dependencies.outfits, wardrobe: dependencies.wardrobe, wearStore: dependencies.wearStore ?? dependencies.offline, personalization: personalization).toolbar { plannerLink } }
+            NavigationStack { OutfitsView(repository: dependencies.outfits, wardrobe: dependencies.wardrobe, wearStore: dependencies.wearStore ?? dependencies.offline, personalization: personalization).toolbar { plannerLink; tripsLink } }
                 .tabItem { Label("tab.outfits", systemImage: "square.stack") }
             NavigationStack { StatisticsView() }
                 .tabItem { Label("tab.statistics", systemImage: "chart.bar") }

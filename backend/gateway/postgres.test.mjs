@@ -107,6 +107,22 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.equal(restored.body.data?.wornOn,'2026-01-01');
   assert.deepEqual(restored.body.data?.garmentIDs,[garment]);
 
+  const tripOutfit=randomUUID(), tripID=randomUUID();
+  const savedTripOutfit=await call('api_v1_save_outfit',{operationID:randomUUID(),id:tripOutfit,baseVersion:0,name:'Synthetic trip outfit',favorite:false,garmentIDs:[garment]});
+  assert.equal(savedTripOutfit.body.data?.version,1,JSON.stringify(savedTripOutfit.body));
+  const tripRequest={action:'save',operationID:randomUUID(),id:tripID,baseVersion:0,
+    trip:{destination:'Synthetic destination',startsOn:'2026-11-01',endsOn:'2026-11-01',timezone:'Europe/Warsaw',occasions:['casual'],maxItems:1,
+      days:[{day:'2026-11-01',outfitID:tripOutfit,outfitVersion:1}]}};
+  const tripSaved=await call('api_v1_trips',tripRequest);
+  assert.equal(tripSaved.body.data?.version,1,JSON.stringify(tripSaved.body));
+  assert.deepEqual((await call('api_v1_trips',tripRequest)).body,tripSaved.body);
+  assert.equal((await call('api_v1_trips',{action:'get',id:tripID},tokenB)).body.error?.code,'not_found');
+  const wearBeforePacking=(await ownerPool.query('SELECT count(*)::int AS n FROM app.wear_events WHERE user_id=$1',[a.owner])).rows[0].n;
+  const packing={action:'pack',operationID:randomUUID(),id:tripID,baseVersion:1,garmentID:garment,packed:true};
+  const packedTrip=await call('api_v1_trips',packing);
+  assert.equal(packedTrip.body.data?.version,2,JSON.stringify(packedTrip.body));
+  assert.deepEqual((await call('api_v1_trips',packing)).body,packedTrip.body);
+  assert.equal((await ownerPool.query('SELECT count(*)::int AS n FROM app.wear_events WHERE user_id=$1',[a.owner])).rows[0].n,wearBeforePacking);
   const prefs = {action:'preferences',operationID:randomUUID(),baseVersion:0,excludedCategories:['top'],colors:['blue']};
   const personalized=await call('api_v1_personalization',prefs);
   assert.equal(personalized.status,200);
