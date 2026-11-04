@@ -1692,13 +1692,13 @@
       }
     },
     "cpw.lifetime": {
-      "comment": "T003: cpw; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T036: lifetime cost per unique wear day, based on recorded history.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Koszt jednego noszenia — całe życie"
+            "value": "Koszt noszenia — cała historia"
           }
         },
         "en": {
@@ -8360,6 +8360,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Retry keeps the saved photo and details. Discard the draft to change them."
+          }
+        }
+      }
+    },
+    "cpw.neverWorn": {
+      "comment": "T036: lifetime cost per unique wear day, based on recorded history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeszcze nienoszone"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not worn yet"
           }
         }
       }
