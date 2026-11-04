@@ -7,6 +7,7 @@ xcuserdata/
 Configuration/Signing/*.local.xcconfig
 .env
 .env.*
+backend/gateway/node_modules/
 *.p8
 *.p12
 *.mobileprovision

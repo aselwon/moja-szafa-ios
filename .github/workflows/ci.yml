@@ -31,6 +31,7 @@ jobs:
         run: |
           node --test scripts/select-ios-simulator.test.mjs
           python3 -m unittest discover -s scripts -p 'test_clone_ios_simulator.py'
+          python3 -m unittest discover -s scripts -p 'test_bounded_command.py'
           node scripts/harness-check.mjs
 
   ios:
@@ -72,8 +73,14 @@ jobs:
         run: |
           set -euo pipefail
           echo "Using simulator $SIMULATOR_ID"
+          xcodebuild build-for-testing \
+            -project MojaSzafa.xcodeproj -scheme MojaSzafa \
+            -configuration "$BUILD_CONFIGURATION" -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
           run_tests() {
-            xcodebuild test \
+            python3 scripts/bounded-command.py --timeout 300 -- xcodebuild test-without-building \
               -project MojaSzafa.xcodeproj -scheme MojaSzafa \
               -configuration "$BUILD_CONFIGURATION" \
               -sdk iphonesimulator \
@@ -83,9 +90,11 @@ jobs:
               CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
           }
           if ! run_tests 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"; then
-            grep -q 'Application failed preflight checks\|failed to launch' "$RUNNER_TEMP/xcodebuild.log" || exit 1
-            echo "Simulator launch flake; rebooting simulator and retrying once"
-            rm -rf "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult"
+            grep -q 'Application failed preflight checks\|failed to launch\|CI command timed out' "$RUNNER_TEMP/xcodebuild.log" || exit 1
+            echo "Simulator launch failure or test timeout; rebooting owned simulator and retrying once"
+            if [[ -d "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult" ]]; then
+              mv "$RUNNER_TEMP/$BUILD_CONFIGURATION.xcresult" "$RUNNER_TEMP/$BUILD_CONFIGURATION.first-attempt.xcresult"
+            fi
             xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
             xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
             xcrun simctl bootstatus "$SIMULATOR_ID" -b
@@ -113,7 +122,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tests-${{ matrix.configuration }}
-          path: ${{ runner.temp }}/${{ matrix.configuration }}.xcresult
+          path: ${{ runner.temp }}/${{ matrix.configuration }}*.xcresult
           if-no-files-found: warn
           retention-days: 14
 
@@ -137,11 +146,17 @@ jobs:
       PGUSER: postgres
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned gateway database driver
+        run: npm ci --prefix backend/gateway --ignore-scripts --no-audit --no-fund
       - name: Test backend migrations when present
         shell: bash
         run: |
           if [[ -f backend/tests/run-tests.sh ]]; then
             bash backend/tests/run-tests.sh
+            GATEWAY_PG_TESTS=1 node --test backend/gateway/postgres.test.mjs
           else
             echo 'Testy migracji powstaną w T008 (backend/tests/run-tests.sh).'
           fi
