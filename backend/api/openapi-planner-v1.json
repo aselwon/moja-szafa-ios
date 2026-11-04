@@ -1,0 +1,535 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Wardrobe planner API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/rest/v1/rpc/api_v1_planner": {
+      "post": {
+        "operationId": "api_v1_planner",
+        "description": "Owned plans are independent of wear history. Only confirm creates a wear. Mutations replay by operationID; confirm also deduplicates per plan/local day.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "request"
+                ],
+                "properties": {
+                  "request": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/ListPlans"
+                      },
+                      {
+                        "$ref": "#/components/schemas/CreatePlan"
+                      },
+                      {
+                        "$ref": "#/components/schemas/MovePlan"
+                      },
+                      {
+                        "$ref": "#/components/schemas/DeletePlan"
+                      },
+                      {
+                        "$ref": "#/components/schemas/RestorePlan"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ConfirmPlan"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success or safe error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/PlanSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PlanListSuccess"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreatePlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationID",
+          "id",
+          "baseVersion",
+          "outfitID",
+          "day",
+          "timezone"
+        ],
+        "properties": {
+          "action": {
+            "const": "create"
+          },
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "const": 0
+          },
+          "outfitID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone; today through 366 days ahead in this timezone"
+          }
+        }
+      },
+      "MovePlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationID",
+          "id",
+          "baseVersion",
+          "day",
+          "timezone"
+        ],
+        "properties": {
+          "action": {
+            "const": "move"
+          },
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone; today through 366 days ahead in this timezone"
+          }
+        }
+      },
+      "DeletePlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationID",
+          "id",
+          "baseVersion"
+        ],
+        "properties": {
+          "action": {
+            "const": "delete"
+          },
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "RestorePlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationID",
+          "id",
+          "baseVersion"
+        ],
+        "properties": {
+          "action": {
+            "const": "restore"
+          },
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "ConfirmPlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationID",
+          "id",
+          "baseVersion",
+          "outfitVersion"
+        ],
+        "properties": {
+          "action": {
+            "const": "confirm"
+          },
+          "operationID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outfitVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "ListPlans": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "from",
+          "through"
+        ],
+        "properties": {
+          "action": {
+            "const": "list"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "through": {
+            "type": "string",
+            "format": "date"
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "PlannedOutfit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "day",
+          "timezone",
+          "deleted",
+          "outfit",
+          "wearID"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "outfit": {
+            "$ref": "#/components/schemas/Outfit"
+          },
+          "wearID": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "PlanSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PlannedOutfit"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "PlanListSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "items",
+              "nextCursor"
+            ],
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PlannedOutfit"
+                },
+                "maxItems": 40
+              },
+              "nextCursor": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              }
+            }
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Outfit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "name",
+          "favorite",
+          "garments"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "garments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WardrobeItem"
+            }
+          }
+        }
+      },
+      "WardrobeItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string"
+          },
+          "priceGrosz": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "imageID": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "brand": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "seasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "initialWearHistory": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "count",
+                  "startDate"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "availability",
+          "priceGrosz",
+          "imageID",
+          "brand",
+          "colors",
+          "seasons",
+          "archived"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "request_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "unauthorized",
+                  "account_unavailable",
+                  "validation_failed",
+                  "version_conflict",
+                  "idempotency_conflict",
+                  "internal_error"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "request_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
