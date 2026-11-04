@@ -86,6 +86,7 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/suggestions.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/purchases.sql"
     bash "$root/tests/purchase-concurrency.sh" "$database"
+    bash "$root/tests/purchase-sweep-race.sh" "$database"
     bash "$root/tests/jobs-concurrency.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/ai-runtime.sql"
     bash "$root/tests/ai-runtime-concurrency.sh" "$database"

@@ -24,6 +24,9 @@ server decoding and byte bounds remain mandatory.
 The single private upload ledger now has exactly one parent: owned garment or
 purchase candidate. Its global UUID namespace prevents collisions between the
 two storage families. Creating a candidate does not create a placeholder garment.
+Sweep locks upload rows with SKIP LOCKED, then rechecks parent eligibility in a
+separate statement while holding each lock. This prevents an older scan snapshot
+from retiring a photo whose confirmation just created its owned garment.
 Candidate expiry is server-assigned seven days after creation. Discard, expiry
 and account deletion revoke image reads; the existing cleanup worker fences and
 removes bytes. Confirmed photos instead follow their new garment lifecycle.
@@ -88,3 +91,7 @@ stale/failed advice removal and competing photo-selection cancellation).
 Runtime simulator execution and live end-to-end provider acceptance remain to be
 performed in the coordinated CI/runtime window. No live database migration,
 provider request, deployment, paid-plan change or planning-status update was made.
+
+A deterministic sweep/confirmation regression pauses the scan snapshot across
+confirmation and candidate expiry. Negative control against the preceding sweep
+retired the confirmed image; the fixed sweep and full fresh/upgrade suite passed.

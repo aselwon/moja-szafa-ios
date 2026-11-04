@@ -20,8 +20,12 @@ BEGIN
     IF action = 'sweep' THEN
         -- Fence publication before removing bytes. Retired records survive and
         -- are swept repeatedly, including after restores or a delayed writer.
-        WITH candidates AS (
-            SELECT u.id FROM api_private.image_uploads u
+        result := '[]'::jsonb;
+        -- The locking SELECT can have an older snapshot than a concurrent parent
+        -- transfer. Recheck in a separate statement AFTER acquiring each upload
+        -- lock, so a newly committed garment/image pair is visible before retire.
+        FOR row IN
+            SELECT u.* FROM api_private.image_uploads u
             WHERE u.next_cleanup_at <= clock_timestamp() AND (
                 u.state = 'retired' OR
                 (u.state IN ('pending','processing') AND u.expires_at <= clock_timestamp()) OR
@@ -31,11 +35,24 @@ BEGIN
                 (u.purchase_id IS NULL AND u.state = 'ready' AND (SELECT count(*) FROM app.garment_images i
                     WHERE i.user_id = u.user_id AND i.garment_id = u.garment_id AND i.deleted_at IS NULL
                     AND i.status = 'ready' AND i.object_key IN (u.id::text || '/original.jpg', u.id::text || '/thumbnail.jpg')) <> 2)
+
             ) ORDER BY u.next_cleanup_at,u.id FOR UPDATE SKIP LOCKED LIMIT 100
-        ), retired AS (
-            UPDATE api_private.image_uploads u SET state = 'retired', fence = NULL
-            FROM candidates c WHERE u.id = c.id RETURNING u.id
-        ) SELECT coalesce(jsonb_agg(jsonb_build_object('id',id)), '[]'::jsonb) INTO result FROM retired;
+        LOOP
+            IF EXISTS (SELECT FROM api_private.image_uploads u WHERE u.id=row.id AND (
+                u.state = 'retired' OR
+                (u.state IN ('pending','processing') AND u.expires_at <= clock_timestamp()) OR
+                NOT EXISTS (SELECT FROM app.profiles p WHERE p.user_id = u.user_id AND p.deleted_at IS NULL) OR
+                (u.purchase_id IS NULL AND NOT EXISTS (SELECT FROM app.garments g WHERE g.id = u.garment_id AND g.user_id = u.user_id AND g.deleted_at IS NULL)) OR
+                (u.purchase_id IS NOT NULL AND NOT EXISTS (SELECT FROM app.purchase_candidates c WHERE c.id=u.purchase_id AND c.user_id=u.user_id AND c.deleted_at IS NULL AND c.status='considering' AND c.expires_at>clock_timestamp())) OR
+                (u.purchase_id IS NULL AND u.state = 'ready' AND (SELECT count(*) FROM app.garment_images i
+                    WHERE i.user_id = u.user_id AND i.garment_id = u.garment_id AND i.deleted_at IS NULL
+                    AND i.status = 'ready' AND i.object_key IN (u.id::text || '/original.jpg', u.id::text || '/thumbnail.jpg')) <> 2)
+
+            )) THEN
+                UPDATE api_private.image_uploads SET state='retired',fence=NULL WHERE id=row.id;
+                result := result || jsonb_build_array(jsonb_build_object('id',row.id));
+            END IF;
+        END LOOP;
         RETURN result;
     ELSIF action = 'cleaned' THEN
         DELETE FROM app.garment_images i USING api_private.image_uploads u
