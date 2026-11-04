@@ -30,7 +30,7 @@ BEGIN
     -- The existing RPC handles auth, exact shape, replay and version conflicts.
     -- A successful replay must still work after a garment moves to laundry.
     IF owner_id IS NULL OR EXISTS (SELECT FROM api_private.mutations m
-        WHERE m.user_id = owner_id AND m.operation_id = (request->>'operationID')::uuid
+        WHERE m.user_id = owner_id AND m.operation_id = (api_v1_save_suggestion.request->>'operationID')::uuid
           AND m.response IS NOT NULL) THEN
         RETURN app.api_v1_save_outfit(request);
     END IF;
