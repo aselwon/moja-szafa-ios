@@ -12,6 +12,7 @@ struct Garment: Identifiable, Equatable, Codable, Sendable {
     var colors: [String] = []
     var seasons: [String] = []
     var archived: Bool = false
+    var initialWearHistory: InitialWearHistory? = nil
 }
 
 struct WardrobeQuery: Equatable, Encodable, Sendable {
@@ -55,15 +56,46 @@ struct GarmentDetail: Decodable, Sendable {
     var cached = false
 }
 
+/// An explicit estimate of wear days strictly before the diary boundary.
+/// Journal dates remain intact; only dates on/after the boundary add to CPW.
+struct InitialWearHistory: Codable, Equatable, Sendable {
+    let count: Int
+    let startDate: String
+
+    init(count: Int, startDate: String) { self.count = count; self.startDate = startDate }
+    enum CodingKeys: String, CodingKey { case count, startDate }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        count = try c.decode(Int.self, forKey: .count)
+        startDate = try c.decode(String.self, forKey: .startDate)
+        try validate()
+    }
+
+    func validate() throws {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.isLenient = false
+        guard (0...1_000_000).contains(count), let date = formatter.date(from: startDate),
+              formatter.string(from: date) == startDate else { throw APIClientError.invalidRequest }
+    }
+}
+
 /// Exact lifetime ratio. Store the numerator and denominator; round only when
 /// rendering currency. No model-generated values or binary floating point.
 struct CostPerWear: Equatable, Sendable {
     let priceGrosz: Int64?
     let wearDays: Int
+    let isEstimated: Bool
 
-    init(priceGrosz: Int64?, wornOn: [String]) {
+    init(priceGrosz: Int64?, wornOn: [String], initialHistory: InitialWearHistory? = nil) {
         self.priceGrosz = priceGrosz.flatMap { $0 >= 0 ? $0 : nil }
-        self.wearDays = Set(wornOn).count
+        self.isEstimated = initialHistory != nil
+        if let initialHistory {
+            self.wearDays = initialHistory.count + Set(wornOn).filter { $0 >= initialHistory.startDate }.count
+        } else { self.wearDays = Set(wornOn).count }
     }
 
     var roundedGrosz: Int64? {
@@ -78,10 +110,11 @@ struct CostPerWear: Equatable, Sendable {
 }
 
 extension GarmentDetail {
-    var costPerWear: CostPerWear { CostPerWear(priceGrosz: garment.priceGrosz, wornOn: wornOn) }
+    var costPerWear: CostPerWear { CostPerWear(priceGrosz: garment.priceGrosz, wornOn: wornOn, initialHistory: garment.initialWearHistory) }
 }
 
 protocol WardrobeRepository: Sendable {
+    func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail
     func deleteGarment(id: UUID) async throws
     func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail
     func garments() async throws -> [Garment]
@@ -92,6 +125,7 @@ protocol WardrobeRepository: Sendable {
 }
 
 extension WardrobeRepository {
+    func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func deleteGarment(id: UUID) async throws { throw RepositoryError.backendNotConfigured }
     func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
         throw RepositoryError.backendNotConfigured

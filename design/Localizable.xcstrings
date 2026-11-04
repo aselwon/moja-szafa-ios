@@ -8435,6 +8435,186 @@
       },
       "comment": "T038: remove the selected wear event, without deleting garments.",
       "extractionState": "manual"
+    },
+    "initialHistory.title": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia początkowa"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial wear history"
+          }
+        }
+      }
+    },
+    "initialHistory.explanation": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcjonalnie oszacuj liczbę dni noszenia przed rozpoczęciem dziennika. Od wybranej daty liczymy wyłącznie unikalne dni dziennika."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optionally estimate wear days before your diary began. From the selected date, only unique diary days count."
+          }
+        }
+      }
+    },
+    "initialHistory.estimatedCPW": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szacowany koszt noszenia — cała historia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimated cost per wear — lifetime"
+          }
+        }
+      }
+    },
+    "initialHistory.count": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szacowana liczba wcześniejszych dni"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimated earlier wear days"
+          }
+        }
+      }
+    },
+    "initialHistory.boundary": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Początek dziennika"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diary start date"
+          }
+        }
+      }
+    },
+    "initialHistory.edit": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj historię początkową"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit initial history"
+          }
+        }
+      }
+    },
+    "initialHistory.overlap": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiana granicy wpływa na to, które zapisane dni obejmuje szacunek. Wpisy pozostaną w historii. Dopasuj szacunek do dni przed nową granicą, aby nie policzyć ich dwukrotnie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changing the boundary affects which recorded days the estimate covers. Entries remain in history. Adjust the estimate to cover only days before the new boundary, so they are not counted twice."
+          }
+        }
+      }
+    },
+    "initialHistory.confirm": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdzam uwzględnienie wcześniejszych wpisów"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I confirm the estimate includes earlier entries"
+          }
+        }
+      }
+    },
+    "initialHistory.clear": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń szacunek, licz tylko dziennik"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear estimate and count only diary days"
+          }
+        }
+      }
+    },
+    "initialHistory.failed": {
+      "comment": "T037: explicit initial wear estimate and diary boundary.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zapisano zmiany. Poczekaj na synchronizację wcześniejszych zmian lub odśwież dane i spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The change was not saved. Wait for earlier changes to sync or refresh and try again."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
