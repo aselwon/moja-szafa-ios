@@ -1981,19 +1981,18 @@
       }
     },
     "weather.city": {
-      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
+      "comment": "T042: city and optional weather context.",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Miasto"
+            "value": "Miasto, region lub kraj"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "City"
+            "value": "City, region or country"
           }
         }
       }
@@ -2017,19 +2016,18 @@
       }
     },
     "weather.manual": {
-      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
+      "comment": "T042: city and optional weather context.",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wpisz temperaturę ręcznie"
+            "value": "Użyj ręcznej temperatury"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter temperature manually"
+            "value": "Use manual temperature"
           }
         }
       }
@@ -6736,6 +6734,312 @@
         }
       },
       "comment": "T026 manual outfit builder: outfits.conflict"
+    },
+    "weather.title": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda i miasto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather and city"
+          }
+        }
+      }
+    },
+    "weather.optional": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda jest opcjonalna. Wpisanie miasta nie wymaga zgody na lokalizację. Wyszukiwanie miasta i pogoda korzystają z usług Apple."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather is optional. Entering a city does not require location permission. City search and weather use Apple services."
+          }
+        }
+      }
+    },
+    "weather.search": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyszukaj miasto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search for a city"
+          }
+        }
+      }
+    },
+    "weather.locate": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj bieżącej lokalizacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use current location"
+          }
+        }
+      }
+    },
+    "weather.noCities": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie znaleziono miasta. Dodaj region lub kraj albo podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No city found. Add a region or country, or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.cityError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można wyszukać miasta. Sprawdź połączenie lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City search is unavailable. Check your connection or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.locationError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokalizacja jest niedostępna lub nie ma zgody. Wpisz miasto albo temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is unavailable or permission was not granted. Enter a city or temperature manually."
+          }
+        }
+      }
+    },
+    "weather.forecastError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda jest niedostępna. Spróbuj ponownie lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather is unavailable. Retry or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.timeZone": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strefa miasta"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City time zone"
+          }
+        }
+      }
+    },
+    "weather.validAt": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza na"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast for"
+          }
+        }
+      }
+    },
+    "weather.updatedAt": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pobrano"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retrieved"
+          }
+        }
+      }
+    },
+    "weather.stale": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza nieaktualna. Odśwież ją lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast is out of date. Refresh it or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.attribution": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Źródła danych pogodowych"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather data sources"
+          }
+        }
+      }
+    },
+    "weather.refresh": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odśwież pogodę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh weather"
+          }
+        }
+      }
+    },
+    "weather.temperature": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperatura w °C, np. −5"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperature in °C, e.g. -5"
+          }
+        }
+      }
+    },
+    "weather.range": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz liczbę od −80 do 60 °C."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a number from -80 to 60 °C."
+          }
+        }
+      }
+    },
+    "weather.fallback": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez temperatury można korzystać z propozycji bez kontekstu pogody."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without a temperature, suggestions can use no weather context."
+          }
+        }
+      }
+    },
+    "weather.clear": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść dane pogody"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear weather data"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
