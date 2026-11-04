@@ -99,7 +99,7 @@ struct AuthenticationGateView: View {
         self.dependencies = dependencies
         _model = State(initialValue: AuthenticationModel(
             service: dependencies.authentication,
-            store: KeychainSessionStore(service: Bundle.main.bundleIdentifier ?? "pl.mojaszafa.app")))
+            store: KeychainSessionStore(service: dependencies.sessionStoreService)))
     }
 
     var body: some View {
