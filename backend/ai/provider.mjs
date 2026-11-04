@@ -1,3 +1,4 @@
+import { candidateLimit, candidateMetadata } from './candidates.mjs';
 import { recognitionSchema } from './recognition.mjs';
 // Server-only Chat Completions protocol adapter. No SDK, default model or credentials.
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -110,9 +111,10 @@ export function createProvider(configuration, { fetchImpl = globalThis.fetch, no
         { type: 'image_url', image_url: { url: `data:${input.mimeType};base64,${input.base64}` } }]);
     },
     async recommendOutfits(input) {
-      if (!object(input) || !Array.isArray(input.garments) || input.garments.length === 0 || input.garments.length > 1000 ||
+      if (!object(input) || !Array.isArray(input.garments) || input.garments.length === 0 || input.garments.length > candidateLimit ||
           !Number.isInteger(input.count) || input.count < 1 || input.count > 10) fail('input_invalid');
-      const content = JSON.stringify(input);
+      // Defense in depth for direct callers: never serialize raw garment records.
+      const content = JSON.stringify({ ...input, garments: input.garments.map(candidateMetadata) });
       if (Buffer.byteLength(content) > 256 * 1024) fail('input_invalid');
       return invoke('outfit_generation', content);
     }
