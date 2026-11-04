@@ -3,6 +3,22 @@ import XCTest
 
 @MainActor
 final class WardrobeTests: XCTestCase {
+    func testInitialHistoryExcludesEarlierDiaryDaysAndLabelsEstimate() throws {
+        let history = InitialWearHistory(count: 10, startDate: "2026-01-02")
+        try history.validate()
+        let days = ["2026-01-01", "2026-01-02", "2026-01-02", "2026-01-03"]
+        let cost = CostPerWear(priceGrosz: 1200, wornOn: days, initialHistory: history)
+        XCTAssertEqual(cost.wearDays, 12)
+        XCTAssertEqual(cost.roundedGrosz, 100)
+        XCTAssertTrue(cost.isEstimated)
+        let cleared = CostPerWear(priceGrosz: 1200, wornOn: days)
+        XCTAssertEqual(cleared.wearDays, 3)
+        XCTAssertEqual(cleared.roundedGrosz, 400)
+        XCTAssertFalse(cleared.isEstimated)
+        XCTAssertThrowsError(try InitialWearHistory(count: -1, startDate: "2026-01-01").validate())
+        XCTAssertThrowsError(try InitialWearHistory(count: 1, startDate: "2026-02-30").validate())
+    }
+
     func testCostPerWearUsesUniqueHistoricalDaysAndRendersOnlyAtBoundary() {
         let days = (1...100).map { "day-\($0)" }
         XCTAssertEqual(CostPerWear(priceGrosz: 80000, wornOn: days + days).roundedGrosz, 800)

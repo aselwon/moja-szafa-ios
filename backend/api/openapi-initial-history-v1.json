@@ -1,0 +1,102 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Initial wear history",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/rest/v1/rpc/api_v1_initial_wear_history": {
+      "post": {
+        "operationId": "api_v1_initial_wear_history",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "type": "object",
+                    "required": [
+                      "operationID",
+                      "id",
+                      "baseVersion",
+                      "history",
+                      "confirmOverlap"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "operationID": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "baseVersion": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "confirmOverlap": {
+                        "type": "boolean"
+                      },
+                      "history": {
+                        "oneOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "count",
+                              "startDate"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                              "count": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000
+                              },
+                              "startDate": {
+                                "type": "string",
+                                "format": "date"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Versioned garment with initial history or error envelope"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

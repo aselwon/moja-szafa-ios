@@ -80,6 +80,16 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.equal((await call('api_v1_ai_consent',{operation_id:randomUUID(),granted:false,disclosure:null})).body.data.granted,false);
   assert.equal((await call('api_v1_ai_consent',{},'invalid.synthetic')).status,401);
 
+  const estimate={operationID:randomUUID(),id:garment,baseVersion:1,
+    history:{count:10,startDate:'2026-01-02'},confirmOverlap:false};
+  assert.equal((await call('api_v1_initial_wear_history',estimate,tokenB)).body.error?.code,'version_conflict');
+  const estimated=await call('api_v1_initial_wear_history',estimate);
+  assert.equal(estimated.status,200);
+  assert.deepEqual(estimated.body.data?.metadata?.initialWearHistory,estimate.history,JSON.stringify(estimated.body));
+  assert.deepEqual((await call('api_v1_initial_wear_history',estimate)).body,estimated.body);
+  const detail=await call('api_v1_garment_detail',{id:garment});
+  assert.deepEqual(detail.body.data.garment.initialWearHistory,estimate.history);
+
   const image = await store.command(a,'images','prepare',{garment,id:randomUUID()});
   assert(image?.id);
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,

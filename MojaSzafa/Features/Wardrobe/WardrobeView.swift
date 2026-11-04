@@ -149,6 +149,8 @@ private struct GarmentDetailView: View {
     @State private var statusMessage: String?
     @State private var conflict = false
     @State private var confirmDeletion = false
+    @State private var editInitialHistory = false
+    @State private var initialHistoryConflict = false
     @Environment(\.dismiss) private var dismiss
 
 
@@ -176,7 +178,7 @@ private struct GarmentDetailView: View {
                         } else {
                             Text("cpw.neverWorn")
                         }
-                    } label: { Text("cpw.lifetime") }
+                    } label: { Text(LocalizedStringKey(detail.costPerWear.isEstimated ? "initialHistory.estimatedCPW" : "cpw.lifetime")) }
                     ForEach(detail.garment.colors, id: \.self) { Text(LocalizedStringKey("garment.color." + $0)) }
                     ForEach(detail.garment.seasons, id: \.self) { Text(LocalizedStringKey("garment.season." + $0)) }
                 }
@@ -196,7 +198,7 @@ private struct GarmentDetailView: View {
                     if let statusMessage { Text(LocalizedStringKey(statusMessage)) }
                     if conflict {
                         Button("wardrobe.useServer") { resolve(keepLocal: false) }
-                        Button("wardrobe.keepLocal") { resolve(keepLocal: true) }
+                        if !initialHistoryConflict { Button("wardrobe.keepLocal") { resolve(keepLocal: true) } }
                     } else if statusMessage != nil {
                         Button("common.retry") { Task { await synchronizeStatus() } }
                     }
@@ -204,6 +206,14 @@ private struct GarmentDetailView: View {
                 Section {
                     Button("wardrobe.delete", role: .destructive) { confirmDeletion = true }
                         .disabled(saving)
+                }
+                Section("initialHistory.title") {
+                    Text("initialHistory.explanation").font(.caption)
+                    if let history = detail.garment.initialWearHistory {
+                        LabeledContent("initialHistory.count", value: String(history.count))
+                        LabeledContent("initialHistory.boundary", value: history.startDate)
+                    }
+                    Button("initialHistory.edit") { editInitialHistory = true }.disabled(saving)
                 }
                 Section("wardrobe.history") {
                     Text("wardrobe.historyExplanation").font(.caption)
@@ -216,6 +226,16 @@ private struct GarmentDetailView: View {
             } else { ProgressView("common.loading") }
         }
         .navigationTitle("garment.details")
+        .sheet(isPresented: $editInitialHistory) {
+            if let detail {
+                NavigationStack {
+                    InitialHistoryEditor(detail: detail, repository: repository) {
+                        retry += 1
+                        editInitialHistory = false
+                    }
+                }
+            }
+        }
         .confirmationDialog("wardrobe.delete", isPresented: $confirmDeletion, titleVisibility: .visible) {
             Button("wardrobe.delete", role: .destructive) {
                 Task {
@@ -256,12 +276,16 @@ private struct GarmentDetailView: View {
         do {
             try await store.synchronize()
             let state = await store.status()
-            let pending = state.outbox.first { $0.garment?.garmentID == id }
-            conflict = pending?.failure == "version_conflict"
+            let pending = state.outbox.first { $0.garment?.garmentID == id || $0.initialHistory?.id == id }
+            initialHistoryConflict = pending?.initialHistory != nil
+            conflict = pending?.failure != nil
             statusMessage = conflict ? "wardrobe.statusConflict" : (pending == nil ? nil : "wardrobe.statusPending")
             detail = try await store.detail(id: id)
         } catch {
-            conflict = (error as? APIv1.Failure)?.code == "version_conflict"
+            let state = await store.status()
+            let pending = state.outbox.first { $0.garment?.garmentID == id || $0.initialHistory?.id == id }
+            initialHistoryConflict = pending?.initialHistory != nil
+            conflict = pending?.failure != nil
             statusMessage = conflict ? "wardrobe.statusConflict" : "wardrobe.statusPending"
         }
     }
@@ -272,10 +296,71 @@ private struct GarmentDetailView: View {
             saving = true
             defer { saving = false }
             do {
-                try await store.resolveGarment(id: id, keepLocal: keepLocal)
+                if initialHistoryConflict { try await store.discardInitialHistoryConflict(id: id) }
+                else { try await store.resolveGarment(id: id, keepLocal: keepLocal) }
                 await synchronizeStatus()
             } catch { statusMessage = "wardrobe.statusFailed" }
         }
     }
 
+}
+
+private struct InitialHistoryEditor: View {
+    let detail: GarmentDetail
+    let repository: any WardrobeRepository
+    let saved: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var count: String
+    @State private var boundary: Date
+    @State private var confirmOverlap = false
+    @State private var saving = false
+    @State private var failed = false
+
+    private static var formatter: DateFormatter {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = Calendar(identifier: .gregorian)
+        f.timeZone = .current
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }
+    init(detail: GarmentDetail, repository: any WardrobeRepository, saved: @escaping () -> Void) {
+        self.detail = detail; self.repository = repository; self.saved = saved
+        _count = State(initialValue: String(detail.garment.initialWearHistory?.count ?? 0))
+        _boundary = State(initialValue: detail.garment.initialWearHistory.flatMap { Self.formatter.date(from: $0.startDate) } ?? Date())
+    }
+    private var day: String { Self.formatter.string(from: boundary) }
+    private var needsConfirmation: Bool {
+        detail.garment.initialWearHistory?.startDate != day && detail.wornOn.contains { $0 < max(day, detail.garment.initialWearHistory?.startDate ?? day) }
+    }
+    var body: some View {
+        Form {
+            Text("initialHistory.explanation")
+            TextField("initialHistory.count", text: $count).keyboardType(.numberPad)
+            DatePicker("initialHistory.boundary", selection: $boundary, displayedComponents: .date)
+            if needsConfirmation {
+                Text("initialHistory.overlap")
+                Toggle("initialHistory.confirm", isOn: $confirmOverlap)
+            }
+            if failed { Text("initialHistory.failed") }
+            Button("common.save") {
+                guard let value = Int(count) else { return }
+                save(InitialWearHistory(count: value, startDate: day))
+            }.disabled(saving || Int(count).map { !(0...1_000_000).contains($0) } != false || (needsConfirmation && !confirmOverlap))
+            Button("initialHistory.clear", role: .destructive) { save(nil) }.disabled(saving)
+        }
+        .navigationTitle("initialHistory.title")
+        .toolbar { Button("common.cancel") { dismiss() }.disabled(saving) }
+        .onChange(of: boundary) { _, _ in confirmOverlap = false }
+    }
+    private func save(_ history: InitialWearHistory?) {
+        Task {
+            saving = true; failed = false
+            defer { saving = false }
+            do {
+                _ = try await repository.setInitialHistory(id: detail.garment.id, history: history, confirmOverlap: confirmOverlap)
+                saved()
+            } catch { failed = true }
+        }
+    }
 }

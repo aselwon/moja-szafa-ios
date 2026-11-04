@@ -76,7 +76,7 @@ struct SyncGarment: Codable, Sendable {
                 availability: fields.availability, priceGrosz: fields.priceGrosz,
                 imageID: metadata?.imageID, brand: metadata?.brand,
                 colors: metadata?.colors ?? [], seasons: metadata?.seasons ?? [],
-                archived: fields.archived ?? metadata?.archived ?? false)
+                archived: fields.archived ?? metadata?.archived ?? false, initialWearHistory: metadata?.initialWearHistory)
     }
 }
 
@@ -113,12 +113,30 @@ struct SaveWear: Codable, Sendable {
     let wear: SyncWear
 }
 
+struct SaveInitialHistory: Codable, Sendable {
+    let operationID: UUID
+    let id: UUID
+    let baseVersion: Int64
+    let history: InitialWearHistory?
+    let confirmOverlap: Bool
+    enum CodingKeys: String, CodingKey { case operationID, id, baseVersion, history, confirmOverlap }
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(operationID, forKey: .operationID)
+        try c.encode(id, forKey: .id)
+        try c.encode(baseVersion, forKey: .baseVersion)
+        try c.encode(history, forKey: .history)
+        try c.encode(confirmOverlap, forKey: .confirmOverlap)
+    }
+}
+
 struct DeleteGarment: Codable, Sendable {
     let operationID: UUID
     let garmentID: UUID
 }
 
 protocol OfflineRemote: Sendable {
+    func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment
     func delete(_ operation: DeleteGarment) async throws
     func snapshot() async throws -> SyncSnapshot
     func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO
@@ -127,11 +145,18 @@ protocol OfflineRemote: Sendable {
 }
 
 extension OfflineRemote {
+    func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment { throw RepositoryError.backendNotConfigured }
     func delete(_ operation: DeleteGarment) async throws { throw RepositoryError.backendNotConfigured }
     func image(id: UUID, original: Bool) async throws -> Data { throw RepositoryError.backendNotConfigured }
 }
 
 extension APIClient: OfflineRemote {
+    func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment {
+        let result: APIv1.Success<SyncGarment> = try await call("api_v1_initial_wear_history", operation)
+        guard result.data.id == operation.id, result.data.version > operation.baseVersion,
+              !result.data.deleted, result.data.metadata?.initialWearHistory == operation.history else { throw APIClientError.invalidResponse }
+        return result.data
+    }
     func delete(_ operation: DeleteGarment) async throws {
         let result: APIv1.Success<Bool> = try await call("api_v1_delete_garment", operation)
         guard result.data else { throw APIClientError.invalidResponse }
@@ -164,6 +189,7 @@ actor OfflineStore: WardrobeRepository {
         let garment: APIv1.SaveGarment?
         let wear: SaveWear?
         var deletion: DeleteGarment? = nil
+        var initialHistory: SaveInitialHistory? = nil
         var sent = false
         var attempts = 0
         var retryAfter = Date.distantPast
@@ -262,7 +288,7 @@ actor OfflineStore: WardrobeRepository {
         next.garments.removeAll { $0.id == id }
         next.garments.append(SyncGarment(id: id, version: item.version, deleted: true,
             fields: APIv1.GarmentFields(name: "Deleted", category: .other, priceGrosz: nil, availability: .unavailable)))
-        next.outbox.removeAll { $0.garment?.garmentID == id }
+        next.outbox.removeAll { $0.garment?.garmentID == id || $0.initialHistory?.id == id }
         let operation = DeleteGarment(operationID: UUID(), garmentID: id)
         next.outbox.insert(Pending(id: operation.operationID, garment: nil, wear: nil, deletion: operation), at: 0)
         scrubDeletedMembership(&next)
@@ -294,10 +320,45 @@ actor OfflineStore: WardrobeRepository {
         next.outbox.removeAll { !$0.sent && $0.wear?.wear.garmentIDs.isEmpty == true }
     }
 
+    func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail {
+        try requireActive()
+        try history?.validate()
+        guard let old = state.garments.first(where: { $0.id == id && !$0.deleted }), old.version > 0 else { throw OfflineError.invalidState }
+        guard !state.outbox.contains(where: { $0.garment?.garmentID == id || $0.initialHistory?.id == id }) else { throw OfflineError.pendingChange }
+        if let history, old.metadata?.initialWearHistory?.startDate != history.startDate,
+           state.wears.contains(where: { !$0.deleted && $0.garmentIDs.contains(id) && $0.wornOn < max(history.startDate, old.metadata?.initialWearHistory?.startDate ?? history.startDate) }), !confirmOverlap {
+            throw APIClientError.invalidRequest
+        }
+        let operation = SaveInitialHistory(operationID: UUID(), id: id, baseVersion: old.version, history: history, confirmOverlap: confirmOverlap)
+        var next = state
+        var metadata = old.display
+        metadata.initialWearHistory = history
+        next.garments.removeAll { $0.id == id }
+        next.garments.append(SyncGarment(id: id, version: old.version, deleted: false, fields: old.fields, metadata: metadata))
+        next.outbox.append(Pending(id: operation.operationID, garment: nil, wear: nil, initialHistory: operation))
+        try commit(next)
+        return try await detail(id: id)
+    }
+
+    func discardInitialHistoryConflict(id: UUID) async throws {
+        try requireActive()
+        guard !syncing, let pending = state.outbox.first(where: { $0.initialHistory?.id == id }), pending.failure != nil else { throw OfflineError.pendingChange }
+        syncing = true
+        defer { syncing = false }
+        let snapshot = try await remote.snapshot()
+        try requireActive()
+        guard snapshot.accountID == state.accountID else { throw OfflineError.accountMismatch }
+        var next = state
+        next.outbox.removeAll { $0.id == pending.id }
+        try commit(next)
+        try merge(snapshot)
+    }
+
     @discardableResult
     func saveGarment(id: UUID = UUID(), fields: APIv1.GarmentFields) throws -> UUID {
         try requireActive()
         try fields.validate()
+        guard !state.outbox.contains(where: { $0.initialHistory?.id == id }) else { throw OfflineError.pendingChange }
         let queued = state.outbox.first { $0.garment?.garmentID == id }
         guard queued?.sent != true else { throw OfflineError.pendingChange }
         let previous = state.garments.first { $0.id == id }
@@ -447,7 +508,16 @@ actor OfflineStore: WardrobeRepository {
                 if let index = started.outbox.firstIndex(where: { $0.id == id }) { started.outbox[index].sent = true }
                 try commit(started)
                 do {
-                    if let operation = pending.deletion {
+                    if let operation = pending.initialHistory {
+                        let garment = try await remote.initialHistory(operation)
+                        try requireActive()
+                        var next = state
+                        if next.garments.contains(where: { $0.id == garment.id && $0.deleted }) { continue }
+                        next.garments.removeAll { $0.id == garment.id }
+                        next.garments.append(garment)
+                        next.outbox.removeAll { $0.id == id }
+                        try commit(next)
+                    } else if let operation = pending.deletion {
                         try await remote.delete(operation)
                         try requireActive()
                         var next = state
@@ -503,6 +573,10 @@ actor OfflineStore: WardrobeRepository {
         for garment in snapshot.garments {
             if !garment.deleted && next.garments.contains(where: { $0.id == garment.id && $0.deleted }) { continue }
             guard garment.version > 0 else { throw APIClientError.invalidResponse }
+            if let pending = next.outbox.firstIndex(where: { $0.initialHistory?.id == garment.id }) {
+                if garment.deleted { next.outbox[pending].failure = "version_conflict"; next.outbox[pending].sent = true }
+                else { continue }
+            }
             if let pending = next.outbox.firstIndex(where: { $0.garment?.garmentID == garment.id }) {
                 // Preserve the local proposal for conflict review. A tombstone
                 // hides it immediately and prevents any stale write being sent.
