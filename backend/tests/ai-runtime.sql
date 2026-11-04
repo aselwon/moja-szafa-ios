@@ -1,0 +1,96 @@
+BEGIN;
+SET LOCAL TIME ZONE 'Pacific/Kiritimati';
+CREATE FUNCTION pg_temp.assert_true(ok boolean,message text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'Assertion failed: %',message; END IF; END $$;
+INSERT INTO auth.users VALUES('00000000-0000-0000-0000-000000000091'),('00000000-0000-0000-0000-000000000092');
+INSERT INTO app.profiles(id,user_id) SELECT id,id FROM auth.users WHERE id::text LIKE '%00000000009_';
+INSERT INTO api_private.ai_disclosure VALUES(true,'runtime-test','Cloudflare Workers AI','Synthetic thumbnails and metadata','Synthetic test') ON CONFLICT(singleton) DO UPDATE SET recipient=EXCLUDED.recipient,policy_version=EXCLUDED.policy_version;
+INSERT INTO app.consent_events(user_id,purpose,policy_version,recipient,granted,client_request_id,disclosure)
+SELECT p.user_id,'ai',d.policy_version,d.recipient,true,gen_random_uuid(),to_jsonb(d)-'singleton'
+FROM app.profiles p CROSS JOIN api_private.ai_disclosure d WHERE p.user_id::text LIKE '%00000000009_';
+DO $$
+DECLARE a uuid := '00000000-0000-0000-0000-000000000091'; b uuid := '00000000-0000-0000-0000-000000000092';
+    image_id uuid:=gen_random_uuid(); garment_id uuid:=gen_random_uuid(); op uuid:=gen_random_uuid(); job uuid; lease jsonb; other uuid; receipt jsonb;
+BEGIN
+    UPDATE api_private.ai_policy SET enabled=false;
+    BEGIN PERFORM app.jobs_enqueue(a,op,'image_analysis','{}'); RAISE EXCEPTION 'disabled admission allowed';
+      EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+    UPDATE api_private.ai_policy SET enabled=true,image_enabled=false;
+    BEGIN PERFORM app.jobs_enqueue(a,op,'image_analysis','{}'); RAISE EXCEPTION 'unconfigured vision allowed';
+      EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+    UPDATE api_private.ai_policy SET enabled=true,image_enabled=true,daily_user_units=1,daily_global_units=1;
+    job:=app.jobs_enqueue(a,op,'image_analysis','{}');
+    PERFORM pg_temp.assert_true(app.jobs_enqueue(a,op,'image_analysis','{}')=job,'replay at exhausted budget');
+    BEGIN PERFORM app.jobs_enqueue(b,gen_random_uuid(),'image_analysis','{}'); RAISE EXCEPTION 'global overbooking';
+      EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+    lease:=app.jobs_claim();
+    PERFORM pg_temp.assert_true(NOT app.ai_runtime_dispatch(job,(lease->>'lease_token')::uuid,'Other recipient'),'recipient bound');
+    PERFORM pg_temp.assert_true(app.ai_runtime_dispatch(job,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'first dispatch');
+    PERFORM pg_temp.assert_true(NOT app.ai_runtime_dispatch(job,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'no uncertain retry');
+    PERFORM app.jobs_finish(job,(lease->>'lease_token')::uuid,'permanent');
+    PERFORM pg_temp.assert_true((SELECT status='released' FROM app.usage_reservations WHERE ai_job_id=job),'failed reservation released');
+    BEGIN PERFORM app.jobs_enqueue(b,gen_random_uuid(),'image_analysis','{}'); RAISE EXCEPTION 'uncertain provider spend refunded';
+      EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+    UPDATE api_private.ai_policy SET daily_global_units=20,daily_user_units=20;
+    other:=app.jobs_enqueue(b,gen_random_uuid(),'outfit_generation','{"count":1}');
+    PERFORM pg_temp.assert_true((SELECT units=2 FROM app.usage_reservations WHERE ai_job_id=other),'outfit reserves repair');
+    lease:=app.jobs_claim();
+    PERFORM pg_temp.assert_true(app.ai_runtime_dispatch(other,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'outfit call1');
+    PERFORM pg_temp.assert_true(NOT app.ai_runtime_dispatch(other,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'repair denied without evidence');
+    receipt:='{"status":"outfit_json_invalid"}';
+    PERFORM pg_temp.assert_true(app.ai_runtime_telemetry(other,1,1,receipt),'durable malformed JSON evidence');
+    PERFORM pg_temp.assert_true(app.ai_runtime_telemetry(other,1,1,receipt),'telemetry replay');
+    PERFORM pg_temp.assert_true(NOT app.ai_runtime_telemetry(other,1,1,'{"status":"changed"}'),'telemetry immutable');
+    PERFORM pg_temp.assert_true(app.ai_runtime_dispatch(other,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'one evidenced repair');
+    PERFORM pg_temp.assert_true(NOT app.ai_runtime_dispatch(other,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'third call denied');
+    PERFORM app.jobs_finish(other,(lease->>'lease_token')::uuid,'permanent');
+    PERFORM pg_temp.assert_true((SELECT sum(units)=3 FROM api_private.ai_daily_dispatch),'all dispatched calls charged conservatively');
+    other:=app.jobs_enqueue(b,gen_random_uuid(),'image_analysis','{}'); lease:=app.jobs_claim();
+    UPDATE api_private.ai_policy SET enabled=false;
+    PERFORM pg_temp.assert_true(NOT app.ai_runtime_dispatch(other,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'kill switch after claim');
+    PERFORM app.jobs_finish(other,(lease->>'lease_token')::uuid,'permanent');
+    PERFORM pg_temp.assert_true((SELECT sum(units)=3 FROM api_private.ai_daily_dispatch),'not-dispatched failure spends nothing');
+    UPDATE api_private.ai_policy SET enabled=true;
+    INSERT INTO app.garments(id,user_id,name,category) VALUES(garment_id,a,'Synthetic private garment','top');
+    INSERT INTO api_private.image_uploads(id,user_id,garment_id,state) VALUES(image_id,a,garment_id,'ready');
+    INSERT INTO app.garment_images(user_id,garment_id,variant,object_key,status) VALUES(a,garment_id,'thumbnail',image_id::text || '/thumbnail.jpg','ready');
+    other:=app.jobs_enqueue(a,gen_random_uuid(),'image_analysis',jsonb_build_object('image_id',image_id));lease:=app.jobs_claim();
+    PERFORM pg_temp.assert_true(app.ai_runtime_input(other,(lease->>'lease_token')::uuid)->>'object_key'=image_id::text || '/thumbnail.jpg','trusted normalized owner thumbnail');
+    PERFORM app.jobs_finish(other,(lease->>'lease_token')::uuid,'permanent');
+    other:=app.jobs_enqueue(b,gen_random_uuid(),'image_analysis',jsonb_build_object('image_id',image_id));lease:=app.jobs_claim();
+    PERFORM pg_temp.assert_true(app.ai_runtime_input(other,(lease->>'lease_token')::uuid) IS NULL,'foreign image never resolved');
+    PERFORM app.jobs_finish(other,(lease->>'lease_token')::uuid,'permanent');
+    other:=app.jobs_enqueue(b,gen_random_uuid(),'image_analysis','{}');lease:=app.jobs_claim();
+    UPDATE api_private.ai_policy SET daily_global_units=2;
+    PERFORM pg_temp.assert_true(NOT app.ai_runtime_dispatch(other,(lease->>'lease_token')::uuid,'Cloudflare Workers AI'),'lowered budget rechecked before dispatch');
+    PERFORM app.jobs_finish(other,(lease->>'lease_token')::uuid,'permanent');
+    UPDATE api_private.ai_policy SET daily_global_units=20;
+    op:=gen_random_uuid();other:=app.jobs_enqueue_with_consent(b,op,'outfit_generation','{"count":1}',1);
+    PERFORM pg_temp.assert_true(app.jobs_enqueue(b,op,'outfit_generation','{"count":1}',1)=other,'pre-migration replay preserves units');
+    PERFORM pg_temp.assert_true((SELECT units=1 FROM app.usage_reservations WHERE ai_job_id=other),'legacy reservation not rewritten');
+END $$;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000091',true);
+DO $$
+DECLARE request jsonb:=jsonb_build_object('operation_id',gen_random_uuid(),'count',3,'pinned_garment_id',null,
+    'preferences',jsonb_build_object('colors','[]'::jsonb,'seasons','[]'::jsonb),'occasion',jsonb_build_object('formality',null));
+    response jsonb; job uuid; result jsonb;
+BEGIN
+    response:=app.api_v1_generate_outfits(request);
+    PERFORM pg_temp.assert_true(response->'data'->>'status'='queued','authenticated public admission');
+    job:=(response->'data'->>'job_id')::uuid;
+    PERFORM pg_temp.assert_true(app.api_v1_generate_outfits(request)->'data'->>'job_id'=job::text,'public operation replay');
+    result:=app.api_v1_job_result(jsonb_build_object('job_id',job));
+    PERFORM pg_temp.assert_true(result->'data'->'result'='null'::jsonb,'pending result is null');
+    PERFORM pg_temp.assert_true(NOT (result->'data') ? 'telemetry','no provider telemetry exposure');
+    PERFORM pg_temp.assert_true(app.api_v1_generate_outfits(request || '{"owner":"forged"}')->'error'->>'code'='validation_failed','unknown owner rejected');
+    PERFORM pg_temp.assert_true(app.api_v1_generate_outfits(jsonb_set(request,'{preferences,colors}','["red","red"]'))->'error'->>'code'='validation_failed','duplicate enum entries rejected');
+    PERFORM set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000092',true);
+    PERFORM pg_temp.assert_true(app.api_v1_job_result(jsonb_build_object('job_id',job))->'error'->>'code'='not_found','foreign job undiscoverable');
+    PERFORM set_config('request.jwt.claim.sub','',true);
+    PERFORM pg_temp.assert_true(app.api_v1_job_result(jsonb_build_object('job_id',job))->'error'->>'code'='unauthorized','no unauthenticated result');
+END $$;
+RESET ROLE;
+DELETE FROM auth.users WHERE id='00000000-0000-0000-0000-000000000091';
+SELECT pg_temp.assert_true((SELECT sum(units)=3 FROM api_private.ai_daily_dispatch),'anonymous global spend survives identity deletion');
+ROLLBACK;
