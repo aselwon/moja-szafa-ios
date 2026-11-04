@@ -90,6 +90,23 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   const detail=await call('api_v1_garment_detail',{id:garment});
   assert.deepEqual(detail.body.data.garment.initialWearHistory,estimate.history);
 
+  // T038: the native history contract must pass the managed gateway and its
+  // restricted database role, including replay and cross-account rejection.
+  const wearID=randomUUID();
+  assert((await call('api_v1_save_wear',{operationID:randomUUID(),wear:{id:wearID,version:0,deleted:false,
+    wornOn:'2026-01-01',timezone:'Pacific/Kiritimati',garmentIDs:[garment]}})).body.data);
+  const removal={operationID:randomUUID(),id:wearID,baseVersion:1,action:'remove'};
+  const removed=await call('api_v1_wear_visibility',removal);
+  assert.equal(removed.status,200);
+  assert.equal(removed.body.data?.deleted,true,JSON.stringify(removed.body));
+  assert.deepEqual((await call('api_v1_wear_visibility',removal)).body,removed.body);
+  const restoration={operationID:randomUUID(),id:wearID,baseVersion:2,action:'restore'};
+  assert.equal((await call('api_v1_wear_visibility',restoration,tokenB)).body.error?.code,'version_conflict');
+  const restored=await call('api_v1_wear_visibility',restoration);
+  assert.equal(restored.body.data?.deleted,false,JSON.stringify(restored.body));
+  assert.equal(restored.body.data?.wornOn,'2026-01-01');
+  assert.deepEqual(restored.body.data?.garmentIDs,[garment]);
+
   const image = await store.command(a,'images','prepare',{garment,id:randomUUID()});
   assert(image?.id);
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,

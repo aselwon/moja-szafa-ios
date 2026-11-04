@@ -77,6 +77,7 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/offline-sync.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/wear-editing.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/initial-wear-history.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/wear-history.sql"
     bash "$root/tests/api-concurrency.sh" "$database"
     bash "$root/tests/wear-concurrency.sh" "$database"
     # Explicit synthetic policy; production migration remains disabled by default.

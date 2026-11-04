@@ -8382,6 +8382,60 @@
         }
       }
     },
+    "wear.historyDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History date"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data w historii"
+          }
+        }
+      },
+      "comment": "T038: date selected in the wear-history calendar.",
+      "extractionState": "manual"
+    },
+    "wear.undoRemoval": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo removal"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnij usunięcie"
+          }
+        }
+      },
+      "comment": "T038: restore the last removed wear event.",
+      "extractionState": "manual"
+    },
+    "wear.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove wear entry"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń wpis noszenia"
+          }
+        }
+      },
+      "comment": "T038: remove the selected wear event, without deleting garments.",
+      "extractionState": "manual"
+    },
     "initialHistory.title": {
       "comment": "T037: explicit initial wear estimate and diary boundary.",
       "extractionState": "manual",
