@@ -1,2 +1,3 @@
-# Decoder dependency; installation is an explicit environment provisioning step.
-Pillow>=10.2,<13
+# Python >=3.11. Provision in the service's private virtual environment.
+# 13.0.0 includes security fixes for image decoding; do not resolve older releases.
+Pillow==13.0.0
