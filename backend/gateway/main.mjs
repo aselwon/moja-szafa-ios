@@ -23,8 +23,11 @@ async function main() {
     pg_has_role(current_user, 'szafa_gateway', 'MEMBER') AS gateway
     FROM pg_roles WHERE rolname=current_user`);
   if (!role.rows[0]?.gateway || role.rows[0]?.worker || role.rows[0]?.bypass || role.rows[0]?.super || ['szafa_owner', 'service_role'].includes(role.rows[0]?.name)) throw new Error('least_privilege_database_role_required');
-  const contract = JSON.parse(await readFile(new URL('../api/openapi-v1.json', import.meta.url), 'utf8'));
-  const operations = Object.values(contract.paths).map(route => route.post.operationId);
+  const contracts = [JSON.parse(await readFile(new URL('../api/openapi-v1.json', import.meta.url), 'utf8'))];
+  // T034 installs the separately versioned AI surface alongside its SQL migration.
+  try { contracts.push(JSON.parse(await readFile(new URL('../api/openapi-ai-v1.json', import.meta.url), 'utf8'))); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const operations = contracts.flatMap(contract => Object.values(contract.paths).map(route => route.post.operationId));
   const store = new GatewayStore(pool, operations);
   const server = createGateway({ auth: new ManagedAuth({ baseURL: env.NEON_AUTH_BASE_URL }), store,
     storage: privateFiles(env.PRIVATE_IMAGE_DIRECTORY), signingKey: Buffer.from(env.IMAGE_SIGNING_KEY, 'hex'),
