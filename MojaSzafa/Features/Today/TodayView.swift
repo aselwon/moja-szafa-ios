@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TodayView: View {
     @StateObject private var model: SuggestionsModel
+    @ObservedObject private var personalization: PersonalizationModel
+    @State private var feedbackOutfit: Outfit?
     @State private var weather: WeatherModel
     @State private var generationTask: Task<Void, Never>?
     @State private var count = 3
@@ -9,7 +11,8 @@ struct TodayView: View {
     private let consent: (any AIConsentService)?
     @State private var replacement: ReplacementSelection?
 
-    init(dependencies: AppDependencies, accountID: UUID) {
+    init(dependencies: AppDependencies, accountID: UUID, personalization: PersonalizationModel? = nil) {
+        self.personalization = personalization ?? PersonalizationModel(repository: dependencies.outfits, journalURL: dependencies.personalizationIntentURL(accountID: accountID))
         _weather = State(initialValue: WeatherModel(service: AppleCityWeatherService(repository: dependencies.weather)))
         consent = dependencies.aiConsent
         let intentURL = dependencies.generationIntentURL(accountID: accountID)
@@ -73,6 +76,14 @@ struct TodayView: View {
                     Button(LocalizedStringKey(suggestion.outfit.version > 0 ? "suggestions.saved" : "outfits.save")) {
                         Task { await model.save(suggestion.id) }
                     }.disabled(model.generating || model.busy || (model.saves.pending != nil && model.saves.pending?.id != suggestion.id))
+                    Button(LocalizedStringKey(suggestion.outfit.version > 0 ? "personalization.feedback" : "personalization.saveAndRate")) {
+                        Task {
+                            await model.save(suggestion.id)
+                            if model.errorKey == nil, let saved = model.items.first(where: { $0.id == suggestion.id })?.outfit, saved.version > 0 {
+                                feedbackOutfit = saved
+                            }
+                        }
+                    }.disabled(model.generating || model.busy || model.saves.pending != nil)
                     Button(LocalizedStringKey(suggestion.worn ? "suggestions.worn" : "suggestions.wear")) {
                         Task { await model.wear(suggestion.id) }
                     }.disabled(model.generating || model.busy || suggestion.worn || model.saves.pending != nil)
@@ -87,6 +98,9 @@ struct TodayView: View {
             else { await model.load() }
         }
         .onDisappear { generationTask?.cancel(); weather.clear() }
+        .sheet(item: $feedbackOutfit) { outfit in
+            NavigationStack { PersonalizationEditor(model: personalization, outfit: outfit) }
+        }
         .sheet(isPresented: $showPrivacy) {
             NavigationStack { AIPrivacyView(service: consent) }
         }

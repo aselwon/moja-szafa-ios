@@ -376,3 +376,70 @@ extension GenerationTests {
 private struct OfflineGenerationWardrobe: WardrobeRepository {
     func garments() async throws -> [Garment] { throw URLError(.notConnectedToInternet) }
 }
+
+@MainActor
+final class PersonalizationTests: XCTestCase {
+    func testUncertainFeedbackSurvivesRelaunchAndReplaysExactIntent() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("intent.json")
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let fixture = PersonalizationFixture()
+        let first = PersonalizationModel(repository: fixture, journalURL: url)
+        let outfitID = UUID()
+        await first.load(outfitID: outfitID)
+        let saved = await first.save(action: .feedback, rating: "dislike", reason: "Too formal")
+        XCTAssertFalse(saved)
+        let intent = try XCTUnwrap(first.pending)
+        let relaunched = PersonalizationModel(repository: fixture, journalURL: url)
+        XCTAssertEqual(relaunched.pending, intent)
+        await relaunched.load(outfitID: outfitID)
+        let retried = await relaunched.retry()
+        XCTAssertTrue(retried)
+        XCTAssertNil(relaunched.pending)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+        let requests = await fixture.mutations
+        XCTAssertEqual(requests, [intent, intent])
+        XCTAssertEqual(relaunched.state?.version, 7, "Must read current revision instead of trusting a cached acknowledgement")
+    }
+    func testResetFencesStaleMutationWithoutAutomaticRebase() async throws {
+        let fixture = PersonalizationFixture(conflict: true)
+        let model = PersonalizationModel(repository: fixture)
+        await model.load()
+        let saved = await model.save(action: .preferences, excluded: ["top"], colors: ["blue"])
+        XCTAssertFalse(saved)
+        XCTAssertNil(model.pending)
+        XCTAssertNil(model.state)
+        XCTAssertEqual(model.errorKey, "personalization.conflict")
+        let second = await model.save(action: .reset)
+        XCTAssertFalse(second, "A fresh explicit read is required")
+        let requests = await fixture.mutations
+        XCTAssertEqual(requests.count, 1)
+    }
+    func testCorruptJournalFailsClosed() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try Data("invalid".utf8).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let fixture = PersonalizationFixture()
+        let model = PersonalizationModel(repository: fixture, journalURL: url)
+        await model.load()
+        XCTAssertNil(model.state)
+        XCTAssertEqual(model.errorKey, "personalization.storage")
+        let saved = await model.save(action: .reset)
+        XCTAssertFalse(saved)
+        let requests = await fixture.mutations
+        XCTAssertTrue(requests.isEmpty)
+    }
+}
+private actor PersonalizationFixture: OutfitRepository {
+    var mutations: [PersonalizationRequest] = []
+    let conflict: Bool
+    init(conflict: Bool = false) { self.conflict = conflict }
+    func outfits(cursor: UUID?) async throws -> OutfitPage { OutfitPage(items: [], nextCursor: nil) }
+    func saveOutfit(_ request: SaveOutfit) async throws -> Outfit { throw RepositoryError.backendNotConfigured }
+    func personalization(_ request: PersonalizationRequest) async throws -> PersonalizationState {
+        if request.action == .get { return PersonalizationState(version: 7, excludedCategories: [], colors: [], feedback: nil) }
+        mutations.append(request)
+        if conflict { throw APIv1.Failure(code: "version_conflict", message: "", requestID: UUID()) }
+        if mutations.count == 1 { throw URLError(.timedOut) }
+        return PersonalizationState(version: 2, excludedCategories: ["top"], colors: [], feedback: nil)
+    }
+}
