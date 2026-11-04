@@ -130,6 +130,8 @@ BEGIN
   payload := coalesce(payload,'{}'::jsonb) || jsonb_build_object('owner',owner_id,'action',action);
   IF kind='images' AND action IN ('prepare','claim','finish','read') THEN
     result := app.images_command(payload);
+  ELSIF kind='purchase_images' AND action IN ('prepare','claim','finish','read') THEN
+    result := app.purchase_images_command(payload);
   ELSIF kind='exports' AND action IN ('prepare','check','read','image') THEN
     result := app.exports_command(payload);
   ELSE RAISE EXCEPTION 'Unsupported operation' USING ERRCODE='42501';

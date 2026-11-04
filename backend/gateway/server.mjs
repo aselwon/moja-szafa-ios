@@ -6,6 +6,7 @@ import { ImagePipeline } from '../images/pipeline.mjs';
 import { imageHandler } from '../images/http.mjs';
 import { DataExports } from '../exports/service.mjs';
 import { exportHandler } from '../exports/http.mjs';
+import { weatherHandler } from '../weather/http.mjs';
 
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 async function jsonBody(request, limit = 16384) {
@@ -30,7 +31,7 @@ function sessionDTO(principal) {
   return { userID: principal.owner, accessToken: principal.token, refreshToken: principal.token, expiresAt: principal.expiresAt };
 }
 
-export function createGateway({ auth, store, storage, signingKey, exportDirectory, now = () => Date.now() }) {
+export function createGateway({ auth, store, storage, signingKey, exportDirectory, forecast, now = () => Date.now() }) {
   const context = new AsyncLocalStorage();
   const authenticate = async header => {
     const principal = await auth.current(bearer(header));
@@ -44,9 +45,11 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
     return store.command(principal, kind, action, data);
   } });
   const images = storage && signingKey ? imageHandler(new ImagePipeline({ store: commands('images'), storage, signingKey }), authenticate) : null;
+  const purchaseImages = storage && signingKey ? imageHandler(new ImagePipeline({ store: commands('purchase_images'), storage, signingKey }), authenticate, { prefix: '/v1/purchase-images', parentField: 'candidate_id' }) : null;
   const exports = storage && exportDirectory ? exportHandler(new DataExports({
     store: commands('exports'), storage, directory: exportDirectory, maxBytes: 512 * 1024 ** 2,
   }), authenticate) : null;
+  const weather = forecast ? weatherHandler({ authenticate, forecast }) : null;
   // Bounded abuse protection complements managed OTP limits and durable per-email limits.
   const starts = new Map();
   let active = 0;
@@ -61,7 +64,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
     active++;
     try {
       const url = new URL(request.url, 'http://gateway.invalid');
-      if (url.search && !url.pathname.startsWith('/v1/images/')) throw new GatewayError('invalid_request', 400);
+      if (url.search && !url.pathname.startsWith('/v1/images/') && !url.pathname.startsWith('/v1/purchase-images/')) throw new GatewayError('invalid_request', 400);
       if (request.method === 'GET' && url.pathname === '/health') return send(200, { status: 'ok' });
       if (url.pathname.startsWith('/auth/v1/')) {
         if (request.method !== 'POST') throw new GatewayError('not_found', 404);
@@ -102,6 +105,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
         // Apple is not silently replaced with another provider or a fake identity.
         throw new GatewayError('authentication_not_configured', 503);
       }
+      if (url.pathname === '/v1/weather' && weather) return await weather(request, response);
       const rpc = /^\/rest\/v1\/rpc\/(api_v1_[a-z_]+)$/.exec(url.pathname);
       if (rpc && request.method === 'POST') {
         if (!store.operations.has(rpc[1])) throw new GatewayError('not_found', 404);
@@ -111,6 +115,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
         await authenticate(request.headers.authorization);
         return send(200, await store.rpc(context.getStore().principal, rpc[1], body.request));
       }
+      if (url.pathname.startsWith('/v1/purchase-images/') && purchaseImages) return await purchaseImages(request, response);
       if (url.pathname.startsWith('/v1/images/') && images) return await images(request, response);
       if (url.pathname.startsWith('/v1/exports/') && exports) return await exports(request, response);
       throw new GatewayError('not_found', 404);

@@ -1,0 +1,885 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Temporary purchase preview",
+    "version": "1.0.0",
+    "description": "Candidate is not an owned garment. Photo normalization has a separate owner-scoped route. AI uses manually entered metadata; no visual-recognition or future-CPW claim."
+  },
+  "paths": {
+    "/rest/v1/rpc/api_v1_purchase": {
+      "post": {
+        "operationId": "api_v1_purchase",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Content-Profile",
+            "required": true,
+            "schema": {
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "const": "list"
+                          }
+                        },
+                        "required": [
+                          "action"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "const": "get"
+                          },
+                          "candidate_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "action",
+                          "candidate_id"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "const": "create"
+                          },
+                          "operation_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "candidate_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "price_grosz": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "minimum": 0
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "category": {
+                                "enum": [
+                                  "top",
+                                  "bottom",
+                                  "shoes",
+                                  "dress",
+                                  "jumpsuit",
+                                  "outerwear",
+                                  "accessory",
+                                  "other"
+                                ]
+                              },
+                              "colors": {
+                                "type": "array",
+                                "maxItems": 13,
+                                "uniqueItems": true,
+                                "items": {
+                                  "enum": [
+                                    "black",
+                                    "white",
+                                    "gray",
+                                    "beige",
+                                    "brown",
+                                    "red",
+                                    "orange",
+                                    "yellow",
+                                    "green",
+                                    "blue",
+                                    "purple",
+                                    "pink",
+                                    "other"
+                                  ]
+                                }
+                              },
+                              "seasons": {
+                                "type": "array",
+                                "maxItems": 4,
+                                "uniqueItems": true,
+                                "items": {
+                                  "enum": [
+                                    "spring",
+                                    "summer",
+                                    "autumn",
+                                    "winter"
+                                  ]
+                                }
+                              },
+                              "formality": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ],
+                                "minimum": 1,
+                                "maximum": 5
+                              }
+                            },
+                            "required": [
+                              "category",
+                              "colors",
+                              "seasons",
+                              "formality"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "action",
+                          "operation_id",
+                          "candidate_id",
+                          "name",
+                          "price_grosz",
+                          "metadata"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "const": "confirm"
+                          },
+                          "operation_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "candidate_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "confirmed": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "action",
+                          "operation_id",
+                          "candidate_id",
+                          "confirmed"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "const": "discard"
+                          },
+                          "operation_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "candidate_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "action",
+                          "operation_id",
+                          "candidate_id"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "request"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owner-scoped success or safe error envelope. No raw prompts or telemetry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "data": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "metadata": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "category": {
+                                      "enum": [
+                                        "top",
+                                        "bottom",
+                                        "shoes",
+                                        "dress",
+                                        "jumpsuit",
+                                        "outerwear",
+                                        "accessory",
+                                        "other"
+                                      ]
+                                    },
+                                    "colors": {
+                                      "type": "array",
+                                      "maxItems": 13,
+                                      "uniqueItems": true,
+                                      "items": {
+                                        "enum": [
+                                          "black",
+                                          "white",
+                                          "gray",
+                                          "beige",
+                                          "brown",
+                                          "red",
+                                          "orange",
+                                          "yellow",
+                                          "green",
+                                          "blue",
+                                          "purple",
+                                          "pink",
+                                          "other"
+                                        ]
+                                      }
+                                    },
+                                    "seasons": {
+                                      "type": "array",
+                                      "maxItems": 4,
+                                      "uniqueItems": true,
+                                      "items": {
+                                        "enum": [
+                                          "spring",
+                                          "summer",
+                                          "autumn",
+                                          "winter"
+                                        ]
+                                      }
+                                    },
+                                    "formality": {
+                                      "type": [
+                                        "integer",
+                                        "null"
+                                      ],
+                                      "minimum": 1,
+                                      "maximum": 5
+                                    }
+                                  },
+                                  "required": [
+                                    "category",
+                                    "colors",
+                                    "seasons",
+                                    "formality"
+                                  ]
+                                },
+                                "price_grosz": {
+                                  "type": [
+                                    "integer",
+                                    "null"
+                                  ]
+                                },
+                                "image_id": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                },
+                                "expires_at": {
+                                  "type": "number"
+                                },
+                                "status": {
+                                  "enum": [
+                                    "considering",
+                                    "purchased",
+                                    "discarded"
+                                  ]
+                                },
+                                "garment_id": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name",
+                                "metadata",
+                                "price_grosz",
+                                "image_id",
+                                "expires_at",
+                                "status",
+                                "garment_id"
+                              ]
+                            },
+                            {
+                              "type": "array",
+                              "maxItems": 50,
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "category": {
+                                        "enum": [
+                                          "top",
+                                          "bottom",
+                                          "shoes",
+                                          "dress",
+                                          "jumpsuit",
+                                          "outerwear",
+                                          "accessory",
+                                          "other"
+                                        ]
+                                      },
+                                      "colors": {
+                                        "type": "array",
+                                        "maxItems": 13,
+                                        "uniqueItems": true,
+                                        "items": {
+                                          "enum": [
+                                            "black",
+                                            "white",
+                                            "gray",
+                                            "beige",
+                                            "brown",
+                                            "red",
+                                            "orange",
+                                            "yellow",
+                                            "green",
+                                            "blue",
+                                            "purple",
+                                            "pink",
+                                            "other"
+                                          ]
+                                        }
+                                      },
+                                      "seasons": {
+                                        "type": "array",
+                                        "maxItems": 4,
+                                        "uniqueItems": true,
+                                        "items": {
+                                          "enum": [
+                                            "spring",
+                                            "summer",
+                                            "autumn",
+                                            "winter"
+                                          ]
+                                        }
+                                      },
+                                      "formality": {
+                                        "type": [
+                                          "integer",
+                                          "null"
+                                        ],
+                                        "minimum": 1,
+                                        "maximum": 5
+                                      }
+                                    },
+                                    "required": [
+                                      "category",
+                                      "colors",
+                                      "seasons",
+                                      "formality"
+                                    ]
+                                  },
+                                  "price_grosz": {
+                                    "type": [
+                                      "integer",
+                                      "null"
+                                    ]
+                                  },
+                                  "image_id": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "format": "uuid"
+                                  },
+                                  "expires_at": {
+                                    "type": "number"
+                                  },
+                                  "status": {
+                                    "enum": [
+                                      "considering",
+                                      "purchased",
+                                      "discarded"
+                                    ]
+                                  },
+                                  "garment_id": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "format": "uuid"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "metadata",
+                                  "price_grosz",
+                                  "image_id",
+                                  "expires_at",
+                                  "status",
+                                  "garment_id"
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "request_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "request_id"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "error": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "request_id": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message",
+                            "request_id"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "error"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/v1/rpc/api_v1_purchase_fit": {
+      "post": {
+        "operationId": "api_v1_purchase_fit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Content-Profile",
+            "required": true,
+            "schema": {
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "operation_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "candidate_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "required": [
+                      "operation_id",
+                      "candidate_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "request"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owner-scoped success or safe error envelope. No raw prompts or telemetry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "job_id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "status": {
+                              "enum": [
+                                "queued",
+                                "running",
+                                "succeeded",
+                                "failed",
+                                "cancelled",
+                                "dead_letter"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "job_id",
+                            "status"
+                          ]
+                        },
+                        "request_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "request_id"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "error": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "request_id": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message",
+                            "request_id"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "error"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/v1/rpc/api_v1_purchase_fit_result": {
+      "post": {
+        "operationId": "api_v1_purchase_fit_result",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Content-Profile",
+            "required": true,
+            "schema": {
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "job_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "required": [
+                      "job_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "request"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owner-scoped success or safe error envelope. No raw prompts or telemetry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "job_id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "kind": {
+                              "const": "purchase_fit"
+                            },
+                            "status": {
+                              "enum": [
+                                "queued",
+                                "running",
+                                "succeeded",
+                                "failed",
+                                "cancelled",
+                                "dead_letter"
+                              ]
+                            },
+                            "result": {
+                              "oneOf": [
+                                {
+                                  "type": "null"
+                                },
+                                {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "outfits": {
+                                      "type": "array",
+                                      "maxItems": 3,
+                                      "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "garment_ids": {
+                                            "type": "array",
+                                            "maxItems": 40,
+                                            "items": {
+                                              "type": "string",
+                                              "format": "uuid"
+                                            }
+                                          },
+                                          "rationale": {
+                                            "type": "string"
+                                          },
+                                          "complete": {
+                                            "type": "boolean"
+                                          },
+                                          "missing_categories": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "purchase_candidate_id": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                          }
+                                        },
+                                        "required": [
+                                          "garment_ids",
+                                          "rationale",
+                                          "complete",
+                                          "missing_categories",
+                                          "purchase_candidate_id"
+                                        ]
+                                      }
+                                    },
+                                    "shortfall_reason": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "outfits",
+                                    "shortfall_reason"
+                                  ]
+                                }
+                              ]
+                            },
+                            "error_code": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "job_id",
+                            "kind",
+                            "status",
+                            "result",
+                            "error_code"
+                          ]
+                        },
+                        "request_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "request_id"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "error": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "request_id": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message",
+                            "request_id"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "error"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
