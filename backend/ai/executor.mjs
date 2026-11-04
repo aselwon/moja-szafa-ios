@@ -1,5 +1,6 @@
 import { validateRecognition, recognitionDraft } from './recognition.mjs';
 import { AIError } from './provider.mjs';
+import { selectCandidates, eligibleGarments } from './candidates.mjs';
 
 // Trusted server composition only, never take these hooks or provider config from a job.
 // resolveInput checks current ownership/availability and loads normalized private bytes.
@@ -17,14 +18,14 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
     let output;
     try {
       let input = await resolveInput(job);
-      if (job.kind === 'outfit_generation') input = eligibleInput(input);
+      if (job.kind === 'outfit_generation') input = selectCandidates(input, job.user_id);
       if (await authorize(job, provider.recipient) !== true) return { outcome: 'permanent' };
       const response = await (job.kind === 'image_analysis' ? provider.analyzeImage(input) : provider.recommendOutfits(input));
       telemetry = response.telemetry;
       const candidate = job.kind === 'image_analysis' ? validateRecognition(response.result) : response.result;
       if (job.kind === 'outfit_generation') {
         // Resolve again after the provider await: laundry/archive may have changed.
-        const current = eligibleInput(await resolveInput(job));
+        const current = { garments: eligibleGarments(await resolveInput(job), job.user_id) };
         assertEligibleResult(candidate, input, current);
       }
       const validated = await validateResult(job, candidate, input);
@@ -44,13 +45,6 @@ export function createAIExecutor({ provider, resolveInput, validateResult, autho
   };
 }
 
-// Trusted resolver supplies explicit current status; missing status fails closed.
-function eligibleInput(input) {
-  if (!Array.isArray(input?.garments)) throw new AIError('input_invalid');
-  const garments = input.garments.filter(g => g.availability === 'available' && g.archived === false);
-  if (!garments.length) throw new AIError('no_available_garments');
-  return { ...input, garments };
-}
 function assertEligibleResult(result, sent, current) {
   const allowed = new Set(current.garments.map(g => g.id));
   const supplied = new Set(sent.garments.map(g => g.id));

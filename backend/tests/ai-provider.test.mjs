@@ -192,15 +192,15 @@ test('outfit executor excludes laundry, unavailable and archived garments before
         return { result: { outfits: [{ garment_ids: ['available'] }] }, telemetry: { status: 'success' } };
       } },
       resolveInput: async () => ({ count: 1, garments: [
-        { id: 'available', availability: 'available', archived: changed && resolves++ > 0 },
-        { id: 'laundry', availability: 'laundry', archived: false },
-        { id: 'unavailable', availability: 'unavailable', archived: false },
-        { id: 'archived', availability: 'available', archived: true },
+        { id: 'available', user_id: 'owner', category: 'top', availability: 'available', archived: changed && resolves++ > 0 },
+        { id: 'laundry', user_id: 'owner', category: 'top', availability: 'laundry', archived: false },
+        { id: 'unavailable', user_id: 'owner', category: 'top', availability: 'unavailable', archived: false },
+        { id: 'archived', user_id: 'owner', category: 'top', availability: 'available', archived: true },
         { id: 'unknown' }
       ] }),
       authorize: async () => true, validateResult: async (_job, result) => result, recordTelemetry: async () => {}
     });
-    const result = await execute({ kind: 'outfit_generation' });
+    const result = await execute({ kind: 'outfit_generation', user_id: 'owner' });
     assert.deepEqual(sent, ['available']);
     assert.equal(result.outcome, changed ? 'permanent' : 'success');
   }
@@ -215,12 +215,12 @@ test('outfit executor rejects excluded IDs and avoids provider calls without eli
         return { result: { outfits: [{ garment_ids: ['laundry'] }] }, telemetry: { status: 'success' } };
       } },
       resolveInput: async () => ({ count: 1, garments: [
-        { id: 'available', availability: 'available', archived: empty },
-        { id: 'laundry', availability: 'laundry', archived: false }
+        { id: 'available', user_id: 'owner', category: 'top', availability: 'available', archived: empty },
+        { id: 'laundry', user_id: 'owner', category: 'top', availability: 'laundry', archived: false }
       ] }),
       authorize: async () => true, validateResult: async (_job, result) => result, recordTelemetry: async () => {}
     });
-    assert.equal((await execute({ kind: 'outfit_generation' })).outcome, 'permanent');
+    assert.equal((await execute({ kind: 'outfit_generation', user_id: 'owner' })).outcome, 'permanent');
     assert.equal(calls, empty ? 0 : 1);
   }
 });
