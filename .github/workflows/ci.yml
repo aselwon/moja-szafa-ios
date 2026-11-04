@@ -23,7 +23,9 @@ jobs:
       - name: Provision image decoder for tests
         run: python3 -m pip install -r backend/images/requirements.txt
       - name: Validate repository, environment guards and secrets
-        run: node scripts/harness-check.mjs
+        run: |
+          node --test scripts/select-ios-simulator.test.mjs
+          node scripts/harness-check.mjs
 
   ios:
     needs: validate
@@ -31,7 +33,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      # The self-hosted Mac jobs share a simulator; run configurations serially.
+      # Limit resource use per workflow; each job owns its simulator across concurrent runs.
       max-parallel: 1
       matrix:
         configuration: [Debug, Staging, Release]
@@ -42,20 +44,28 @@ jobs:
           node-version: 22
       - name: Show toolchain
         run: xcodebuild -version
-      - name: Build and test environment
+      - name: Create isolated iPhone simulator
+        id: simulator
         env:
           BUILD_CONFIGURATION: ${{ matrix.configuration }}
         run: |
           set -euo pipefail
-          # Runner images rotate Xcode and simulators, so use the default Xcode and the first available iPhone.
-          SIMULATOR_ID="$(xcrun simctl list devices available -j \
-            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).devices;for(const k of Object.keys(r).filter(k=>k.includes("iOS")).sort().reverse()){const d=r[k].find(x=>x.isAvailable!==false&&x.name.startsWith("iPhone"));if(d){console.log(d.udid);return}}process.exit(1)})')"
-          echo "Using simulator $SIMULATOR_ID"
-          # A shared self-hosted Mac reuses one simulator across jobs; start each job from a freshly booted,
-          # fully ready device, otherwise SpringBoard rejects the test host launch as "Busy" (preflight checks).
-          xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
-          xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
+          selection="$(xcrun simctl list runtimes -j | node scripts/select-ios-simulator.mjs)"
+          read -r device_type runtime <<< "$selection"
+          simulator_name="MojaSzafa-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}-${BUILD_CONFIGURATION}"
+          SIMULATOR_ID="$(xcrun simctl create "$simulator_name" "$device_type" "$runtime")"
+          # Persist ownership before boot so cleanup also runs after boot failures.
+          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
+          echo "Created simulator $SIMULATOR_ID"
+          xcrun simctl boot "$SIMULATOR_ID"
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
+      - name: Build and test environment
+        env:
+          BUILD_CONFIGURATION: ${{ matrix.configuration }}
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        run: |
+          set -euo pipefail
+          echo "Using simulator $SIMULATOR_ID"
           run_tests() {
             xcodebuild test \
               -project MojaSzafa.xcodeproj -scheme MojaSzafa \
@@ -84,6 +94,14 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/ProductionBuild" \
             CODE_SIGNING_ALLOWED=NO
+      - name: Delete job simulator
+        if: always() && steps.simulator.outputs.id != ''
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.id }}
+        run: |
+          set -euo pipefail
+          xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
+          xcrun simctl delete "$SIMULATOR_ID"
       - name: Preserve XCTest results
         if: always()
         uses: actions/upload-artifact@v4
