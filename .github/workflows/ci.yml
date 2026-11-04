@@ -136,11 +136,17 @@ jobs:
       PGUSER: postgres
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned gateway database driver
+        run: npm ci --prefix backend/gateway --ignore-scripts --no-audit --no-fund
       - name: Test backend migrations when present
         shell: bash
         run: |
           if [[ -f backend/tests/run-tests.sh ]]; then
             bash backend/tests/run-tests.sh
+            GATEWAY_PG_TESTS=1 node --test backend/gateway/postgres.test.mjs
           else
             echo 'Testy migracji powstaną w T008 (backend/tests/run-tests.sh).'
           fi
