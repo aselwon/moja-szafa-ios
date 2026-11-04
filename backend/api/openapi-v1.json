@@ -568,7 +568,7 @@
         "summary": "List owner outfits with current garment metadata"
       }
     },
-    "/rpc/api_v1_delete_garment": {
+    "/rest/v1/rpc/api_v1_delete_garment": {
       "post": {
         "operationId": "api_v1_delete_garment",
         "security": [

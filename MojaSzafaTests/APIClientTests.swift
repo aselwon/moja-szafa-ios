@@ -2,6 +2,10 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testGarmentDeletionUsesCanonicalGatewayRPCPath() async throws {
+        let operation = DeleteGarment(operationID: UUID(), garmentID: UUID())
+        try await client(DeletionTransport(operation: operation)).delete(operation)
+    }
     private func operation(price: Int64? = nil, version: Int64? = nil) -> APIv1.SaveGarment {
         APIv1.SaveGarment(operationID: UUID(), garmentID: UUID(), baseVersion: version,
             garment: .init(name: "Koszula", category: .top, priceGrosz: price, availability: .available))
@@ -127,6 +131,20 @@ final class APIClientTests: XCTestCase {
 private func response(_ request: URLRequest, status: Int = 200) -> HTTPURLResponse {
     HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil,
                     headerFields: ["X-Request-ID": "gateway-test"])!
+}
+private actor DeletionTransport: APITransport {
+    let operation: DeleteGarment
+    init(operation: DeleteGarment) { self.operation = operation }
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        XCTAssertEqual(request.url?.path, "/rest/v1/rpc/api_v1_delete_garment")
+        XCTAssertEqual(request.httpMethod, "POST")
+        let root = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+        let payload = try XCTUnwrap(root["request"] as? [String: Any])
+        XCTAssertEqual(Set(payload.keys), ["operationID", "garmentID"])
+        XCTAssertEqual((payload["operationID"] as? String)?.lowercased(), operation.operationID.uuidString.lowercased())
+        XCTAssertEqual((payload["garmentID"] as? String)?.lowercased(), operation.garmentID.uuidString.lowercased())
+        return (try JSONSerialization.data(withJSONObject: ["data": true, "request_id": UUID().uuidString]), response(request))
+    }
 }
 private func garment(_ id: UUID) -> [String: Any] {
     ["id": id.uuidString, "version": 1, "name": "Koszula", "category": "top",
