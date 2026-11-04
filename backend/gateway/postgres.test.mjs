@@ -5,6 +5,7 @@ import { once } from 'node:events';
 import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
 import { GatewayStore } from './store.mjs';
+import { loadRPCOperations } from './contracts.mjs';
 import { createGateway } from './server.mjs';
 import { GatewayError } from './managed-auth.mjs';
 
@@ -41,8 +42,7 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
     await ownerPool.query('INSERT INTO neon_auth."user" VALUES($1,true,false)',[principal.owner]);
     await ownerPool.query('INSERT INTO neon_auth.session VALUES($1,$2,now()+interval \'1 hour\',null)',[principal.sessionID,principal.owner]);
   }
-  const contract=JSON.parse(await readFile(new URL('../api/openapi-v1.json',import.meta.url),'utf8'));
-  const store=new GatewayStore(runtime,Object.values(contract.paths).map(r=>r.post.operationId));
+  const store=new GatewayStore(runtime,await loadRPCOperations());
   const tokenA='synthetic-managed-owner-a.signature', tokenB='synthetic-managed-owner-b.signature';
   const auth={ current:async token=>{
     if(token===tokenA)return a; if(token===tokenB)return b; throw new GatewayError('unauthorized',401);

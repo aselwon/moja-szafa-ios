@@ -120,3 +120,25 @@ test('caller cannot choose RPC function, owner, auth origin, token headers or un
     assert.throws(()=>new ManagedAuth({baseURL:url}));
   }
 });
+
+test('checked-in RPC contracts reject duplicates, mismatched paths and malformed JSON at startup',async()=>{
+ const {mkdtemp,writeFile,rm}=await import('node:fs/promises');
+ const {tmpdir}=await import('node:os');
+ const {pathToFileURL}=await import('node:url');
+ const {join}=await import('node:path');
+ const {loadRPCOperations}=await import('../gateway/contracts.mjs');
+ const dir=await mkdtemp(join(tmpdir(),'szafa-contracts-'));const url=pathToFileURL(dir+'/');
+ const document=operation=>JSON.stringify({openapi:'3.1.0',paths:{['/rest/v1/rpc/'+operation]:{post:{operationId:operation}}}});
+ try {
+   await assert.rejects(()=>loadRPCOperations(url),/core_contract_required/);
+   await writeFile(join(dir,'openapi-v1.json'),document('api_v1_core'));
+   await writeFile(join(dir,'openapi-ai-v1.json'),document('api_v1_generate_outfits'));
+   assert.deepEqual((await loadRPCOperations(url)).sort(),['api_v1_core','api_v1_generate_outfits']);
+   await writeFile(join(dir,'openapi-suggestions-v1.json'),document('api_v1_core'));
+   await assert.rejects(()=>loadRPCOperations(url),/duplicate/);
+   await writeFile(join(dir,'openapi-suggestions-v1.json'),document('api_v1_other').replace('/rest/v1/rpc/api_v1_other','/arbitrary'));
+   await assert.rejects(()=>loadRPCOperations(url),/invalid/);
+   await writeFile(join(dir,'openapi-suggestions-v1.json'),'{broken');
+   await assert.rejects(()=>loadRPCOperations(url));
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
