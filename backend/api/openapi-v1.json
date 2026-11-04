@@ -567,6 +567,88 @@
         },
         "summary": "List owner outfits with current garment metadata"
       }
+    },
+    "/rest/v1/rpc/api_v1_delete_garment": {
+      "post": {
+        "operationId": "api_v1_delete_garment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Content-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "app"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "operationID",
+                  "garmentID"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "operationID": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "garmentID": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application success OR structured domain error; inspect error before data. Replay returns original response including request_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "data",
+                        "request_id"
+                      ],
+                      "properties": {
+                        "data": {
+                          "const": true
+                        },
+                        "request_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Gateway or infrastructure HTTP failure; may not contain application JSON. Preserve X-Request-ID if present."
+          }
+        },
+        "summary": "Permanently delete garment; retain identity fence and queue durable photo cleanup"
+      }
     }
   },
   "components": {
