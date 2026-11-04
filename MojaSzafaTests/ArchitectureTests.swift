@@ -1,5 +1,37 @@
 import XCTest
+import UIKit
 @testable import MojaSzafa
+
+#if DEBUG
+@MainActor
+final class DemoModeTests: XCTestCase {
+    func testDemoRequiresExplicitLaunchArgument() {
+        XCTAssertFalse(DemoMode.isEnabled(arguments: ["MojaSzafa"]))
+        XCTAssertFalse(DemoMode.isEnabled(arguments: ["MojaSzafa", "--demo=false"]))
+        XCTAssertTrue(DemoMode.isEnabled(arguments: ["MojaSzafa", "--demo"]))
+    }
+
+    func testDemoDataAndEditsAreLocalToOneInstance() async throws {
+        let repository = DemoWardrobe.make()
+        let initial = try await repository.garments()
+        XCTAssertEqual(initial.count, 6)
+        let first = try XCTUnwrap(initial.first)
+        let bytes = try await repository.thumbnail(imageID: XCTUnwrap(first.imageID))
+        XCTAssertNotNil(UIImage(data: bytes))
+        _ = try await repository.setStatus(id: first.id, availability: .laundry, archived: true)
+        let changed = try await repository.detail(id: first.id)
+        XCTAssertTrue(changed.garment.archived)
+        let reset = try await DemoWardrobe.make().detail(id: first.id)
+        XCTAssertFalse(reset.garment.archived)
+        XCTAssertEqual(reset.garment.availability, .available)
+        let outfit = Outfit(name: "Przykład", garments: [first])
+        let request = SaveOutfit(outfit)
+        let saved = try await repository.saveOutfit(request)
+        let replay = try await repository.saveOutfit(request)
+        XCTAssertEqual(saved, replay)
+    }
+}
+#endif
 
 @MainActor
 final class ArchitectureTests: XCTestCase {

@@ -11,3 +11,16 @@
 - Utrzymuj działające `node scripts/harness-check.mjs` oraz macOS CI.
 - Dla zmian aplikacji dodawaj testy adekwatne do ryzyka.
 - Nie obniżaj kryteriów odbioru tylko po to, aby testy przeszły.
+- Równoległe zadania kolidują na numerach migracji i ID w Xcode, dlatego:
+  - nowa migracja dostaje unikalny numer uzgodniony z innymi aktywnymi
+    zadaniami; sprawdź aktualny `main` i otwarte PR-y. Nie zmieniaj numeru
+    ani treści migracji już wdrożonej. Luki po rezerwacjach są dozwolone;
+    w tym samym commicie uaktualnij domyślny target, Usage i regex
+    w `backend/migrate.sh`. Test schematu porównuje liczbę rzeczywistych
+    plików (`expected_migration_count`), a nie największy numer;
+  - nowe wpisy w `project.pbxproj` dostają losowe, unikalne 24-znakowe ID
+    hex (np. `openssl rand -hex 12 | tr a-f A-F`); nie kopiuj ID ani nie
+    nadawaj kolejnych ręcznie (`...E01`, `...F01`);
+  - przed oddaniem pracy zintegruj aktualny `main`, rozwiąż kolizje
+    bez zmiany wdrożonych migracji i uruchom `node scripts/harness-check.mjs`
+    (`scripts/check-collisions.mjs` wykrywa duplikaty).

@@ -3,6 +3,34 @@ import XCTest
 
 @MainActor
 final class WardrobeTests: XCTestCase {
+    func testCostPerWearUsesUniqueHistoricalDaysAndRendersOnlyAtBoundary() {
+        let days = (1...100).map { "day-\($0)" }
+        XCTAssertEqual(CostPerWear(priceGrosz: 80000, wornOn: days + days).roundedGrosz, 800)
+        XCTAssertEqual(CostPerWear(priceGrosz: 0, wornOn: ["2026-01-01"]).roundedGrosz, 0)
+        XCTAssertNil(CostPerWear(priceGrosz: nil, wornOn: days).roundedGrosz)
+        XCTAssertNil(CostPerWear(priceGrosz: 0, wornOn: []).roundedGrosz)
+        let ratio = CostPerWear(priceGrosz: 100, wornOn: ["a", "b", "c"])
+        XCTAssertEqual(ratio.priceGrosz, 100)
+        XCTAssertEqual(ratio.wearDays, 3)
+        XCTAssertEqual(ratio.roundedGrosz, 33)
+        XCTAssertEqual(CostPerWear(priceGrosz: 1, wornOn: ["a", "b"]).roundedGrosz, 1)
+        XCTAssertEqual(CostPerWear(priceGrosz: Int64.max, wornOn: ["a"]).roundedGrosz, Int64.max)
+        XCTAssertEqual(CostPerWear(priceGrosz: Int64.max, wornOn: ["a", "b"]).roundedGrosz, 4611686018427387904)
+    }
+
+    func testCostPerWearRecomputesAfterPriceEditAndUndoWithoutMutatingHistory() {
+        var garment = Garment(id: UUID(), name: "Shirt", priceGrosz: 900)
+        let history = ["2026-01-01", "2026-01-01", "2026-01-02"]
+        let before = GarmentDetail(garment: garment, wornOn: history)
+        XCTAssertEqual(before.costPerWear.roundedGrosz, 450)
+        garment.priceGrosz = 1200
+        let edited = GarmentDetail(garment: garment, wornOn: history)
+        XCTAssertEqual(edited.costPerWear.roundedGrosz, 600)
+        XCTAssertEqual(edited.wornOn, before.wornOn)
+        let afterUndo = GarmentDetail(garment: garment, wornOn: ["2026-01-01"])
+        XCTAssertEqual(afterUndo.costPerWear.roundedGrosz, 1200)
+    }
+
     func testThousandItemsLoadOnlyOnePageThenAppendWithoutFetchingImages() async {
         let repository = BrowseFixture()
         let model = WardrobeModel(repository: repository)

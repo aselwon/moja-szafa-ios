@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Użyj lokalizacji jednorazowo, aby wybrać miasto dla pogody. Możesz też wpisać miasto ręcznie. / Use your location once to select a weather city. You can also enter a city manually.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Zrób zdjęcie ubrania, aby dodać je do swojej szafy. / Take a garment photo to add it to your wardrobe.</string>
 	<!-- Custom keys: GENERATE_INFOPLIST_FILE ignores non-Apple INFOPLIST_KEY_* settings, so they live here. -->

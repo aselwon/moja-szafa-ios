@@ -83,6 +83,14 @@ private struct PlanEditor: View {
     init(model: PlannerModel, outfits: any OutfitRepository, plan: PlannedOutfit?) {
         self.model = model; self.plan = plan
         _picker = StateObject(wrappedValue: OutfitsModel(repository: outfits))
+        if let plan {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.timeZone = .current
+            formatter.dateFormat = "yyyy-MM-dd"
+            _day = State(initialValue: formatter.date(from: plan.day) ?? Date())
+        }
     }
     var body: some View {
         List {

@@ -1621,22 +1621,21 @@
       }
     },
     "wear.history": {
-      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
       "localizations": {
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Historia noszenia"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Wear history"
           }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia noszeń"
+          }
         }
-      }
+      },
+      "comment": "T003: wear; tekst interfejsu, nie dane użytkownika."
     },
     "wear.empty": {
       "comment": "T003: wear; tekst interfejsu, nie dane użytkownika.",
@@ -1693,13 +1692,13 @@
       }
     },
     "cpw.lifetime": {
-      "comment": "T003: cpw; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T036: lifetime cost per unique wear day, based on recorded history.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Koszt jednego noszenia — całe życie"
+            "value": "Koszt noszenia — cała historia"
           }
         },
         "en": {
@@ -1927,19 +1926,19 @@
       }
     },
     "purchase.title": {
-      "comment": "T003: purchase; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T044: temporary purchase preview interface, not user data.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sprawdź zakup"
+            "value": "Przed zakupem"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check a potential purchase"
+            "value": "Before buying"
           }
         }
       }
@@ -1963,37 +1962,36 @@
       }
     },
     "purchase.confirm": {
-      "comment": "T003: purchase; tekst interfejsu, nie dane użytkownika.",
+      "comment": "T044: temporary purchase preview interface, not user data.",
       "extractionState": "manual",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kupiłem — dodaj do szafy"
+            "value": "Potwierdź zakup"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Purchased — add to wardrobe"
+            "value": "Confirm purchase"
           }
         }
       }
     },
     "weather.city": {
-      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
+      "comment": "T042: city and optional weather context.",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Miasto"
+            "value": "Miasto, region lub kraj"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "City"
+            "value": "City, region or country"
           }
         }
       }
@@ -2017,19 +2015,18 @@
       }
     },
     "weather.manual": {
-      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
+      "comment": "T042: city and optional weather context.",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wpisz temperaturę ręcznie"
+            "value": "Użyj ręcznej temperatury"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter temperature manually"
+            "value": "Use manual temperature"
           }
         }
       }
@@ -6737,6 +6734,752 @@
       },
       "comment": "T026 manual outfit builder: outfits.conflict"
     },
+    "suggestions.name": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propozycja stylizacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outfit suggestion"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — name"
+    },
+    "suggestions.empty": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie ma jeszcze propozycji. Gotowe wyniki AI pojawią się tutaj."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No suggestions yet. Completed AI results will appear here."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — empty"
+    },
+    "suggestions.manualFallback": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Możesz zamienić rzecz ręcznie, także gdy AI nie działa."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can replace an item manually, even when AI is unavailable."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — manualFallback"
+    },
+    "suggestions.failed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wykonać akcji. Odśwież szafę i sprawdź dostępność rzeczy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not complete this action. Refresh your wardrobe and check item availability."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — failed"
+    },
+    "suggestions.edited": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestaw zmieniony ręcznie — poprzednie uzasadnienie AI jest nieaktualne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manually edited outfit — the previous AI rationale no longer applies."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — edited"
+    },
+    "suggestions.incomplete": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niekompletny zestaw. Brakuje:"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete outfit. Missing:"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — incomplete"
+    },
+    "suggestions.replace": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamień rzecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace item"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — replace"
+    },
+    "suggestions.saved": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz zmiany zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save outfit changes"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — saved"
+    },
+    "suggestions.wear": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszę dzisiaj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear today"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — wear"
+    },
+    "suggestions.worn": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszenie zapisane na urządzeniu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear recorded on this device"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — worn"
+    },
+    "generation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowe propozycje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liczba propozycji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Number of suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wygeneruj propozycje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotowujemy propozycje…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing suggestions…"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.queued": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadanie czeka w kolejce."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your request is queued."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.running": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trwa generowanie propozycji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating suggestions."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.consent": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapoznaj się z informacją o AI i udziel zgody, aby kontynuować."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the AI disclosure and grant consent to continue."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.quota": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit AI został osiągnięty. Spróbuj ponownie później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI limit has been reached. Try again later."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generowanie AI jest obecnie niedostępne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI generation is currently unavailable."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesja jest niedostępna. Zaloguj się ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session is unavailable. Sign in again."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można użyć tych ustawień generowania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These generation settings could not be accepted."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się pobrać propozycji. Możesz spróbować ponownie lub ręcznie edytować zestaw."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions could not be retrieved. Retry or edit an outfit manually."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.waiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadanie nadal trwa. Ponów sprawdzenie — nie utworzy to nowego zadania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The job is still pending. Retry to check it without creating a new job."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.storage": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zapisanego zadania. Generowanie wstrzymano, aby uniknąć duplikatu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved request could not be read. Generation is paused to avoid a duplicate."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.stale": {
+      "comment": "T031: terminal generation result no longer matches available wardrobe.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szafa zmieniła się od wygenerowania tego wyniku. Wygeneruj nowe propozycje."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe changed since this result was generated. Generate new suggestions."
+          }
+        }
+      }
+    },
+    "weather.title": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda i miasto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather and city"
+          }
+        }
+      }
+    },
+    "weather.optional": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda jest opcjonalna. Wpisanie miasta nie wymaga zgody na lokalizację. Miasta wyszukuje Apple, a prognozy dostarcza MET Norway. Przybliżona lokalizacja trafia do dostawcy pogody przez nasz serwer."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather is optional. Entering a city does not require location permission. Apple provides city search; MET Norway provides forecasts. Approximate coordinates reach the weather provider through our server."
+          }
+        }
+      }
+    },
+    "weather.search": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyszukaj miasto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search for a city"
+          }
+        }
+      }
+    },
+    "weather.locate": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj bieżącej lokalizacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use current location"
+          }
+        }
+      }
+    },
+    "weather.noCities": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie znaleziono miasta. Dodaj region lub kraj albo podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No city found. Add a region or country, or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.cityError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można wyszukać miasta. Sprawdź połączenie lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City search is unavailable. Check your connection or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.locationError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokalizacja jest niedostępna lub nie ma zgody. Wpisz miasto albo temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is unavailable or permission was not granted. Enter a city or temperature manually."
+          }
+        }
+      }
+    },
+    "weather.forecastError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda jest niedostępna. Spróbuj ponownie lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather is unavailable. Retry or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.timeZone": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strefa miasta"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City time zone"
+          }
+        }
+      }
+    },
+    "weather.validAt": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza na"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast for"
+          }
+        }
+      }
+    },
+    "weather.updatedAt": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza zaktualizowana"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast updated"
+          }
+        }
+      }
+    },
+    "weather.stale": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza nieaktualna. Odśwież ją lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast is out of date. Refresh it or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.attribution": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Źródła danych pogodowych"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather data sources"
+          }
+        }
+      }
+    },
+    "weather.refresh": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odśwież pogodę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh weather"
+          }
+        }
+      }
+    },
+    "weather.temperature": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperatura w °C, np. −5"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperature in °C, e.g. -5"
+          }
+        }
+      }
+    },
+    "weather.range": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz liczbę od −80 do 60 °C."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a number from -80 to 60 °C."
+          }
+        }
+      }
+    },
+    "weather.fallback": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez temperatury można korzystać z propozycji bez kontekstu pogody."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without a temperature, suggestions can use no weather context."
+          }
+        }
+      }
+    },
+    "weather.clear": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść dane pogody"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear weather data"
+          }
+        }
+      }
+    },
     "wardrobe.delete": {
       "localizations": {
         "en": {
@@ -6770,6 +7513,928 @@
         }
       },
       "comment": "Permanent garment deletion confirmation and consequences."
+    },
+    "wear.new": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add wear"
+          }
+        }
+      }
+    },
+    "wear.edit": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear event"
+          }
+        }
+      }
+    },
+    "wear.date": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data (RRRR-MM-DD)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date (YYYY-MM-DD)"
+          }
+        }
+      }
+    },
+    "wear.pending": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiany zapisane na urządzeniu oczekują na synchronizację."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes saved on this device await synchronization."
+          }
+        }
+      }
+    },
+    "wear.offline": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak połączenia. Możesz zapisywać noszenia na urządzeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline. You can save wear events on this device."
+          }
+        }
+      }
+    },
+    "wear.syncFailed": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizacja nie powiodła się. Zmiany lokalne pozostają zapisane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync failed. Local changes remain saved."
+          }
+        }
+      }
+    },
+    "wear.conflict": {
+      "comment": "Wear editing conflict recovery (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można wysłać tej zmiany. Zdarzenie lub jego rzeczy mogły zmienić się na serwerze."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This change cannot be sent. The event or its garments may have changed on the server."
+          }
+        }
+      }
+    },
+    "wear.keepLocal": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj moją zmianę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep my change"
+          }
+        }
+      }
+    },
+    "wear.invalid": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz od 1 do 100 rzeczy i poprawną datę, nie późniejszą niż dzisiaj."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose 1–100 garments and a valid date no later than today."
+          }
+        }
+      }
+    },
+    "wear.saveFailed": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zapisano zmiany. Spróbuj ponownie; jeśli trwa synchronizacja lub wystąpił konflikt, wróć do historii."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change was not saved. Retry; if sync is pending or a conflict occurred, return to history."
+          }
+        }
+      }
+    },
+    "wear.snapshotExplanation": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisujesz osobną listę rzeczy. Późniejsze zmiany zestawu nie zmienią tego noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saves a separate list of garments. Later outfit changes will not change this event."
+          }
+        }
+      }
+    },
+    "wear.historyEmpty": {
+      "comment": "Wear history and editing (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zapisanych noszeń."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No wear events yet."
+          }
+        }
+      }
+    },
+    "wear.discardLocal": {
+      "comment": "Wear editing conflict recovery (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odrzuć lokalną zmianę i pobierz wersję z serwera"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard local change and load server version"
+          }
+        }
+      }
+    },
+    "wear.removeMissing": {
+      "comment": "Wear editing conflict recovery (T035).",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń niedostępną rzecz z noszenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove missing garment from this event"
+          }
+        }
+      }
+    },
+    "outfits.export.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępnisz tylko widoczne zdjęcia i poniższy tekst. Nazwy, ceny i identyfikatory nie są dodawane. Sprawdź, czy same zdjęcia nie zawierają prywatnych informacji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You will share only the photos shown and the text below. Names, prices and identifiers are not added. Check the photos themselves for private information."
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podgląd kolażu wybranego zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected outfit collage preview"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksportuj kolaż"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export collage"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.share": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępnij…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share…"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.caption": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mój zestaw • Moja Szafa"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My outfit • Moja Szafa"
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "outfits.export.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wczytać wszystkich zdjęć. Sprawdź połączenie lub dodaj brakujące zdjęcia w szafie i spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load all photos. Check your connection or add missing photos in your wardrobe, then try again."
+          }
+        }
+      },
+      "comment": "T047: outfit collage export; fixed interface text, no user metadata."
+    },
+    "purchase.temporary": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To kandydat tymczasowy. Nie należy jeszcze do Twojej szafy. Zdjęcie wygasa po 7 dniach."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a temporary candidate, not an owned garment. Its photo expires after 7 days."
+          }
+        }
+      }
+    },
+    "purchase.metadataOnly": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI porównuje ręcznie podane cechy z Twoją szafą. Nie analizuje tego zdjęcia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI compares the details you enter with your wardrobe. It does not analyze this photo."
+          }
+        }
+      }
+    },
+    "purchase.noForecast": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie prognozujemy przyszłego kosztu noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We do not predict future cost per wear."
+          }
+        }
+      }
+    },
+    "purchase.photo": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz zdjęcie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose photo"
+          }
+        }
+      }
+    },
+    "purchase.photoFailed": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zdjęcia. Wybierz inne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The photo could not be read. Choose another."
+          }
+        }
+      }
+    },
+    "purchase.price": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena PLN (opcjonalnie)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price PLN (optional)"
+          }
+        }
+      }
+    },
+    "purchase.formality": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formalność 1–5"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formality 1–5"
+          }
+        }
+      }
+    },
+    "purchase.unknown": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wiem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        }
+      }
+    },
+    "purchase.create": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz kandydata"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save candidate"
+          }
+        }
+      }
+    },
+    "purchase.new": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozważana rzecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potential purchase"
+          }
+        }
+      }
+    },
+    "purchase.check": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź dopasowanie AI"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check AI compatibility"
+          }
+        }
+      }
+    },
+    "purchase.manualFallback": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Możesz też samodzielnie porównać rzecz ze swoją szafą."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can also compare this item with your wardrobe yourself."
+          }
+        }
+      }
+    },
+    "purchase.discard": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odrzuć kandydata"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard candidate"
+          }
+        }
+      }
+    },
+    "purchase.confirmQuestion": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czy ta rzecz jest już Twoja?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do you own this item now?"
+          }
+        }
+      }
+    },
+    "purchase.confirmDetail": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopiero potwierdzenie doda ubranie i zdjęcie do Twojej szafy. Nie doda dni noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmation adds the garment and photo to your wardrobe. It does not add wear days."
+          }
+        }
+      }
+    },
+    "purchase.storage": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zapisanych działań. Nie wysyłamy nowych żądań, aby uniknąć duplikatów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved actions could not be read. New requests are paused to avoid duplicates."
+          }
+        }
+      }
+    },
+    "purchase.purchased": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodano do szafy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to your wardrobe."
+          }
+        }
+      }
+    },
+    "purchase.stale": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szafa zmieniła się. Sprawdź dopasowanie ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe changed. Check compatibility again."
+          }
+        }
+      }
+    },
+    "purchase.noMatches": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI nie znalazło dopasowania. Możesz porównać rzeczy ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI found no match. You can compare items manually."
+          }
+        }
+      }
+    },
+    "purchase.aiFailed": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdzenie AI nie powiodło się. Spróbuj ponownie lub porównaj ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI matching failed. Retry or compare manually."
+          }
+        }
+      }
+    },
+    "purchase.pending": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopasowania są w przygotowaniu. Ponowne sprawdzenie odczyta to samo zadanie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matches are pending. Checking again will read the same job."
+          }
+        }
+      }
+    },
+    "purchase.consent": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapoznaj się z informacją o AI i udziel zgody w ustawieniach prywatności."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the AI disclosure and grant consent in privacy settings."
+          }
+        }
+      }
+    },
+    "purchase.quota": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osiągnięto limit AI. Spróbuj później lub porównaj ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI limit was reached. Try later or compare manually."
+          }
+        }
+      }
+    },
+    "purchase.aiUnavailable": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI jest niedostępne. Możesz porównać rzecz ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI is unavailable. You can compare the item manually."
+          }
+        }
+      }
+    },
+    "purchase.expired": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kandydat wygasł lub jest niedostępny."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This candidate expired or is unavailable."
+          }
+        }
+      }
+    },
+    "purchase.account": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesja jest niedostępna. Zaloguj się ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session is unavailable. Sign in again."
+          }
+        }
+      }
+    },
+    "purchase.failed": {
+      "comment": "T044: temporary purchase preview interface, not user data.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się ukończyć działania. Ponowienie zachowa jego identyfikator."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The action could not be completed. Retrying preserves its identifier."
+          }
+        }
+      }
+    },
+    "purchase.savedDraft": {
+      "comment": "T044: retry uses the already saved candidate details.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponowienie zachowa zapisane zdjęcie i opis. Odrzuć szkic, jeśli chcesz je zmienić."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry keeps the saved photo and details. Discard the draft to change them."
+          }
+        }
+      }
+    },
+    "cpw.neverWorn": {
+      "comment": "T036: lifetime cost per unique wear day, based on recorded history.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeszcze nienoszone"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not worn yet"
+          }
+        }
+      }
+    },
+    "wear.historyDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History date"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data w historii"
+          }
+        }
+      },
+      "comment": "T038: date selected in the wear-history calendar.",
+      "extractionState": "manual"
+    },
+    "wear.undoRemoval": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo removal"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnij usunięcie"
+          }
+        }
+      },
+      "comment": "T038: restore the last removed wear event.",
+      "extractionState": "manual"
+    },
+    "wear.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove wear entry"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń wpis noszenia"
+          }
+        }
+      },
+      "comment": "T038: remove the selected wear event, without deleting garments.",
+      "extractionState": "manual"
     },
     "planner.title": {
       "localizations": {
