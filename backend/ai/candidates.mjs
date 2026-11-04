@@ -52,7 +52,7 @@ export function selectCandidates(input, ownerID) {
   }
   const formality = input.occasion?.formality ?? null;
   if (!recognitionSchema.properties.formality.enum.includes(formality)) invalid('occasion_invalid');
-  const score = g => (g.colors ?? []).filter(c => preferredColors.includes(c)).length * 2 +
+  const score = g => (Number.isInteger(g.preference_score) ? Math.max(-20, Math.min(20, g.preference_score)) : 0) + (g.colors ?? []).filter(c => preferredColors.includes(c)).length * 2 +
     (g.seasons ?? []).filter(s => preferredSeasons.includes(s)).length * 2 +
     (formality !== null && g.formality != null ? 5 - Math.abs(formality - g.formality) : 0);
   const ranked = [...eligible].sort((a, b) => score(b) - score(a) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
