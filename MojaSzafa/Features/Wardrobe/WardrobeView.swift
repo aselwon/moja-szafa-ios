@@ -3,10 +3,12 @@ import SwiftUI
 struct WardrobeView: View {
     @StateObject private var model: WardrobeModel
     @StateObject private var imports: PhotoImportModel
+    private let allowsPhotoImport: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.scenePhase) private var scenePhase
 
-    init(repository: any WardrobeRepository, accountID: UUID) {
+    init(repository: any WardrobeRepository, accountID: UUID, allowsPhotoImport: Bool = true) {
+        self.allowsPhotoImport = allowsPhotoImport
         _imports = StateObject(wrappedValue: PhotoImportModel(directory: URL.applicationSupportDirectory
             .appendingPathComponent("PhotoDrafts").appendingPathComponent(accountID.uuidString)))
         _model = StateObject(wrappedValue: WardrobeModel(repository: repository))
@@ -15,7 +17,9 @@ struct WardrobeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                NavigationLink("import.title") { PhotoImportView(model: imports, repository: model.repository) }
+                if allowsPhotoImport {
+                    NavigationLink("import.title") { PhotoImportView(model: imports, repository: model.repository) }
+                }
                 controls
                 if model.cached { Text("wardrobe.cached").font(.callout) }
                 switch model.state {
@@ -30,7 +34,7 @@ struct WardrobeView: View {
                                 VStack(alignment: .leading) {
                                     WardrobeThumbnail(imageID: garment.imageID, repository: model.repository)
                                     Text(verbatim: garment.name).font(.headline)
-                                    Text(LocalizedStringKey("garment.category.\(garment.category.rawValue)"))
+                                    Text(LocalizedStringKey("garment.category." + garment.category.rawValue))
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }
@@ -77,18 +81,18 @@ struct WardrobeView: View {
             Picker("garment.category", selection: $model.query.category) {
                 Text("wardrobe.all").tag(nil as APIv1.Category?)
                 ForEach(APIv1.Category.allCases, id: \.self) {
-                    Text(LocalizedStringKey("garment.category.\($0.rawValue)")).tag(Optional($0))
+                    Text(LocalizedStringKey("garment.category." + $0.rawValue)).tag(Optional($0))
                 }
             }
             Picker("wardrobe.availability", selection: $model.query.availability) {
                 Text("wardrobe.all").tag(nil as APIv1.Availability?)
                 ForEach(APIv1.Availability.allCases, id: \.self) {
-                    Text(LocalizedStringKey("wardrobe.\($0.rawValue)")).tag(Optional($0))
+                    Text(LocalizedStringKey("wardrobe." + $0.rawValue)).tag(Optional($0))
                 }
             }
             Picker("wardrobe.sort", selection: $model.query.sort) {
                 ForEach(WardrobeQuery.Sort.allCases, id: \.self) {
-                    Text(LocalizedStringKey("wardrobe.sort.\($0.rawValue)")).tag($0)
+                    Text(LocalizedStringKey("wardrobe.sort." + $0.rawValue)).tag($0)
                 }
             }
             Toggle("wardrobe.archived", isOn: $model.query.archived)
@@ -156,21 +160,21 @@ private struct GarmentDetailView: View {
                         Toggle("wardrobe.original", isOn: $showOriginal)
                     }
                     Text(verbatim: detail.garment.name).font(.title2)
-                    Text(LocalizedStringKey("garment.category.\(detail.garment.category.rawValue)"))
-                    Text(LocalizedStringKey("wardrobe.\(detail.garment.availability.rawValue)"))
+                    Text(LocalizedStringKey("garment.category." + detail.garment.category.rawValue))
+                    Text(LocalizedStringKey("wardrobe." + detail.garment.availability.rawValue))
                     if let brand = detail.garment.brand { LabeledContent("garment.brand", value: brand) }
                     if let price = detail.garment.priceGrosz {
                         LabeledContent("garment.price", value: (Decimal(price) / 100).formatted(.currency(code: "PLN")))
                     } else { Text("wardrobe.noPrice") }
-                    ForEach(detail.garment.colors, id: \.self) { Text(LocalizedStringKey("garment.color.\($0)")) }
-                    ForEach(detail.garment.seasons, id: \.self) { Text(LocalizedStringKey("garment.season.\($0)")) }
+                    ForEach(detail.garment.colors, id: \.self) { Text(LocalizedStringKey("garment.color." + $0)) }
+                    ForEach(detail.garment.seasons, id: \.self) { Text(LocalizedStringKey("garment.season." + $0)) }
                 }
                 Section("wardrobe.availability") {
                     Picker("wardrobe.availability", selection: Binding(
                         get: { detail.garment.availability },
                         set: { update(availability: $0, archived: detail.garment.archived) })) {
                         ForEach(APIv1.Availability.allCases, id: \.self) {
-                            Text(LocalizedStringKey("wardrobe.\($0.rawValue)")).tag($0)
+                            Text(LocalizedStringKey("wardrobe." + $0.rawValue)).tag($0)
                         }
                     }
                     Toggle("wardrobe.archived", isOn: Binding(
