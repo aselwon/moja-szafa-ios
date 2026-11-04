@@ -67,6 +67,19 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   const forged=await call('api_v1_save_garment',{...payload,user_id:a.owner},tokenB);
   assert(forged.body.error); assert(!forged.body.data);
   assert.equal((await call('api_v1_not_allowed',{})).status,404);
+  await ownerPool.query(`INSERT INTO api_private.ai_disclosure VALUES(true,'gateway-consent-test','Cloudflare Workers AI','Synthetic metadata','Synthetic integration test') ON CONFLICT(singleton) DO UPDATE SET policy_version=EXCLUDED.policy_version,recipient=EXCLUDED.recipient,data_description=EXCLUDED.data_description,purpose_description=EXCLUDED.purpose_description`);
+  const disclosureResponse=await call('api_v1_ai_consent',{});
+  assert.equal(disclosureResponse.status,200);
+  const disclosure=disclosureResponse.body.data.disclosure;
+  assert.equal(disclosure.policy_version,'gateway-consent-test');
+  const choice={operation_id:randomUUID(),granted:true,disclosure};
+  assert.equal((await call('api_v1_ai_consent',choice)).body.data.granted,true);
+  assert.equal((await call('api_v1_ai_consent',choice)).body.data.granted,true);
+  assert.equal((await call('api_v1_ai_consent',{},tokenB)).body.data.granted,false,'consent is owner isolated');
+  assert.equal((await ownerPool.query('SELECT count(*)::int AS n FROM app.consent_events WHERE user_id=$1',[a.owner])).rows[0].n,1,'consent replay adds no event');
+  assert.equal((await call('api_v1_ai_consent',{operation_id:randomUUID(),granted:false,disclosure:null})).body.data.granted,false);
+  assert.equal((await call('api_v1_ai_consent',{},'invalid.synthetic')).status,401);
+
   const image = await store.command(a,'images','prepare',{garment,id:randomUUID()});
   assert(image?.id);
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,
