@@ -113,7 +113,13 @@ struct SaveWear: Codable, Sendable {
     let wear: SyncWear
 }
 
+struct DeleteGarment: Codable, Sendable {
+    let operationID: UUID
+    let garmentID: UUID
+}
+
 protocol OfflineRemote: Sendable {
+    func delete(_ operation: DeleteGarment) async throws
     func snapshot() async throws -> SyncSnapshot
     func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO
     func save(_ operation: SaveWear) async throws -> SyncWear
@@ -121,10 +127,15 @@ protocol OfflineRemote: Sendable {
 }
 
 extension OfflineRemote {
+    func delete(_ operation: DeleteGarment) async throws { throw RepositoryError.backendNotConfigured }
     func image(id: UUID, original: Bool) async throws -> Data { throw RepositoryError.backendNotConfigured }
 }
 
 extension APIClient: OfflineRemote {
+    func delete(_ operation: DeleteGarment) async throws {
+        let result: APIv1.Success<Bool> = try await call("api_v1_delete_garment", operation)
+        guard result.data else { throw APIClientError.invalidResponse }
+    }
     func image(id: UUID, original: Bool) async throws -> Data {
         try await wardrobeImage(imageID: id, original: original)
     }
@@ -152,6 +163,7 @@ actor OfflineStore: WardrobeRepository {
         let id: UUID
         let garment: APIv1.SaveGarment?
         let wear: SaveWear?
+        var deletion: DeleteGarment? = nil
         var sent = false
         var attempts = 0
         var retryAfter = Date.distantPast
@@ -240,6 +252,46 @@ actor OfflineStore: WardrobeRepository {
             category: item.fields.category, priceGrosz: item.fields.priceGrosz,
             availability: availability, archived: archived))
         return try await detail(id: id)
+    }
+
+    func deleteGarment(id: UUID) async throws {
+        try requireActive()
+        guard let item = state.garments.first(where: { $0.id == id }) else { throw OfflineError.invalidState }
+        if item.deleted { return }
+        var next = state
+        next.garments.removeAll { $0.id == id }
+        next.garments.append(SyncGarment(id: id, version: item.version, deleted: true,
+            fields: APIv1.GarmentFields(name: "Deleted", category: .other, priceGrosz: nil, availability: .unavailable)))
+        next.outbox.removeAll { $0.garment?.garmentID == id }
+        let operation = DeleteGarment(operationID: UUID(), garmentID: id)
+        next.outbox.insert(Pending(id: operation.operationID, garment: nil, wear: nil, deletion: operation), at: 0)
+        scrubDeletedMembership(&next)
+        try commit(next)
+    }
+
+    // Never change bytes of a previously sent wear. Block its replay for explicit
+    // recovery; unaffected events and garments retain their original history.
+    private func scrubDeletedMembership(_ next: inout State) {
+        let deleted = Set(next.garments.filter(\.deleted).map(\.id))
+        next.wears = next.wears.map { wear in
+            SyncWear(id: wear.id, version: wear.version, deleted: wear.deleted,
+                wornOn: wear.wornOn, timezone: wear.timezone,
+                garmentIDs: wear.garmentIDs.filter { !deleted.contains($0) })
+        }
+        for index in next.outbox.indices {
+            if let wear = next.outbox[index].wear, !deleted.isDisjoint(with: wear.wear.garmentIDs) {
+                if next.outbox[index].sent {
+                    next.outbox[index].failure = "version_conflict"
+                } else {
+                    let remaining = wear.wear.garmentIDs.filter { !deleted.contains($0) }
+                    let replacement = SyncWear(id: wear.wear.id, version: 0, deleted: false,
+                        wornOn: wear.wear.wornOn, timezone: wear.wear.timezone, garmentIDs: remaining)
+                    next.outbox[index] = Pending(id: wear.operationID, garment: nil,
+                        wear: SaveWear(operationID: wear.operationID, wear: replacement))
+                }
+            }
+        }
+        next.outbox.removeAll { !$0.sent && $0.wear?.wear.garmentIDs.isEmpty == true }
     }
 
     @discardableResult
@@ -343,10 +395,17 @@ actor OfflineStore: WardrobeRepository {
                 if let index = started.outbox.firstIndex(where: { $0.id == id }) { started.outbox[index].sent = true }
                 try commit(started)
                 do {
-                    if let operation = pending.garment {
+                    if let operation = pending.deletion {
+                        try await remote.delete(operation)
+                        try requireActive()
+                        var next = state
+                        next.outbox.removeAll { $0.id == id }
+                        try commit(next)
+                    } else if let operation = pending.garment {
                         let dto = try await remote.save(operation)
                         try requireActive()
                         var next = state
+                        if next.garments.contains(where: { $0.id == dto.id && $0.deleted }) { continue }
                         next.garments.removeAll { $0.id == dto.id }
                         next.garments.append(SyncGarment(id: dto.id, version: dto.version, deleted: false,
                             fields: APIv1.GarmentFields(name: dto.name, category: dto.category, priceGrosz: dto.priceGrosz, availability: dto.availability, archived: dto.archived ?? operation.garment.archived),
@@ -359,6 +418,7 @@ actor OfflineStore: WardrobeRepository {
                         var next = state
                         next.wears.removeAll { $0.id == wear.id }
                         next.wears.append(wear)
+                        scrubDeletedMembership(&next)
                         next.outbox.removeAll { $0.id == id }
                         try commit(next)
                     }
@@ -389,6 +449,7 @@ actor OfflineStore: WardrobeRepository {
         guard snapshot.accountID == state.accountID else { throw OfflineError.accountMismatch }
         var next = state
         for garment in snapshot.garments {
+            if !garment.deleted && next.garments.contains(where: { $0.id == garment.id && $0.deleted }) { continue }
             guard garment.version > 0 else { throw APIClientError.invalidResponse }
             if let pending = next.outbox.firstIndex(where: { $0.garment?.garmentID == garment.id }) {
                 // Preserve the local proposal for conflict review. A tombstone
@@ -406,6 +467,7 @@ actor OfflineStore: WardrobeRepository {
             next.wears.removeAll { $0.id == wear.id }
             next.wears.append(wear)
         }
+        scrubDeletedMembership(&next)
         try commit(next)
     }
 
