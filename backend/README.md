@@ -230,3 +230,10 @@ sheet closes; they are not a durable offline outbox and do not survive process
 termination. Refresh the server list after reopening the app to reconcile an
 ambiguous save. Existing configured service access remains necessary for the
 end-to-end flow.
+
+## T029 outfit candidates
+
+The AI executor selects at most 40 owned, available garments with category coverage,
+preference/occasion ranking and an eligible pinned garment. Outfit prompts use
+allowlisted metadata without images. Runtime input requirements and offline test
+evidence are in [T029 candidate selection](../docs/architecture/T029-candidate-selection.md).
