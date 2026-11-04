@@ -6758,13 +6758,13 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pogoda jest opcjonalna. Wpisanie miasta nie wymaga zgody na lokalizację. Wyszukiwanie miasta i pogoda korzystają z usług Apple."
+            "value": "Pogoda jest opcjonalna. Wpisanie miasta nie wymaga zgody na lokalizację. Miasta wyszukuje Apple, a prognozy dostarcza MET Norway. Przybliżona lokalizacja trafia do dostawcy pogody przez nasz serwer."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weather is optional. Entering a city does not require location permission. City search and weather use Apple services."
+            "value": "Weather is optional. Entering a city does not require location permission. Apple provides city search; MET Norway provides forecasts. Approximate coordinates reach the weather provider through our server."
           }
         }
       }
@@ -6911,13 +6911,13 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pobrano"
+            "value": "Prognoza zaktualizowana"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retrieved"
+            "value": "Forecast updated"
           }
         }
       }
