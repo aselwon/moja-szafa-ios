@@ -40,6 +40,7 @@ export function eligibleGarments(input, ownerID) {
 export function selectCandidates(input, ownerID) {
   const eligible = eligibleGarments(input, ownerID);
   if (!eligible.length) invalid('no_available_garments');
+  input = { ...input, count: input.count === undefined ? 3 : input.count };
   if (!Number.isInteger(input.count) || input.count < 1 || input.count > 10) invalid('input_invalid');
   const preferences = input.preferences ?? {};
   const preferredColors = preferences.colors ?? [];
