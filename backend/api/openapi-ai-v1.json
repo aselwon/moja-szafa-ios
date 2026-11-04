@@ -113,6 +113,55 @@
                         "required": [
                           "formality"
                         ]
+                      },
+                      "weather": {
+                        "oneOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "source",
+                              "temperature_celsius"
+                            ],
+                            "properties": {
+                              "source": {
+                                "const": "manual"
+                              },
+                              "temperature_celsius": {
+                                "type": "number",
+                                "minimum": -80,
+                                "maximum": 60
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "source",
+                              "temperature_celsius",
+                              "valid_until"
+                            ],
+                            "properties": {
+                              "source": {
+                                "const": "forecast"
+                              },
+                              "temperature_celsius": {
+                                "type": "number",
+                                "minimum": -80,
+                                "maximum": 60
+                              },
+                              "valid_until": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Forecast validity epoch seconds. Expired hints are ignored at dispatch."
+                              }
+                            }
+                          }
+                        ]
                       }
                     },
                     "required": [

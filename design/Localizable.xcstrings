@@ -1980,19 +1980,18 @@
       }
     },
     "weather.city": {
-      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
+      "comment": "T042: city and optional weather context.",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Miasto"
+            "value": "Miasto, region lub kraj"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "City"
+            "value": "City, region or country"
           }
         }
       }
@@ -2016,19 +2015,18 @@
       }
     },
     "weather.manual": {
-      "comment": "T003: weather; tekst interfejsu, nie dane użytkownika.",
-      "extractionState": "manual",
+      "comment": "T042: city and optional weather context.",
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wpisz temperaturę ręcznie"
+            "value": "Użyj ręcznej temperatury"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter temperature manually"
+            "value": "Use manual temperature"
           }
         }
       }
@@ -6905,6 +6903,582 @@
         }
       },
       "comment": "T031: outfit suggestion screen — worn"
+    },
+    "generation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowe propozycje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liczba propozycji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Number of suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wygeneruj propozycje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotowujemy propozycje…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing suggestions…"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.queued": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadanie czeka w kolejce."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your request is queued."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.running": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trwa generowanie propozycji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating suggestions."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.consent": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapoznaj się z informacją o AI i udziel zgody, aby kontynuować."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the AI disclosure and grant consent to continue."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.quota": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit AI został osiągnięty. Spróbuj ponownie później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI limit has been reached. Try again later."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generowanie AI jest obecnie niedostępne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI generation is currently unavailable."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesja jest niedostępna. Zaloguj się ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session is unavailable. Sign in again."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można użyć tych ustawień generowania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These generation settings could not be accepted."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się pobrać propozycji. Możesz spróbować ponownie lub ręcznie edytować zestaw."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions could not be retrieved. Retry or edit an outfit manually."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.waiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadanie nadal trwa. Ponów sprawdzenie — nie utworzy to nowego zadania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The job is still pending. Retry to check it without creating a new job."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.storage": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zapisanego zadania. Generowanie wstrzymano, aby uniknąć duplikatu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved request could not be read. Generation is paused to avoid a duplicate."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.stale": {
+      "comment": "T031: terminal generation result no longer matches available wardrobe.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szafa zmieniła się od wygenerowania tego wyniku. Wygeneruj nowe propozycje."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe changed since this result was generated. Generate new suggestions."
+          }
+        }
+      }
+    },
+    "weather.title": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda i miasto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather and city"
+          }
+        }
+      }
+    },
+    "weather.optional": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda jest opcjonalna. Wpisanie miasta nie wymaga zgody na lokalizację. Miasta wyszukuje Apple, a prognozy dostarcza MET Norway. Przybliżona lokalizacja trafia do dostawcy pogody przez nasz serwer."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather is optional. Entering a city does not require location permission. Apple provides city search; MET Norway provides forecasts. Approximate coordinates reach the weather provider through our server."
+          }
+        }
+      }
+    },
+    "weather.search": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyszukaj miasto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search for a city"
+          }
+        }
+      }
+    },
+    "weather.locate": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj bieżącej lokalizacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use current location"
+          }
+        }
+      }
+    },
+    "weather.noCities": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie znaleziono miasta. Dodaj region lub kraj albo podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No city found. Add a region or country, or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.cityError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można wyszukać miasta. Sprawdź połączenie lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City search is unavailable. Check your connection or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.locationError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokalizacja jest niedostępna lub nie ma zgody. Wpisz miasto albo temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is unavailable or permission was not granted. Enter a city or temperature manually."
+          }
+        }
+      }
+    },
+    "weather.forecastError": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pogoda jest niedostępna. Spróbuj ponownie lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather is unavailable. Retry or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.timeZone": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strefa miasta"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City time zone"
+          }
+        }
+      }
+    },
+    "weather.validAt": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza na"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast for"
+          }
+        }
+      }
+    },
+    "weather.updatedAt": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza zaktualizowana"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast updated"
+          }
+        }
+      }
+    },
+    "weather.stale": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prognoza nieaktualna. Odśwież ją lub podaj temperaturę ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast is out of date. Refresh it or enter the temperature manually."
+          }
+        }
+      }
+    },
+    "weather.attribution": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Źródła danych pogodowych"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather data sources"
+          }
+        }
+      }
+    },
+    "weather.refresh": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odśwież pogodę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh weather"
+          }
+        }
+      }
+    },
+    "weather.temperature": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperatura w °C, np. −5"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperature in °C, e.g. -5"
+          }
+        }
+      }
+    },
+    "weather.range": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz liczbę od −80 do 60 °C."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a number from -80 to 60 °C."
+          }
+        }
+      }
+    },
+    "weather.fallback": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez temperatury można korzystać z propozycji bez kontekstu pogody."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without a temperature, suggestions can use no weather context."
+          }
+        }
+      }
+    },
+    "weather.clear": {
+      "comment": "T042: city and optional weather context.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść dane pogody"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear weather data"
+          }
+        }
+      }
     },
     "wardrobe.delete": {
       "localizations": {

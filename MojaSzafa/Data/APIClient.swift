@@ -1,5 +1,46 @@
 import Foundation
 
+extension APIClient: WeatherForecastRepository {
+    func forecast(latitude: Double, longitude: Double) async throws -> CityForecast {
+        guard latitude.isFinite, longitude.isFinite, abs(latitude) <= 90, abs(longitude) <= 180 else {
+            throw APIClientError.invalidRequest
+        }
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains(where: { $0.isWhitespace }) else { throw APIClientError.invalidConfiguration }
+        var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
+        components.path = "/v1/weather"
+        var request = URLRequest(url: components.url!, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.httpMethod = "POST"; request.timeoutInterval = 15
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode([
+            "latitude": (latitude * 100).rounded() / 100,
+            "longitude": (longitude * 100).rounded() / 100
+        ])
+        let (data, response) = try await transport.send(request)
+        if response.statusCode == 401 { await unauthorized(token) }
+        guard response.statusCode == 200, response.url == request.url, data.count <= 16384 else {
+            throw APIClientError.http(status: response.statusCode, requestID: nil)
+        }
+        struct Forecast: Decodable {
+            let celsius: Double; let validAt: String; let updatedAt: String
+            let source: String; let attributionURL: String; let licenseURL: String
+        }
+        struct Envelope: Decodable { let data: Forecast }
+        let value = try JSONDecoder().decode(Envelope.self, from: data).data
+        let dates = ISO8601DateFormatter()
+        guard value.celsius.isFinite, (-80...60).contains(value.celsius),
+              value.source == "MET Norway", value.attributionURL == "https://api.met.no/",
+              value.licenseURL == "https://creativecommons.org/licenses/by/4.0/",
+              let valid = dates.date(from: value.validAt), let updated = dates.date(from: value.updatedAt) else {
+            throw APIClientError.invalidResponse
+        }
+        try Task.checkCancellation()
+        return CityForecast(celsius: value.celsius, validAt: valid, updatedAt: updated,
+            attributionURL: URL(string: value.attributionURL)!, attributionImageURL: nil)
+    }
+}
+
 /// Wire contracts are versioned independently from domain/view models.
 enum APIv1 {
     enum Category: String, Codable, Sendable, CaseIterable {
