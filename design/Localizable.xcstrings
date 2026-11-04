@@ -2122,55 +2122,55 @@
       }
     },
     "statistics.value": {
-      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Wardrobe statistics: value",
       "extractionState": "manual",
       "localizations": {
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wartość rzeczy ze znaną ceną"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Value of items with known prices"
+            "value": "Known wardrobe value"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znana wartość szafy"
           }
         }
       }
     },
     "statistics.period": {
-      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Wardrobe statistics: period",
       "extractionState": "manual",
       "localizations": {
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Okres aktywności"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Activity period"
           }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okres aktywności"
+          }
         }
       }
     },
     "statistics.never": {
-      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Wardrobe statistics: never",
       "extractionState": "manual",
       "localizations": {
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nigdy nienoszone"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Never worn"
+            "value": "Never worn in available history"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nienoszone w dostępnej historii"
           }
         }
       }
@@ -2194,19 +2194,19 @@
       }
     },
     "statistics.empty": {
-      "comment": "T003: statistics; tekst interfejsu, nie dane użytkownika.",
+      "comment": "Wardrobe statistics: empty",
       "extractionState": "manual",
       "localizations": {
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Brak aktywności w wybranym okresie."
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No activity in the selected period."
+            "value": "No matching items"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak pasujących rzeczy"
           }
         }
       }
@@ -8993,6 +8993,294 @@
       },
       "comment": "T041: weekly outfit planner; plans are separate from actual wear history.",
       "extractionState": "manual"
+    },
+    "statistics.period.all": {
+      "comment": "Wardrobe statistics: period.all",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All recorded days"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystkie zapisane dni"
+          }
+        }
+      }
+    },
+    "statistics.period.month": {
+      "comment": "Wardrobe statistics: period.month",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 30 days"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostatnie 30 dni"
+          }
+        }
+      }
+    },
+    "statistics.period.quarter": {
+      "comment": "Wardrobe statistics: period.quarter",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 90 days"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostatnie 90 dni"
+          }
+        }
+      }
+    },
+    "statistics.period.year": {
+      "comment": "Wardrobe statistics: period.year",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 365 days"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostatnie 365 dni"
+          }
+        }
+      }
+    },
+    "statistics.archived": {
+      "comment": "Wardrobe statistics: archived",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include archived garments"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uwzględnij zarchiwizowane ubrania"
+          }
+        }
+      }
+    },
+    "statistics.scope": {
+      "comment": "Wardrobe statistics: scope",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The date filter changes activity counts only. Wardrobe value, lifetime cost per wear and inactivity lists use all available history."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtr dat zmienia tylko liczbę dni aktywności. Wartość szafy, koszt założenia za cały czas i listy nieużywanych rzeczy korzystają z całej dostępnej historii."
+          }
+        }
+      }
+    },
+    "statistics.cached": {
+      "comment": "Wardrobe statistics: cached",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calculated from this device’s synchronized metadata; available offline."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obliczone z synchronizowanych danych na urządzeniu; dostępne offline."
+          }
+        }
+      }
+    },
+    "statistics.pending": {
+      "comment": "Wardrobe statistics: pending",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Includes local changes awaiting synchronization."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uwzględnia lokalne zmiany oczekujące na synchronizację."
+          }
+        }
+      }
+    },
+    "statistics.missingPrices": {
+      "comment": "Wardrobe statistics: missingPrices",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Items without a price"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rzeczy bez podanej ceny"
+          }
+        }
+      }
+    },
+    "statistics.items": {
+      "comment": "Wardrobe statistics: items",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Items included"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uwzględnione rzeczy"
+          }
+        }
+      }
+    },
+    "statistics.mostWorn": {
+      "comment": "Wardrobe statistics: mostWorn",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Most worn — distinct days in the period"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najczęściej noszone — różne dni w okresie"
+          }
+        }
+      }
+    },
+    "statistics.cpw": {
+      "comment": "Wardrobe statistics: cpw",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lifetime cost per wear — lowest first"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koszt założenia za cały czas — od najniższego"
+          }
+        }
+      }
+    },
+    "statistics.cpwScope": {
+      "comment": "Wardrobe statistics: cpwScope",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only known prices and a nonzero wear count are ranked. Zero is a known price. Changing the activity period does not change this cost."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ranking obejmuje znane ceny i niezerową liczbę noszeń. Zero jest znaną ceną. Zmiana okresu aktywności nie zmienia tego kosztu."
+          }
+        }
+      }
+    },
+    "statistics.estimated": {
+      "comment": "Wardrobe statistics: estimated",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Includes estimated initial wear history"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uwzględnia szacowaną historię początkową"
+          }
+        }
+      }
+    },
+    "statistics.unused90": {
+      "comment": "Wardrobe statistics: unused90",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not worn for at least 90 days"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nienoszone od co najmniej 90 dni"
+          }
+        }
+      }
+    },
+    "statistics.unknownLastWear": {
+      "comment": "Wardrobe statistics: unknownLastWear",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown only when recorded dates or the initial-history boundary establish 90 days of inactivity. Items without enough history are not assumed to be old."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokazujemy rzeczy, dla których zapisane daty lub granica historii początkowej potwierdzają 90 dni bez noszenia. Przy braku historii nie zakładamy wieku rzeczy."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

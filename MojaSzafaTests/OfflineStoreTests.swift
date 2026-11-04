@@ -8,6 +8,26 @@ final class OfflineStoreTests: XCTestCase {
     }
     private let fields = APIv1.GarmentFields(name: "Shirt", category: .top, priceGrosz: 80000, availability: .available)
 
+    func testStatisticsReadsDurableOfflineSnapshotAndHonorsAccountDeletion() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let garment = try await store.saveGarment(fields: fields)
+        _ = try await store.recordWear(wornOn: "2026-01-01", timezone: "Pacific/Kiritimati", garmentIDs: [garment])
+        await remote.setOffline(true)
+        let restarted = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let snapshot = try await restarted.statisticsSnapshot()
+        XCTAssertEqual(snapshot.garments.map(\.id), [garment])
+        XCTAssertEqual(snapshot.wears.count, 1)
+        XCTAssertTrue(snapshot.cached)
+        XCTAssertTrue(snapshot.pendingChanges)
+        await remote.setOffline(false)
+        await remote.deleteAccount()
+        do { _ = try await restarted.statisticsSnapshot(); XCTFail("Deleted account must not expose cached statistics") }
+        catch { XCTAssertEqual(error as? OfflineError, .accountDeleted) }
+    }
+
     func testHistoryRemovalUndoSurvivesRestartAndAmbiguousResponse() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
@@ -527,12 +547,15 @@ private actor SyncTestRemote: OfflineRemote {
     private(set) var visibilityRequests: [Data] = []
     private var wearTimeout = false
     private var deleted = false
+    private var offline = false
+    func setOffline(_ value: Bool) { offline = value }
     private(set) var requests: [Data] = []
     func timeoutNextWrite() { timeout = true }
     func timeoutNextWear() { wearTimeout = true }
     func deleteAccount() { deleted = true }
     func counts() -> [Int] { [garments.count, wears.count] }
     func snapshot() throws -> SyncSnapshot {
+        if offline { throw URLError(.notConnectedToInternet) }
         if deleted { throw failure("account_unavailable") }
         return SyncSnapshot(accountID: accountID, garments: garments, wears: wears)
     }
