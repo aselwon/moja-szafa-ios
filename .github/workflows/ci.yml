@@ -30,6 +30,7 @@ jobs:
       - name: Validate repository, environment guards and secrets
         run: |
           node --test scripts/select-ios-simulator.test.mjs
+          python3 -m unittest discover -s scripts -p 'test_clone_ios_simulator.py'
           node scripts/harness-check.mjs
 
   ios:
@@ -49,7 +50,7 @@ jobs:
           node-version: 22
       - name: Show toolchain
         run: xcodebuild -version
-      - name: Create isolated iPhone simulator
+      - name: Clone isolated iPhone simulator from blank template
         id: simulator
         env:
           BUILD_CONFIGURATION: ${{ matrix.configuration }}
@@ -58,10 +59,10 @@ jobs:
           selection="$(xcrun simctl list runtimes -j | node scripts/select-ios-simulator.mjs)"
           read -r device_type runtime <<< "$selection"
           simulator_name="MojaSzafa-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}-${BUILD_CONFIGURATION}"
-          SIMULATOR_ID="$(xcrun simctl create "$simulator_name" "$device_type" "$runtime")"
-          # Persist ownership before boot so cleanup also runs after boot failures.
-          echo "id=$SIMULATOR_ID" >> "$GITHUB_OUTPUT"
-          echo "Created simulator $SIMULATOR_ID"
+          SIMULATOR_ID="$(python3 scripts/clone-ios-simulator.py \
+            --name "$simulator_name" --device-type "$device_type" --runtime "$runtime" \
+            --github-output "$GITHUB_OUTPUT")"
+          echo "Cloned simulator $SIMULATOR_ID"
           xcrun simctl boot "$SIMULATOR_ID"
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
       - name: Build and test environment

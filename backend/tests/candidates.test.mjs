@@ -47,7 +47,7 @@ test('1000 garments pass through executor and real serializer with bounded metad
     fetchImpl: async (_url, request) => {
       payload = JSON.parse(JSON.parse(request.body).messages[1].content);
       return Response.json({ model: 'outfit', usage: { prompt_tokens: 1, completion_tokens: 1 },
-        choices: [{ finish_reason: 'stop', message: { content: JSON.stringify({ outfits: [{ garment_ids: ['item-999', 'item-1'] }] }) } }] });
+        choices: [{ finish_reason: 'stop', message: { content: JSON.stringify({ outfits: [{ garment_ids: ['item-999', 'item-1'], rationale: 'Missing bottom.' }], shortfall_reason: 'Only one distinct proposal.' }) } }] });
     }
   });
   const execute = createAIExecutor({ provider, resolveInput: async () => ({ garments, count: 3, pinned_garment_id: 'item-999', private_data: 'PRIVATE' }),
@@ -65,7 +65,7 @@ test('result recheck uses full current eligibility, rejects ownership changes', 
   for (const transfer of [false, true]) {
     let resolved = 0;
     const execute = createAIExecutor({
-      provider: { recipient: 'fixture', analyzeImage: async () => {}, recommendOutfits: async () => ({ result: { outfits: [{ garment_ids: ['z'] }] }, telemetry: {} }) },
+      provider: { recipient: 'fixture', analyzeImage: async () => {}, recommendOutfits: async () => ({ result: { outfits: [{ garment_ids: ['z'], rationale: 'Missing bottom and shoes.' }], shortfall_reason: null }, telemetry: {} }) },
       resolveInput: async () => ({ count: 1, garments: resolved++ === 0 ? [garment('z')] :
         [garment('z', 'top', { user_id: transfer ? 'other' : 'owner' }), ...Array.from({ length: 50 }, (_, i) => garment(`a-${i}`))] }),
       authorize: async () => true, validateResult: async (_job, result) => result, recordTelemetry: async () => {}
