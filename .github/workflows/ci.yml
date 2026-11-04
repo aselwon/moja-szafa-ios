@@ -8,10 +8,11 @@ on:
 permissions:
   contents: read
 
-# New commits supersede older checks for the same PR, without cancelling other PRs.
+# New commits supersede checks for the same PR. Each main push gets its own
+# group so subsequent pushes cannot cancel running or pending main checks.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   validate:
