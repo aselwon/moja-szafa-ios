@@ -3,6 +3,7 @@ import CryptoKit
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var suggestions: any SuggestionRepository = UnconfiguredSuggestionRepository()
     var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
@@ -38,6 +39,7 @@ struct AppDependencies: Sendable {
         let store = try OfflineStore(accountID: accountID, database: database, remote: client)
         var result = AppDependencies(wardrobe: store)
         result.outfits = client
+        result.suggestions = client
         result.aiConsent = client
         result.dataExports = client.dataExports
         return result
@@ -68,6 +70,7 @@ struct AppDependencies: Sendable {
             let store = try OfflineStore(accountID: userID, database: database, remote: client)
             var result = AppDependencies(wardrobe: store, authentication: authentication)
             result.outfits = client
+            result.suggestions = client
             result.aiConsent = client
             result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
