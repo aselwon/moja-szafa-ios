@@ -1,6 +1,7 @@
 import XCTest
 import UIKit
 import ImageIO
+import UniformTypeIdentifiers
 @testable import MojaSzafa
 
 @MainActor
@@ -15,9 +16,13 @@ final class OutfitExportTests: XCTestCase {
         let payload = try await OutfitExporter.prepare(outfit, repository: repository)
         let requested = await repository.requested
         XCTAssertEqual(requested, [firstID, secondID])
-        XCTAssertEqual(payload.activityItems.count, 2)
-        XCTAssertTrue(payload.activityItems[0] is UIImage)
-        XCTAssertEqual(payload.activityItems[1] as? String, String(localized: "outfits.export.caption"))
+        let providers = payload.itemProviders
+        XCTAssertEqual(providers.count, 2)
+        XCTAssertEqual(providers[0].registeredTypeIdentifiers, [UTType.png.identifier])
+        let sharedData = try await data(from: providers[0], type: UTType.png.identifier)
+        XCTAssertEqual(sharedData, payload.pngData)
+        let sharedCaption = try await data(from: providers[1], type: UTType.utf8PlainText.identifier)
+        XCTAssertEqual(String(data: sharedCaption, encoding: .utf8), String(localized: "outfits.export.caption"))
         XCTAssertEqual(payload.image.size, CGSize(width: 1200, height: 1200))
         XCTAssertEqual(payload.image.scale, 1)
         // Metadata-only changes cannot alter exported pixels or text.
@@ -25,17 +30,27 @@ final class OutfitExportTests: XCTestCase {
         outfit.name = "Another private identifier"
         outfit.garments[0].priceGrosz = 99999
         let changed = try await OutfitExporter.prepare(outfit, repository: repository)
-        XCTAssertEqual(payload.image.pngData(), changed.image.pngData())
+        XCTAssertEqual(payload.pngData, changed.pngData)
         XCTAssertEqual(payload.caption, changed.caption)
-        let data = try XCTUnwrap(payload.image.pngData())
-        let source = try XCTUnwrap(CGImageSourceCreateWithData(data as CFData, nil))
+        let source = try XCTUnwrap(CGImageSourceCreateWithData(sharedData as CFData, nil))
         let properties = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any])
         XCTAssertNil(properties[kCGImagePropertyGPSDictionary as String])
         XCTAssertNil(properties[kCGImagePropertyExifDictionary as String])
         XCTAssertNil(properties[kCGImagePropertyTIFFDictionary as String])
         // The collage includes both selected photos in order, not a screenshot or placeholder.
-        XCTAssertEqual(pixel(payload.image, x: 300, y: 600), [255, 0, 0, 255])
-        XCTAssertEqual(pixel(payload.image, x: 900, y: 600), [0, 0, 255, 255])
+        let sharedImage = try XCTUnwrap(UIImage(data: sharedData))
+        XCTAssertEqual(sharedImage.size, payload.image.size)
+        XCTAssertEqual(pixel(sharedImage, x: 300, y: 600), [255, 0, 0, 255])
+        XCTAssertEqual(pixel(sharedImage, x: 900, y: 600), [0, 0, 255, 255])
+    }
+
+    private func data(from provider: NSItemProvider, type: String) async throws -> Data {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = provider.loadDataRepresentation(forTypeIdentifier: type) { data, error in
+                if let data { continuation.resume(returning: data) }
+                else { continuation.resume(throwing: error ?? OutfitExportError.encodingFailed) }
+            }
+        }
     }
 
     func testEmptyMissingCorruptAndOfflinePhotosNeverProducePayload() async {
@@ -78,7 +93,8 @@ final class OutfitExportTests: XCTestCase {
         let destination = CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil)!
         CGImageDestinationAddImage(destination, image.cgImage!, [
             kCGImagePropertyExifDictionary: [kCGImagePropertyExifUserComment: "Private source identifier"],
-            kCGImagePropertyGPSDictionary: [kCGImagePropertyGPSLatitude: 52.0, kCGImagePropertyGPSLatitudeRef: "N"]
+            kCGImagePropertyGPSDictionary: [kCGImagePropertyGPSLatitude: 52.0, kCGImagePropertyGPSLatitudeRef: "N"],
+            kCGImagePropertyTIFFDictionary: [kCGImagePropertyTIFFArtist: "Private owner"]
         ] as CFDictionary)
         XCTAssertTrue(CGImageDestinationFinalize(destination))
         return data as Data
