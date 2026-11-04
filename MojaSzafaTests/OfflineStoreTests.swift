@@ -8,6 +8,42 @@ final class OfflineStoreTests: XCTestCase {
     }
     private let fields = APIv1.GarmentFields(name: "Shirt", category: .top, priceGrosz: 80000, availability: .available)
 
+    func testPermanentDeletionSurvivesRestartAndStaleSnapshot() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SyncTestRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let id = try await store.saveGarment(fields: fields)
+        try await store.synchronize()
+        try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [id])
+        try await store.deleteGarment(id: id)
+        let restarted = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        // Remote delete is unavailable: the live server snapshot must not revive it.
+        do { try await restarted.synchronize(); XCTFail("Expected unavailable deletion") } catch {}
+        let state = await restarted.status()
+        XCTAssertTrue(state.garments.first { $0.id == id }!.deleted)
+        XCTAssertTrue(state.wears.allSatisfy { !$0.garmentIDs.contains(id) })
+        XCTAssertEqual(state.outbox.filter { $0.deletion != nil }.count, 1)
+        do { try await restarted.saveGarment(id: id, fields: fields); XCTFail("Revived tombstone") }
+        catch { XCTAssertEqual(error as? OfflineError, .conflict) }
+    }
+
+    func testDeletionWinsOverInFlightSave() async throws {
+        let db = database()
+        defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
+        let remote = SuspendedSyncRemote()
+        let store = try OfflineStore(accountID: remote.accountID, database: db, remote: remote)
+        let id = try await store.saveGarment(fields: fields)
+        let sync = Task { try await store.synchronize() }
+        await remote.waitUntilSaving()
+        try await store.deleteGarment(id: id)
+        await remote.finish()
+        try await sync.value
+        let state = await store.status()
+        XCTAssertTrue(state.garments.first { $0.id == id }!.deleted)
+        XCTAssertEqual(state.outbox.filter { $0.deletion != nil }.count, 1)
+    }
+
     func testStatusSurvivesRestartAndReachesSecondDeviceWithoutChangingHistoryOrPrice() async throws {
         let firstDB = database(), secondDB = database()
         defer {

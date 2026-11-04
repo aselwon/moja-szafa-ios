@@ -39,6 +39,11 @@ struct OutfitPage: Decodable, Sendable {
 protocol OutfitRepository: Sendable {
     func outfits(cursor: UUID?) async throws -> OutfitPage
     func saveOutfit(_ request: SaveOutfit) async throws -> Outfit
+    func saveSuggestion(_ request: SaveOutfit) async throws -> Outfit
+}
+
+extension OutfitRepository {
+    func saveSuggestion(_ request: SaveOutfit) async throws -> Outfit { try await saveOutfit(request) }
 }
 
 struct UnconfiguredOutfitRepository: OutfitRepository {
@@ -47,6 +52,11 @@ struct UnconfiguredOutfitRepository: OutfitRepository {
 }
 
 extension APIClient: OutfitRepository {
+    func saveSuggestion(_ request: SaveOutfit) async throws -> Outfit {
+        let result: APIv1.Success<Outfit> = try await call("api_v1_save_suggestion", request)
+        guard result.data.id == request.id, result.data.version > request.baseVersion else { throw APIClientError.invalidResponse }
+        return result.data
+    }
     func outfits(cursor: UUID?) async throws -> OutfitPage {
         let result: APIv1.Success<OutfitPage> = try await call("api_v1_list_outfits", APIv1.PageRequest(limit: 40, cursor: cursor))
         return result.data

@@ -3,6 +3,7 @@ import importlib.util
 import io
 from pathlib import Path
 import unittest
+from unittest.mock import Mock, patch
 from PIL import Image
 
 spec = importlib.util.spec_from_file_location('normalize', Path(__file__).parents[1] / 'images/normalize.py')
@@ -11,6 +12,17 @@ spec.loader.exec_module(module)
 
 
 class DecoderTests(unittest.TestCase):
+    def test_unsupported_format_is_rejected_before_its_parser_runs(self):
+        source = io.BytesIO()
+        Image.new('RGB', (10, 10), 'red').save(source, 'BMP')
+        Image.init()
+        parser, accept = Image.OPEN['BMP']
+        observed = Mock(wraps=parser)
+        with patch.dict(Image.OPEN, {'BMP': (observed, accept)}):
+            with self.assertRaises(Exception):
+                module.normalize(source.getvalue())
+        observed.assert_not_called()
+
     def test_metadata_orientation_and_thumbnail(self):
         image = Image.new('RGB', (640, 480), 'red')
         exif = Image.Exif()

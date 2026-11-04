@@ -52,3 +52,4 @@ await import('../backend/tests/candidates.test.mjs');
 await import('../backend/tests/outfit-generation.test.mjs');
 
 await import('../backend/tests/purchase-candidate.test.mjs');
+await import('../backend/tests/ai-evaluation.test.mjs');
