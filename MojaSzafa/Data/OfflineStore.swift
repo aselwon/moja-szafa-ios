@@ -241,6 +241,19 @@ actor OfflineStore: WardrobeRepository {
 
     func status() -> State { state }
 
+    func statisticsSnapshot() async throws -> StatisticsSnapshot {
+        do { try await synchronize() }
+        catch {
+            if error is CancellationError || Task.isCancelled { throw error }
+            try requireActive()
+            if !(error is URLError) { throw error }
+        }
+        try requireActive()
+        return StatisticsSnapshot(garments: state.garments.filter { !$0.deleted }.map(\.display),
+            wears: state.wears, cached: true, pendingChanges: !state.outbox.isEmpty)
+    }
+
+
     func garments() async throws -> [Garment] {
         do { try await synchronize() }
         catch {

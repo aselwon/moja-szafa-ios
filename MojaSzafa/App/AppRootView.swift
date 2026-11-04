@@ -39,7 +39,7 @@ struct AppRootView: View {
                 .tabItem { Label("tab.wardrobe", systemImage: "tshirt") }
             NavigationStack { OutfitsView(repository: dependencies.outfits, wardrobe: dependencies.wardrobe, wearStore: dependencies.wearStore ?? dependencies.offline, personalization: personalization).toolbar { plannerLink; tripsLink } }
                 .tabItem { Label("tab.outfits", systemImage: "square.stack") }
-            NavigationStack { StatisticsView() }
+            NavigationStack { StatisticsView(repository: dependencies.wardrobe) }
                 .tabItem { Label("tab.statistics", systemImage: "chart.bar") }
         }
     }
