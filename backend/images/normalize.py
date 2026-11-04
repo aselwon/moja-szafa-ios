@@ -14,13 +14,15 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 def normalize(data):
     if not data or len(data) > MAX_BYTES:
         raise ValueError('image_limit')
-    with Image.open(io.BytesIO(data)) as source:
+    # Restrict plugin selection before parsing an untrusted header, rather than
+    # only rejecting unsupported formats after their parser has already run.
+    with Image.open(io.BytesIO(data), formats=('JPEG', 'PNG', 'WEBP')) as source:
         if source.format not in ('JPEG', 'PNG', 'WEBP') or getattr(source, 'n_frames', 1) != 1:
             raise ValueError('unsupported_image')
         if max(source.size) > 12000 or source.width * source.height > Image.MAX_IMAGE_PIXELS:
             raise ValueError('image_limit')
         source.verify()
-    with Image.open(io.BytesIO(data)) as source:
+    with Image.open(io.BytesIO(data), formats=('JPEG', 'PNG', 'WEBP')) as source:
         source.load()  # A header or MIME match is never enough.
         oriented = ImageOps.exif_transpose(source).convert('RGBA')
         # Fresh canvas drops EXIF, GPS, comments, ICC and all source metadata.
