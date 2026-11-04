@@ -13,7 +13,7 @@ function visit(value) {
 visit(contract);
 const sql = (
   await Promise.all(
-    ['003_api.sql', '004_offline_sync.sql', '006_jobs.sql', '011_wardrobe_browse.sql', '012_manual_outfits.sql', '014_garment_deletion.sql'].map(name => read(`backend/migrations/${name}`)),
+    ['003_api.sql', '004_offline_sync.sql', '006_jobs.sql', '011_wardrobe_browse.sql', '012_manual_outfits.sql', '015_garment_deletion.sql'].map(name => read(`backend/migrations/${name}`)),
   )
 ).join('\n');
 const swift = await read('MojaSzafa/Data/APIClient.swift') + await read('MojaSzafa/Data/OfflineStore.swift') + await read('MojaSzafa/Features/Outfits/OutfitsModel.swift');
