@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+# New commits supersede older checks for the same PR, without cancelling other PRs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
