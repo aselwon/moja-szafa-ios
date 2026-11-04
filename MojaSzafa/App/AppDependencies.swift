@@ -5,6 +5,7 @@ import CryptoKit
 struct AppDependencies: Sendable {
     var weather: (any WeatherForecastRepository)?
     var suggestions: any SuggestionRepository = UnconfiguredSuggestionRepository()
+    var wearStore: OfflineStore?
     var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
@@ -79,6 +80,7 @@ struct AppDependencies: Sendable {
             var result = AppDependencies(wardrobe: store, authentication: authentication)
             result.weather = client
             result.apiConnection = connection
+            result.wearStore = store
             result.outfits = client
             result.suggestions = client
             result.aiConsent = client
