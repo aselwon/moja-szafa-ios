@@ -123,6 +123,16 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.equal(packedTrip.body.data?.version,2,JSON.stringify(packedTrip.body));
   assert.deepEqual((await call('api_v1_trips',packing)).body,packedTrip.body);
   assert.equal((await ownerPool.query('SELECT count(*)::int AS n FROM app.wear_events WHERE user_id=$1',[a.owner])).rows[0].n,wearBeforePacking);
+  const prefs = {action:'preferences',operationID:randomUUID(),baseVersion:0,excludedCategories:['top'],colors:['blue']};
+  const personalized=await call('api_v1_personalization',prefs);
+  assert.equal(personalized.status,200);
+  assert.equal(personalized.body.data?.version,1,JSON.stringify(personalized.body));
+  assert.deepEqual((await call('api_v1_personalization',prefs)).body,personalized.body);
+  assert.deepEqual((await call('api_v1_personalization',{action:'get'},tokenB)).body.data?.excludedCategories,[]);
+  const reset=await call('api_v1_personalization',{action:'reset',operationID:randomUUID(),baseVersion:1});
+  assert.equal(reset.body.data?.version,2);
+  assert.deepEqual(reset.body.data?.excludedCategories,[]);
+  assert.equal((await call('api_v1_personalization',{...prefs,operationID:randomUUID()})).body.error?.code,'version_conflict');
 
   const image = await store.command(a,'images','prepare',{garment,id:randomUUID()});
   assert(image?.id);

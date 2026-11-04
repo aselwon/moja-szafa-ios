@@ -1,0 +1,201 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI personalization",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/rest/v1/rpc/api_v1_personalization": {
+      "post": {
+        "operationId": "api_v1_personalization",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "request"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "request": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "action"
+                        ],
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "const": "get"
+                          },
+                          "outfitID": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "action",
+                          "operationID",
+                          "baseVersion"
+                        ],
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "const": "reset"
+                          },
+                          "operationID": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "baseVersion": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "action",
+                          "operationID",
+                          "baseVersion",
+                          "outfitID",
+                          "rating"
+                        ],
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "const": "feedback"
+                          },
+                          "operationID": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "baseVersion": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "outfitID": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "rating": {
+                            "type": "string",
+                            "enum": [
+                              "like",
+                              "dislike"
+                            ]
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 500
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "action",
+                          "operationID",
+                          "baseVersion",
+                          "excludedCategories",
+                          "colors"
+                        ],
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "const": "preferences"
+                          },
+                          "operationID": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "baseVersion": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "excludedCategories": {
+                            "type": "array",
+                            "uniqueItems": true,
+                            "maxItems": 8,
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "top",
+                                "bottom",
+                                "shoes",
+                                "dress",
+                                "jumpsuit",
+                                "outerwear",
+                                "accessory",
+                                "other"
+                              ]
+                            }
+                          },
+                          "colors": {
+                            "type": "array",
+                            "uniqueItems": true,
+                            "maxItems": 13,
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "black",
+                                "white",
+                                "gray",
+                                "beige",
+                                "brown",
+                                "red",
+                                "orange",
+                                "yellow",
+                                "green",
+                                "blue",
+                                "purple",
+                                "pink",
+                                "other"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current personalization revision or error envelope"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

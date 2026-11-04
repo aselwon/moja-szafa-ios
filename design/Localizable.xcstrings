@@ -8616,6 +8616,330 @@
         }
       }
     },
+    "personalization.title": {
+      "comment": "AI personalization editor: title",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI preferences"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferencje AI"
+          }
+        }
+      }
+    },
+    "personalization.feedback": {
+      "comment": "AI personalization editor: feedback",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate outfit"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oceń zestaw"
+          }
+        }
+      }
+    },
+    "personalization.rating": {
+      "comment": "AI personalization editor: rating",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your rating"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoja ocena"
+          }
+        }
+      }
+    },
+    "personalization.like": {
+      "comment": "AI personalization editor: like",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Like"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podoba mi się"
+          }
+        }
+      }
+    },
+    "personalization.dislike": {
+      "comment": "AI personalization editor: dislike",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dislike"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie podoba mi się"
+          }
+        }
+      }
+    },
+    "personalization.reason": {
+      "comment": "AI personalization editor: reason",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional reason (up to 500 characters)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcjonalny powód (do 500 znaków)"
+          }
+        }
+      }
+    },
+    "personalization.noWear": {
+      "comment": "AI personalization editor: noWear",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating does not record a wear or change cost per wear."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocena nie zapisuje noszenia ani nie zmienia kosztu założenia."
+          }
+        }
+      }
+    },
+    "personalization.exclusions": {
+      "comment": "AI personalization editor: exclusions",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluded categories"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wykluczone kategorie"
+          }
+        }
+      }
+    },
+    "personalization.hard": {
+      "comment": "AI personalization editor: hard",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These categories cannot appear in AI suggestions. Saved outfits and wear history stay unchanged."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te kategorie nie pojawią się w propozycjach AI. Zapisane zestawy i historia noszeń pozostają bez zmian."
+          }
+        }
+      }
+    },
+    "personalization.colors": {
+      "comment": "AI personalization editor: colors",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferred colors"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferowane kolory"
+          }
+        }
+      }
+    },
+    "personalization.soft": {
+      "comment": "AI personalization editor: soft",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colors and outfit ratings influence ranking; they do not guarantee a matching suggestion."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kolory i oceny zestawów wpływają na ranking, ale nie gwarantują dopasowanej propozycji."
+          }
+        }
+      }
+    },
+    "personalization.pending": {
+      "comment": "AI personalization editor: pending",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An earlier change awaits confirmation. Retry sends exactly that change."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wcześniejsza zmiana czeka na potwierdzenie. Ponowienie wyśle dokładnie tę zmianę."
+          }
+        }
+      }
+    },
+    "personalization.reset": {
+      "comment": "AI personalization editor: reset",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset AI personalization"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zresetuj personalizację AI"
+          }
+        }
+      }
+    },
+    "personalization.resetExplanation": {
+      "comment": "AI personalization editor: resetExplanation",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove saved AI colors, exclusions and outfit ratings across devices. Wardrobe, wear history and local profile settings remain unchanged."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń zapisane kolory AI, wykluczenia i oceny zestawów na wszystkich urządzeniach. Szafa, historia noszeń i lokalne ustawienia profilu pozostają bez zmian."
+          }
+        }
+      }
+    },
+    "personalization.storage": {
+      "comment": "AI personalization editor: storage",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pending change cannot be read or stored safely. Changes are disabled."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można bezpiecznie odczytać lub zapisać oczekującej zmiany. Edycja jest wyłączona."
+          }
+        }
+      }
+    },
+    "personalization.failed": {
+      "comment": "AI personalization editor: failed",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not confirm the change. Check your connection and retry."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się potwierdzić zmiany. Sprawdź połączenie i ponów."
+          }
+        }
+      }
+    },
+    "personalization.conflict": {
+      "comment": "AI personalization editor: conflict",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferences changed or the request is no longer valid. Reload before editing."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferencje zmieniły się lub żądanie jest już nieaktualne. Wczytaj ponownie przed edycją."
+          }
+        }
+      }
+    },
+    "personalization.saveAndRate": {
+      "comment": "Explicitly saves an AI suggestion before collecting feedback; never records a wear.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and rate"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz i oceń"
+          }
+        }
+      }
+    },
     "planner.title": {
       "localizations": {
         "pl": {

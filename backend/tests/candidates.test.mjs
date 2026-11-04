@@ -73,3 +73,13 @@ test('result recheck uses full current eligibility, rejects ownership changes', 
     assert.equal((await execute({ kind: 'outfit_generation', user_id: 'owner' })).outcome, transfer ? 'permanent' : 'success');
   }
 });
+
+
+test('bounded feedback ranks candidates without sending ratings or free text to the model', () => {
+  const result = select([garment('a'), garment('b', 'top', { preference_score: 2, reason: 'PRIVATE_REASON' }),
+    garment('c', 'top', { preference_score: -2 })]);
+  assert.deepEqual(result.garments.map(g => g.id), ['b', 'a', 'c']);
+  assert(!JSON.stringify(result).includes('preference_score'));
+  assert(!JSON.stringify(result).includes('PRIVATE_REASON'));
+  assert.deepEqual(select([garment('b'),garment('a')]).garments.map(g=>g.id),['a','b']);
+});
