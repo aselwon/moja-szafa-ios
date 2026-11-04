@@ -4,6 +4,7 @@ import "./check-ios.mjs";
 import "./check-api.mjs";
 import "./check-environments.mjs";
 import "./check-secrets.mjs";
+import "./check-collisions.mjs";
 
 const required = ["id", "title", "description", "acceptance", "dependsOn", "tier", "status"];
 const allowedStatuses = new Set(["todo", "in_progress", "review", "done", "blocked"]);
