@@ -46,3 +46,5 @@ await import('../backend/tests/exports.test.mjs');
 await import('../backend/tests/deletion.test.mjs');
 
 await import('../backend/tests/recognition.test.mjs');
+
+await import('../backend/tests/candidates.test.mjs');
