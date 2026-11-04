@@ -3,11 +3,14 @@ import SwiftUI
 struct OutfitsView: View {
     @StateObject private var model: OutfitsModel
     let wardrobe: any WardrobeRepository
+    let wearStore: OfflineStore?
+    @State private var recording: SyncWear?
     @State private var editing: Outfit?
     @State private var favoritesOnly = false
 
-    init(repository: any OutfitRepository, wardrobe: any WardrobeRepository) {
+    init(repository: any OutfitRepository, wardrobe: any WardrobeRepository, wearStore: OfflineStore? = nil) {
         _model = StateObject(wrappedValue: OutfitsModel(repository: repository))
+        self.wearStore = wearStore
         self.wardrobe = wardrobe
     }
 
@@ -28,6 +31,9 @@ struct OutfitsView: View {
                         OutfitCollage(garments: outfit.garments, repository: wardrobe)
                     }
                 }.buttonStyle(.plain)
+                if wearStore != nil {
+                    Button("wear.today") { recording = WearEditor.newWear(garmentIDs: outfit.garments.map(\.id)) }
+                }
             }
             if model.nextCursor != nil {
                 Button("wardrobe.more") { Task { await model.load(more: true) } }.disabled(model.loading)
@@ -37,6 +43,9 @@ struct OutfitsView: View {
         .toolbar { Button("outfits.new") { editing = model.pendingDraft ?? Outfit() } }
         .task { await model.load() }
         .refreshable { await model.load() }
+        .sheet(item: $recording) { wear in
+            if let wearStore { NavigationStack { WearEditor(wear: wear, store: wearStore) } }
+        }
         .sheet(item: $editing) { outfit in
             NavigationStack { OutfitEditor(outfit: outfit, model: model, wardrobe: wardrobe) }
         }
