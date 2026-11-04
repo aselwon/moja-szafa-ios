@@ -3,6 +3,18 @@ import XCTest
 
 @MainActor
 final class WeatherTests: XCTestCase {
+    func testGenerationReplayPreservesWeatherWithoutLocationAndOldIntentsDecode() throws {
+        let hint = GenerationWeatherContext(temperature_celsius: -5.5, source: "manual", valid_until: nil)
+        let request = GenerationRequest(operation_id: UUID(), count: 3, weather: hint)
+        let data = try JSONEncoder().encode(request)
+        XCTAssertEqual(try JSONDecoder().decode(GenerationRequest.self, from: data), request)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let weather = try XCTUnwrap(object["weather"] as? [String: Any])
+        XCTAssertEqual(Set(weather.keys), ["source", "temperature_celsius"])
+        let oldRequest = GenerationRequest(operation_id: UUID(), count: 3)
+        let oldData = try JSONEncoder().encode(oldRequest)
+        XCTAssertNil(try JSONDecoder().decode(GenerationRequest.self, from: oldData).weather)
+    }
     func testAuthenticatedForecastUsesCoarseBodyAndFixedAttribution() async throws {
         let client = try APIClient(baseURL: URL(string: "https://gateway.example/rest/v1")!,
             transport: ForecastTransport()) { "valid-session" }

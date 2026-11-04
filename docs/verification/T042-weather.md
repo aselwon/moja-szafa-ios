@@ -26,20 +26,24 @@ Leaving Today clears state and rejects late lookup results.
 
 ## Evidence and remaining integration
 
-- The shared JavaScript harness passes 42 tests, including six provider/route
+- The integrated JavaScript harness passes 52 tests, including provider/route/context
   regressions for authentication, owner injection, privacy, cache validation,
   throttling, request coalescing and malformed/stale/oversized data.
 - A separate real MET request from the VPS returned a valid forecast. This proves
   provider availability, not the complete app path.
 - Swift regression coverage includes the coarse authenticated request, fixed
   attribution, actual issuance timestamp, manual/offline fallback and late results.
-  The updated native Debug build-for-testing passed. Runtime simulator execution
+  The combined weather/generation Debug build-for-testing passed. Runtime simulator execution
   remains pending.
 - The route is mounted in the integrated gateway and configured in its entry point.
   Twelve targeted HTTP/provider tests pass, including revoked-session and deleted-account
   rejection before upstream access. Deployment and end-to-end native weather remain unverified.
-- Outfit generation must still receive optional weather context and continue with
-  nil after denied location or unavailable forecast. This remains incomplete.
+- The combined Today screen now passes optional temperature/provenance to generation.
+  Migration020 validates this bounded input; durable client intents preserve it on
+  retries. Worker selection omits an expired forecast instead of blocking generation.
+  City, coordinates and timezone do not enter the AI prompt. Missing/denied location
+  yields nil context; manual input is independent. PostgreSQL admission tests and
+  native runtime verification are still pending.
 - Device acceptance remains: Allow Once/While Using/approximate/denied location,
   disabled services, airplane mode, lookup timeout, ambiguous city names,
   different time zones, PL/EN, VoiceOver and maximum Dynamic Type.

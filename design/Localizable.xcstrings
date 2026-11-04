@@ -6735,6 +6735,446 @@
       },
       "comment": "T026 manual outfit builder: outfits.conflict"
     },
+    "suggestions.name": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propozycja stylizacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outfit suggestion"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — name"
+    },
+    "suggestions.empty": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie ma jeszcze propozycji. Gotowe wyniki AI pojawią się tutaj."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No suggestions yet. Completed AI results will appear here."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — empty"
+    },
+    "suggestions.manualFallback": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Możesz zamienić rzecz ręcznie, także gdy AI nie działa."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can replace an item manually, even when AI is unavailable."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — manualFallback"
+    },
+    "suggestions.failed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się wykonać akcji. Odśwież szafę i sprawdź dostępność rzeczy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not complete this action. Refresh your wardrobe and check item availability."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — failed"
+    },
+    "suggestions.edited": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zestaw zmieniony ręcznie — poprzednie uzasadnienie AI jest nieaktualne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manually edited outfit — the previous AI rationale no longer applies."
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — edited"
+    },
+    "suggestions.incomplete": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niekompletny zestaw. Brakuje:"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete outfit. Missing:"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — incomplete"
+    },
+    "suggestions.replace": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamień rzecz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace item"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — replace"
+    },
+    "suggestions.saved": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz zmiany zestawu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save outfit changes"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — saved"
+    },
+    "suggestions.wear": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszę dzisiaj"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear today"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — wear"
+    },
+    "suggestions.worn": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noszenie zapisane na urządzeniu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear recorded on this device"
+          }
+        }
+      },
+      "comment": "T031: outfit suggestion screen — worn"
+    },
+    "generation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowe propozycje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.count": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liczba propozycji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Number of suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wygeneruj propozycje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate suggestions"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotowujemy propozycje…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing suggestions…"
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.queued": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadanie czeka w kolejce."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your request is queued."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.running": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trwa generowanie propozycji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating suggestions."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.consent": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapoznaj się z informacją o AI i udziel zgody, aby kontynuować."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the AI disclosure and grant consent to continue."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.quota": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit AI został osiągnięty. Spróbuj ponownie później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI limit has been reached. Try again later."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generowanie AI jest obecnie niedostępne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI generation is currently unavailable."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesja jest niedostępna. Zaloguj się ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session is unavailable. Sign in again."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można użyć tych ustawień generowania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These generation settings could not be accepted."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się pobrać propozycji. Możesz spróbować ponownie lub ręcznie edytować zestaw."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions could not be retrieved. Retry or edit an outfit manually."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.waiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadanie nadal trwa. Ponów sprawdzenie — nie utworzy to nowego zadania."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The job is still pending. Retry to check it without creating a new job."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.storage": {
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odczytać zapisanego zadania. Generowanie wstrzymano, aby uniknąć duplikatu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved request could not be read. Generation is paused to avoid a duplicate."
+          }
+        }
+      },
+      "comment": "T031: generation action/status; interface text, not user content."
+    },
+    "generation.stale": {
+      "comment": "T031: terminal generation result no longer matches available wardrobe.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szafa zmieniła się od wygenerowania tego wyniku. Wygeneruj nowe propozycje."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your wardrobe changed since this result was generated. Generate new suggestions."
+          }
+        }
+      }
+    },
     "weather.title": {
       "comment": "T042: city and optional weather context.",
       "localizations": {

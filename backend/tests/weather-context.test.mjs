@@ -1,6 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { weatherContext } from '../weather/context.mjs';
+import { selectCandidates } from '../ai/candidates.mjs';
+
+test('candidate selection carries only valid weather and never requires it for eligible clothing', () => {
+  const garments = [{ id: 'owned-top', user_id: 'owner', category: 'top', availability: 'available', archived: false }];
+  const base = { garments, count: 3 };
+  const manual = selectCandidates({ ...base, weather: { source: 'manual', temperature_celsius: -5 } }, 'owner');
+  assert.deepEqual(manual.weather, { source: 'manual', temperature_celsius: -5 });
+  const absent = selectCandidates(base, 'owner');
+  const expired = selectCandidates({ ...base, weather: { source: 'forecast', temperature_celsius: 12, valid_until: 1 } }, 'owner');
+  assert.equal(absent.weather, undefined);
+  assert.equal(expired.weather, undefined);
+  assert.deepEqual(expired.garments, manual.garments);
+  assert.deepEqual(absent.garments, manual.garments);
+});
 
 test('optional weather survives denied location, manual input, and a delayed job', () => {
   const now = 1800000000000;

@@ -1,3 +1,4 @@
+import { weatherContext } from '../weather/context.mjs';
 import { recognitionSchema } from './recognition.mjs';
 
 export const candidateLimit = 40;
@@ -67,7 +68,8 @@ export function selectCandidates(input, ownerID) {
       if (selected.size === candidateLimit) break;
     }
   }
+  const weather = weatherContext(input.weather);
   return { garments: [...selected.values()].map(candidateMetadata), count: input.count,
     preferences: { colors: [...preferredColors], seasons: [...preferredSeasons] },
-    occasion: { formality }, ...(pin ? { pinned_garment_id: pin.id } : {}) };
+    occasion: { formality }, ...(weather ? { weather } : {}), ...(pin ? { pinned_garment_id: pin.id } : {}) };
 }
