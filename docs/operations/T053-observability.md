@@ -32,7 +32,10 @@ account export until account deletion. The gateway calls `app.telemetry_prune()`
 once a minute, deleting at most 10,000 expired rows per call; ingestion also prunes
 that account. Migration 025 must be followed by reapplying the conditional grant
 in `backend/deploy/neon-bootstrap.sql`. The gateway receives EXECUTE on that fixed
-function, not direct telemetry table or report access.
+function plus schema USAGE to resolve its name (the service role is NOINHERIT),
+not direct telemetry table or report access. The gateway-role regression applies
+the real bootstrap against isolated provider-shaped fixture tables and executes
+the maintenance call as that limited role.
 
 MetricKit delivery is controlled by iOS and may be delayed or absent. Only app
 binary frames are retained. A payload whose beginning predates the continuously

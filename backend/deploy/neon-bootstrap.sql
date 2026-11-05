@@ -150,6 +150,9 @@ GRANT EXECUTE ON FUNCTION gateway_private.approve_identity_erasure(uuid,uuid,uui
 -- arbitrary accounts; it can only remove rows past their fixed retention age.
 DO $$ BEGIN
  IF to_regprocedure('app.telemetry_prune()') IS NOT NULL THEN
+  -- szafa_gateway is NOINHERIT: authenticated's namespace access is not inherited.
+  -- USAGE only resolves this explicitly granted function; it grants no table reads.
+  GRANT USAGE ON SCHEMA app TO szafa_gateway;
   GRANT EXECUTE ON FUNCTION app.telemetry_prune() TO szafa_gateway;
  END IF;
 END $$;
