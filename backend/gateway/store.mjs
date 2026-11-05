@@ -26,6 +26,12 @@ export class GatewayStore {
   async pruneTelemetry() {
     return this.transaction(client => client.query('SELECT app.telemetry_prune() AS removed'));
   }
+  async retiredImages() {
+    return this.transaction(async client => (await client.query('SELECT gateway_private.retired_images() AS items')).rows[0].items);
+  }
+  async acknowledgeRetiredImage(id) {
+    return this.transaction(client => client.query('SELECT gateway_private.acknowledge_retired_image($1::uuid)', [id]));
+  }
   async pruneExports() {
     return this.transaction(client => client.query('SELECT gateway_private.prune_exports()'));
   }
