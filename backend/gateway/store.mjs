@@ -23,6 +23,9 @@ export class GatewayStore {
     const result = await client.query('SELECT gateway_private.bind_session($1::uuid, $2::uuid) AS allowed', [principal.owner, principal.sessionID]);
     if (result.rows[0]?.allowed !== true) throw new GatewayError('unauthorized', 401);
   }
+  async pruneTelemetry() {
+    return this.transaction(client => client.query('SELECT app.telemetry_prune() AS removed'));
+  }
   async session(principal) { return this.transaction(client => this.bind(client, principal)); }
   async rpc(principal, operation, request) {
     if (!this.operations.has(operation)) throw new GatewayError('not_found', 404);

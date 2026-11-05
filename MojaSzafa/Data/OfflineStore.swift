@@ -223,10 +223,12 @@ actor OfflineStore: WardrobeRepository {
     }
     private let database: OfflineDatabase
     private let remote: any OfflineRemote
+    private let telemetry: TelemetryRecorder?
     private var state: State
     private var syncing = false
 
-    init(accountID: UUID, database: OfflineDatabase, remote: any OfflineRemote) throws {
+    init(accountID: UUID, database: OfflineDatabase, remote: any OfflineRemote, telemetry: TelemetryRecorder? = nil) throws {
+        self.telemetry = telemetry
         self.database = database
         self.remote = remote
         if let data = try database.read() {
@@ -579,6 +581,7 @@ actor OfflineStore: WardrobeRepository {
         try requireActive()
         guard !syncing else { return }
         syncing = true
+        let started = ContinuousClock.now
         defer { syncing = false }
         do {
             // Pull first, including account fence and record tombstones.
@@ -658,9 +661,19 @@ actor OfflineStore: WardrobeRepository {
                 }
             }
             try merge(await remote.snapshot())
+            await recordSynchronization(started: started, outcome: .success)
         } catch {
+            await recordSynchronization(started: started, outcome: .classify(error))
             try handleAccount(error)
             throw error
+        }
+    }
+
+    private func recordSynchronization(started: ContinuousClock.Instant, outcome: TelemetryOutcome) async {
+        let elapsed = started.duration(to: .now).components
+        let seconds = Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
+        if let event = TelemetryEvent.latency(route: "sync_cycle", kind: "sync", outcome: outcome, seconds: seconds) {
+            await telemetry?.record(event)
         }
     }
 

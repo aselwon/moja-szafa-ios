@@ -11297,6 +11297,150 @@
           }
         }
       }
+    },
+    "telemetry.title": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostyka i statystyki"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics and analytics"
+          }
+        }
+      }
+    },
+    "telemetry.explanation": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcjonalne raporty awarii, opóźnień i błędów synchronizacji nie zawierają zdjęć ani treści szafy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional crash, latency and synchronization reports contain no photos or wardrobe contents."
+          }
+        }
+      }
+    },
+    "telemetry.retention": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raporty są przechowywane przez 30 dni. Cofnięcie zgody usuwa zapisane dane tej kategorii."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reports are retained for 30 days. Withdrawing consent deletes retained data in that category."
+          }
+        }
+      }
+    },
+    "telemetry.diagnostics": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępniaj diagnostykę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share diagnostics"
+          }
+        }
+      }
+    },
+    "telemetry.product": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępniaj statystyki aktywacji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share activation analytics"
+          }
+        }
+      }
+    },
+    "telemetry.pending": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiana zgody czeka na potwierdzenie serwera. Zbieranie danych jest wstrzymane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consent change awaits server confirmation. Collection is paused."
+          }
+        }
+      }
+    },
+    "telemetry.error": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się potwierdzić ustawień. Spróbuj ponownie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not confirm preferences. Try again."
+          }
+        }
+      }
+    },
+    "telemetry.unavailable": {
+      "comment": "T053: opcjonalne statystyki i diagnostyka; bez zdjęć i treści szafy.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostyka wymaga połączenia z serwerem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics requires a server connection."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

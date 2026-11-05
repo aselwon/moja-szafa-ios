@@ -94,6 +94,10 @@ struct AuthenticationGateView: View {
     let dependencies: AppDependencies
     @State private var model: AuthenticationModel
     @State private var showAccount = false
+    @State private var authenticatedDependencies: AppDependencies?
+    @State private var authenticatedAccountID: UUID?
+    @State private var updatingSessionDependencies = false
+    @State private var crashDiagnostics = CrashDiagnostics()
     @AppStorage("welcome.seen.v1") private var welcomeSeen = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -110,8 +114,9 @@ struct AuthenticationGateView: View {
                 WelcomeView { welcomeSeen = true }
             } else if !model.restored {
                 ProgressView().accessibilityLabel(Text("auth.loading"))
-            } else if let session = model.session {
-                ProfileGateView(dependencies: dependencies.authenticated(using: model), accountID: session.userID)
+            } else if let session = model.session, let authenticatedDependencies,
+                      authenticatedAccountID == session.userID {
+                ProfileGateView(dependencies: authenticatedDependencies, accountID: session.userID)
                     .id(session.userID)
                     .safeAreaInset(edge: .top) {
                         Button("auth.account") { showAccount = true }
@@ -123,14 +128,28 @@ struct AuthenticationGateView: View {
                                 .toolbar { Button("auth.close") { showAccount = false } }
                         }
                     }
+            } else if model.session != nil {
+                ProgressView().accessibilityLabel(Text("auth.loading"))
             } else {
                 NavigationStack { AuthenticationView(model: model) }
             }
         }
-        .task { await model.restore(); updateReminders() }
-        .onChange(of: model.session?.userID) { _, _ in showAccount = false; updateReminders() }
+        .task { await model.restore(); await updateReminders() }
+        .task(id: authenticatedAccountID) {
+            guard let recorder = authenticatedDependencies?.telemetry else { return }
+            while !Task.isCancelled {
+                if scenePhase == .active {
+                    try? await recorder.refresh()
+                    if await recorder.diagnosticWindow() != nil { crashDiagnostics.attach(recorder) }
+                    else { crashDiagnostics.detach() }
+                    await recorder.flush()
+                }
+                do { try await Task.sleep(for: .seconds(60)) } catch { break }
+            }
+        }
+        .onChange(of: model.session?.userID) { _, _ in showAccount = false; Task { await updateReminders() } }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await model.restoreOrRefresh(); updateReminders(); await reminders.refresh(); await widget.refresh() } }
+            if phase == .active { Task { await model.restoreOrRefresh(); await updateReminders(); await reminders.refresh(); await widget.refresh() } }
         }
         .onReceive(NotificationCenter.default.publisher(for: WearIntentRoute.notification)) { _ in
             showAccount = false; widget.consumeIntent()
@@ -146,8 +165,30 @@ struct AuthenticationGateView: View {
             Task { await reminders.refresh(); await widget.refresh() }
         }
     }
-    private func updateReminders() {
-        let authenticated = dependencies.authenticated(using: model)
+    private func updateReminders() async {
+        guard !updatingSessionDependencies else { return }
+        updatingSessionDependencies = true
+        defer {
+            updatingSessionDependencies = false
+            if authenticatedAccountID != model.session?.userID {
+                Task { await updateReminders() }
+            }
+        }
+        let requestedAccount = model.session?.userID
+        if authenticatedAccountID != requestedAccount || authenticatedDependencies == nil {
+            crashDiagnostics.detach()
+            let previous = authenticatedDependencies?.telemetry
+            authenticatedDependencies = nil
+            authenticatedAccountID = nil
+            if let previous { try? await previous.invalidate() }
+            guard model.session?.userID == requestedAccount else { return }
+            // Another update may have completed while the old journal was erased.
+            if authenticatedDependencies == nil {
+                authenticatedDependencies = requestedAccount == nil ? nil : dependencies.authenticated(using: model)
+                authenticatedAccountID = requestedAccount
+            }
+        }
+        let authenticated = authenticatedDependencies ?? dependencies
         reminders.sessionChanged(accountID: model.session?.userID, gateway: dependencies.sessionStoreService,
             repository: authenticated.planner)
         widget.sessionChanged(accountID: model.session?.userID, gateway: dependencies.sessionStoreService,
