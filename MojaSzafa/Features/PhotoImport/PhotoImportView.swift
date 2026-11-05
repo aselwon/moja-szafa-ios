@@ -65,10 +65,10 @@ struct PhotoImportView: View {
                             catch { model.message = "import.storageFailed" }
                         }.disabled(model.running)
                         Button("edit.title") { editing = draft }
-                            .disabled(model.running)
+                            .disabled(model.running || model.hasPendingImport(draft.id))
                     }
                     Button("import.remove", role: .destructive) { model.remove(draft.id) }
-                        .disabled(model.running)
+                        .disabled(model.running || model.hasPendingImport(draft.id))
                 }
             }
         }
@@ -89,8 +89,9 @@ struct PhotoImportView: View {
         .sheet(item: $formDraft) { draft in
             GarmentFormView(value: draft.value, suggestions: draft.suggestions, duplicateReview: {
                 await model.duplicateReview(for: draft.id, repository: repository)
-            }) { value in
-                try model.saveGarmentValue(value, for: draft.id)
+            }, locked: model.hasPendingImport(draft.id)) { value in
+                guard let repository else { throw RepositoryError.backendNotConfigured }
+                try await model.commitGarmentValue(value, for: draft.id, repository: repository)
             }
         }
         .sheet(item: $editing) { draft in
