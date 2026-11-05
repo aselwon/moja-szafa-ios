@@ -76,3 +76,17 @@ test('operational alerts distinguish call-credit limits from actual currency spe
   assert.deepEqual(report.alerts, ['ai_call_credits_at_80_percent']);
   assert.equal(report.ai_cost.invoice_cost_usd, null);
 });
+
+
+test('the deployed FP8 model has its own rate and is not conflated with FP8-fast', async () => {
+  const { estimateAICost } = await import('../observability/ai-cost.mjs');
+  const row = { provider: 'cloudflare', model: '@cf/meta/llama-3.1-8b-instruct-fp8',
+    calls: '1', calls_with_usage: '1', input_tokens: '420', output_tokens: '117' };
+  const actual = estimateAICost([row]);
+  assert.equal(actual.measured_calls, '1'); assert.equal(actual.unknown_cost_calls, '0');
+  assert.equal(actual.estimated_neurons_for_known_usage, '8.843736');
+  assert.equal(actual.estimated_list_price_usd_for_known_usage, '0.000097281096');
+  assert.equal(actual.invoice_cost_usd, null);
+  assert.notEqual(actual.estimated_neurons_for_known_usage,
+    estimateAICost([{ ...row, model: row.model + '-fast' }]).estimated_neurons_for_known_usage);
+});

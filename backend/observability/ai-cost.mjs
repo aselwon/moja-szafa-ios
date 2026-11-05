@@ -2,6 +2,7 @@
 // https://developers.cloudflare.com/workers-ai/platform/pricing/ (2026-11-05).
 export const AI_RATE_VERSION = 'cloudflare-neurons-2026-11-05';
 const rates = new Map([
+  ['@cf/meta/llama-3.1-8b-instruct-fp8', [13778n, 26128n]],
   ['@cf/meta/llama-3.1-8b-instruct-fp8-fast', [4119n, 34868n]],
   ['@cf/meta/llama-3.1-8b-instruct', [25608n, 75147n]],
   ['@cf/meta/llama-3.2-11b-vision-instruct', [4410n, 61493n]],
