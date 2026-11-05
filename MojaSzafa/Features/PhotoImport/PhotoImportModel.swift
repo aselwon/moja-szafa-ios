@@ -188,7 +188,8 @@ final class PhotoImportModel: ObservableObject {
         running = true
         defer { running = false }
         try await repository.importGarment(operation, image: PhotoProcessor.read(photo))
-        // A crash during cleanup must never resurrect an already committed draft.
+        // The durable wardrobe owns the data now. A cleanup crash must not
+        // resurrect a draft or enqueue another garment.
         let completed = directory.appendingPathComponent(id.uuidString).appendingPathExtension("completed")
         try Data().write(to: completed, options: [.atomic, .completeFileProtection])
         var cleanupSucceeded = true
