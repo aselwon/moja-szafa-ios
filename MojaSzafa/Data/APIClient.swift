@@ -1,5 +1,59 @@
 import Foundation
 
+extension APIClient: SubscriptionTransactionReceiver {
+    var configured: Bool { true }
+
+    func preparePurchase(configuration: SubscriptionConfiguration) async throws {
+        struct Catalog: Decodable {
+            let available: Bool
+            let bundleID: String
+            let environment: String
+            let monthlyProductID: String
+            let yearlyProductID: String
+        }
+        guard let bundleID = Bundle.main.bundleIdentifier,
+              let appEnvironment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String,
+              ["dev", "staging", "prod"].contains(appEnvironment) else { throw SubscriptionError.serverUnavailable }
+        let data = try await subscriptionRequest(path: "/v1/subscriptions/catalog", body: nil)
+        let catalog = try JSONDecoder().decode(Catalog.self, from: data)
+        guard catalog.available, catalog.bundleID == bundleID,
+              catalog.environment == (appEnvironment == "prod" ? "production" : "sandbox"),
+              catalog.monthlyProductID == configuration.monthlyID,
+              catalog.yearlyProductID == configuration.yearlyID else { throw SubscriptionError.serverUnavailable }
+    }
+
+    func receive(_ transaction: VerifiedStoreTransaction) async throws -> SubscriptionAcknowledgement {
+        guard transaction.id > 0, !transaction.signedRepresentation.isEmpty,
+              transaction.signedRepresentation.utf8.count <= 32000 else { throw SubscriptionError.unverified }
+        let body = try JSONEncoder().encode(["signedTransaction": transaction.signedRepresentation])
+        let data = try await subscriptionRequest(path: "/v1/subscriptions/transactions", body: body)
+        struct Acknowledgement: Decodable { let transactionID: String }
+        let response = try JSONDecoder().decode(Acknowledgement.self, from: data)
+        guard let id = UInt64(response.transactionID), id == transaction.id,
+              String(id) == response.transactionID else { throw SubscriptionError.invalidAcknowledgement }
+        return SubscriptionAcknowledgement(transactionID: id)
+    }
+
+    private func subscriptionRequest(path: String, body: Data?) async throws -> Data {
+        let token = try await accessToken()
+        guard !token.isEmpty, !token.contains(where: { $0.isWhitespace }) else { throw APIClientError.invalidConfiguration }
+        var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
+        components.path = path
+        var request = URLRequest(url: components.url!, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.httpMethod = body == nil ? "GET" : "POST"; request.timeoutInterval = 35
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        let (data, response) = try await transport.send(request)
+        if response.statusCode == 401 { await unauthorized(token) }
+        guard response.statusCode == 200, response.url == request.url, data.count <= 65536 else {
+            throw APIClientError.http(status: response.statusCode, requestID: nil)
+        }
+        try Task.checkCancellation()
+        return data
+    }
+}
+
 extension APIClient: WeatherForecastRepository {
     func forecast(latitude: Double, longitude: Double) async throws -> CityForecast {
         guard latitude.isFinite, longitude.isFinite, abs(latitude) <= 90, abs(longitude) <= 180 else {

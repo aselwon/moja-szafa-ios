@@ -49,6 +49,9 @@ await import('../backend/tests/deletion.test.mjs');
 await import('../backend/tests/recognition.test.mjs');
 
 await import('../backend/tests/gateway.test.mjs');
+await import('../backend/gateway/subscriptions/verification.test.mjs');
+await import('../backend/gateway/subscriptions/verification-crypto.test.mjs');
+await import('../backend/gateway/subscriptions/http.test.mjs');
 await import('../backend/tests/observability.test.mjs');
 await import('../backend/tests/candidates.test.mjs');
 
