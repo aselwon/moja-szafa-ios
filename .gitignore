@@ -11,3 +11,5 @@ backend/gateway/node_modules/
 *.p8
 *.p12
 *.mobileprovision
+
+backend/operations/node_modules/
