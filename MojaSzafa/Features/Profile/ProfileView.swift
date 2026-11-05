@@ -18,7 +18,9 @@ struct WelcomeView: View {
                 Section {
                     Text("welcome.free")
                     Button("welcome.continue", action: continueAction)
+                        .accessibilityIdentifier("welcome.continue")
                     Button("onboarding.skip", action: continueAction)
+                        .accessibilityIdentifier("welcome.skip")
                 }
             }
             .navigationTitle("welcome.title")
