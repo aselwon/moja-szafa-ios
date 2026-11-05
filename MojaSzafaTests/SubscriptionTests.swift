@@ -56,13 +56,45 @@ final class SubscriptionTests: XCTestCase {
         VerifiedStoreTransaction(id: 7, originalID: 7, productID: "test.monthly", accountToken: account ?? self.account, signedRepresentation: "fixture-signed-representation")
     }
     private func service(_ store: SubscriptionStoreFake, _ receiver: SubscriptionReceiverFake) -> SubscriptionService {
-        SubscriptionService(configuration: configuration, accountID: account, storefront: store, receiver: receiver)
+        SubscriptionService(configuration: configuration, accountID: account, storefront: store, receiver: receiver,
+            legalLinks: SubscriptionLegalLinks(privacy: "https://example.com/privacy", terms: "https://example.com/terms"))
     }
     func testAbsentOrInvalidConfigurationDoesNotInventProducts() {
         XCTAssertNil(SubscriptionConfiguration(monthlyID: nil, yearlyID: nil))
         XCTAssertNil(SubscriptionConfiguration(monthlyID: "$(MONTHLY)", yearlyID: "test.yearly"))
         XCTAssertNil(SubscriptionConfiguration(monthlyID: "same.product", yearlyID: "same.product"))
         XCTAssertEqual(configuration.productIDs, ["test.monthly", "test.yearly"])
+    }
+    func testMissingPublishedPoliciesPreventNewPurchaseButNotRestore() async throws {
+        let store = SubscriptionStoreFake(), receiver = SubscriptionReceiverFake()
+        let service = SubscriptionService(configuration: configuration, accountID: account,
+            storefront: store, receiver: receiver, legalLinks: nil)
+        do { _ = try await service.purchase(productID: "test.monthly"); XCTFail("Missing legal links allowed purchase") }
+        catch { XCTAssertEqual(error as? SubscriptionError, .unavailable) }
+        var counts = await store.counts(); XCTAssertEqual(counts.1, 0)
+        try await service.restore()
+        counts = await store.counts(); XCTAssertEqual(counts.2, 1)
+    }
+    func testPolicyURLsRequireHTTPSWithoutCredentialsOrTrackingParameters() {
+        XCTAssertNil(SubscriptionLegalLinks(privacy: nil, terms: nil))
+        for bad in ["http://example.com/privacy", "https://localhost/privacy", "https://example.com/privacy?token=synthetic", "https://example.com/privacy#fragment"] {
+            XCTAssertNil(SubscriptionLegalLinks(privacy: bad, terms: "https://example.com/terms"))
+        }
+        var credentials = URLComponents(string: "https://example.com/privacy")!
+        credentials.user = "synthetic"; credentials.password = "synthetic"
+        XCTAssertNil(SubscriptionLegalLinks(privacy: credentials.string, terms: "https://example.com/terms"))
+        XCTAssertNotNil(SubscriptionLegalLinks(privacy: "https://example.com/privacy", terms: "https://example.com/terms"))
+    }
+    func testIntroductoryOfferKeepsStoreFactsAndFormatsDuration() throws {
+        XCTAssertNil(SubscriptionIntroductoryOffer(mode: .freeTrial, displayPrice: "0", unit: .day, value: 0, periodCount: 1))
+        XCTAssertNil(SubscriptionIntroductoryOffer(mode: .freeTrial, displayPrice: "0", unit: .week, value: 1, periodCount: 2))
+        let trial = try XCTUnwrap(SubscriptionIntroductoryOffer(mode: .freeTrial, displayPrice: "$0.00", unit: .day, value: 3, periodCount: 1))
+        XCTAssertEqual(trial.periodDescription(locale: Locale(identifier: "en_US")), "3 days")
+        XCTAssertEqual(trial.periodDescription(locale: Locale(identifier: "pl_PL")), "3 dni")
+        let discounted = try XCTUnwrap(SubscriptionIntroductoryOffer(mode: .payAsYouGo, displayPrice: "4,99 zł", unit: .month, value: 1, periodCount: 3))
+        XCTAssertEqual(discounted.displayPrice, "4,99 zł"); XCTAssertEqual(discounted.periodCount, 3)
+        XCTAssertEqual(discounted.periodDescription(locale: Locale(identifier: "en_US")), "1 month")
+        XCTAssertNil(SubscriptionProduct(id: "test", name: "Test", displayPrice: "1", period: .month, groupID: "group").introductoryOffer)
     }
     func testUnconfiguredServerPreventsPurchaseSheetAndRestore() async throws {
         let store = SubscriptionStoreFake(), receiver = SubscriptionReceiverFake(configured: false)

@@ -3,6 +3,39 @@ import Foundation
 extension APIClient: SubscriptionTransactionReceiver {
     var configured: Bool { true }
 
+    func entitlements(configuration: SubscriptionConfiguration) async throws -> [SubscriptionEntitlement] {
+        struct Item: Decodable {
+            let productID: String
+            let originalTransactionID: String
+            let environment: String
+            let expiresAt: String
+            let graceExpiresAt: String?
+            let status: String
+        }
+        struct StatusResponse: Decodable { let entitlements: [Item] }
+        guard let appEnvironment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String,
+              ["dev", "staging", "prod"].contains(appEnvironment) else { throw APIClientError.invalidConfiguration }
+        let data = try await subscriptionRequest(path: "/v1/subscriptions/status", body: nil)
+        let items = try JSONDecoder().decode(StatusResponse.self, from: data).entitlements
+        guard items.count <= 100 else { throw APIClientError.invalidResponse }
+        let fractional = ISO8601DateFormatter(); fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter()
+        func date(_ value: String) -> Date? { fractional.date(from: value) ?? plain.date(from: value) }
+        var seen = Set<String>()
+        return try items.map { item in
+            guard configuration.productIDs.contains(item.productID),
+                  item.environment == (appEnvironment == "prod" ? "production" : "sandbox"),
+                  item.originalTransactionID.range(of: "^[1-9][0-9]{0,31}$", options: .regularExpression) != nil,
+                  seen.insert(item.originalTransactionID).inserted,
+                  let status = SubscriptionEntitlement.Status(rawValue: item.status),
+                  let expires = date(item.expiresAt) else { throw APIClientError.invalidResponse }
+            let grace = item.graceExpiresAt.flatMap(date)
+            guard item.graceExpiresAt == nil || grace != nil else { throw APIClientError.invalidResponse }
+            return SubscriptionEntitlement(productID: item.productID, originalTransactionID: item.originalTransactionID,
+                environment: item.environment, expiresAt: expires, graceExpiresAt: grace, status: status)
+        }
+    }
+
     func preparePurchase(configuration: SubscriptionConfiguration) async throws {
         struct Catalog: Decodable {
             let available: Bool
