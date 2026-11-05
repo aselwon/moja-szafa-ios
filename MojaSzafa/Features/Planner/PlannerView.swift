@@ -10,6 +10,11 @@ struct PlannerView: View {
     @State private var confirming: PlannedOutfit?
     private var through: Date { Calendar.current.date(byAdding: .day, value: 6, to: week) ?? week }
 
+    init(model: PlannerModel, outfits: any OutfitRepository, wardrobe: any WardrobeRepository, initialDay: Date? = nil) {
+        self.model = model; self.outfits = outfits; self.wardrobe = wardrobe
+        _week = State(initialValue: initialDay ?? Date())
+    }
+
     var body: some View {
         List {
             Section {

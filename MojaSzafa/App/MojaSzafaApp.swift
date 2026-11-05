@@ -6,6 +6,7 @@ import UIKit
 @main
 struct MojaSzafaApp: App {
     private let dependencies = AppDependencies.live()
+    @StateObject private var reminders = ReminderModel.live()
 
     init() {
         #if DEBUG
@@ -26,7 +27,7 @@ struct MojaSzafaApp: App {
                 #else
                 AuthenticationGateView(dependencies: dependencies)
                 #endif
-            }.tint(Color("accent"))
+            }.tint(Color("accent")).environmentObject(reminders)
         }
     }
 }

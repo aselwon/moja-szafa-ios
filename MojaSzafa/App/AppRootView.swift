@@ -5,10 +5,13 @@ struct AppRootView: View {
     let accountID: UUID
     @StateObject private var personalization: PersonalizationModel
     @StateObject private var planner: PlannerModel
+    @ObservedObject var reminders: ReminderModel
 
-    init(dependencies: AppDependencies, accountID: UUID) {
+    init(dependencies: AppDependencies, accountID: UUID, reminders: ReminderModel) {
+        self.reminders = reminders
         self.dependencies = dependencies; self.accountID = accountID
-        _planner = StateObject(wrappedValue: PlannerModel(repository: dependencies.planner, journalURL: dependencies.plannerJournalURL))
+        _planner = StateObject(wrappedValue: PlannerModel(repository: dependencies.planner, journalURL: dependencies.plannerJournalURL,
+            mutationStarted: { reminders.planMutationStarted() }, mutationFinished: { reminders.planMutationFinished() }))
         _personalization = StateObject(wrappedValue: PersonalizationModel(repository: dependencies.outfits,
             journalURL: dependencies.personalizationIntentURL(accountID: accountID)))
     }
@@ -41,6 +44,18 @@ struct AppRootView: View {
                 .tabItem { Label("tab.outfits", systemImage: "square.stack") }
             NavigationStack { StatisticsView() }
                 .tabItem { Label("tab.statistics", systemImage: "chart.bar") }
+        }
+        .sheet(item: $reminders.route) { route in
+            NavigationStack {
+                if route.kind == .plan {
+                    PlannerView(model: planner, outfits: dependencies.outfits, wardrobe: dependencies.wardrobe,
+                                initialDay: ReminderSchedule.parseDay(route.day, timezone: .current))
+                } else {
+                    // Existing outfit wear action always asks for explicit confirmation.
+                    OutfitsView(repository: dependencies.outfits, wardrobe: dependencies.wardrobe,
+                                wearStore: dependencies.wearStore ?? dependencies.offline, personalization: personalization)
+                }
+            }
         }
     }
 }
