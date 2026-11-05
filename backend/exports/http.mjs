@@ -33,7 +33,12 @@ export function exportHandler(service, authenticate) {
       response.writeHead(200, { 'Content-Type': 'application/x-tar', 'Content-Length': archive.size,
         'Content-Disposition': 'attachment; filename="moja-szafa.tar"',
         'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' });
-      await pipeline(createReadStream(archive.path), response);
+      await pipeline(createReadStream(archive.path), async function* (source) {
+        for await (const chunk of source) {
+          await service.check(owner, route[1]);
+          yield chunk;
+        }
+      }, response);
     } catch (error) {
       if (response.headersSent) response.destroy();
       else json(error.message === 'export_too_large' ? 413 : 503, {

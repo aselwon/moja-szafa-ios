@@ -37,7 +37,7 @@ async function main() {
   metricTimer.unref();
   const server = createGateway({ auth: new ManagedAuth({ baseURL: env.NEON_AUTH_BASE_URL }), store,
     storage: privateFiles(env.PRIVATE_IMAGE_DIRECTORY), signingKey: Buffer.from(env.IMAGE_SIGNING_KEY, 'hex'),
-    exportDirectory: env.EXPORT_DIRECTORY, forecast: createWeatherProvider(), metrics,
+    exportDirectory: env.EXPORT_DIRECTORY, deletionEnabled: env.ACCOUNT_DELETION_ENABLED === 'true', forecast: createWeatherProvider(), metrics,
     subscriptions: await createSubscriptionVerifier(env) });
   const port = Number(env.PORT ?? 8080);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('invalid_port');

@@ -65,6 +65,26 @@ export class GatewayStore {
     return result.rows[0].email;
   }
   async consume(id) { await this.transaction(client => client.query('SELECT gateway_private.consume_email_challenge($1::uuid)', [id])); }
+  async createDeletionReceipt(principal, challenge, hash) {
+    return this.transaction(async client => {
+      const result = await client.query('SELECT gateway_private.create_deletion_receipt($1::uuid,$2::uuid,$3::uuid,$4::text) AS result',
+        [principal.owner, principal.sessionID, challenge, hash]);
+      return result.rows[0]?.result;
+    });
+  }
+  async deletionReceiptStatus(challenge, operation, hash) {
+    return this.transaction(async client => {
+      const result = await client.query('SELECT gateway_private.deletion_receipt_status($1::uuid,$2::uuid,$3::text) AS result', [challenge, operation, hash]);
+      return result.rows[0]?.result === true;
+    });
+  }
+  async deletionReauthentication(action, principal, { challenge = null, operation = null, freshSession = null } = {}) {
+    return this.transaction(async client => {
+      const result = await client.query('SELECT gateway_private.deletion_reauthentication($1,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid) AS result',
+        [action, principal.owner, principal.sessionID, challenge, operation, freshSession]);
+      return result.rows[0]?.result;
+    });
+  }
   async command(principal, kind, action, data) {
     return this.transaction(async client => {
       await this.bind(client, principal);

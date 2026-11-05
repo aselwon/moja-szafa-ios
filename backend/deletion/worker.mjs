@@ -7,12 +7,12 @@ import { AccountDeletion, postgresDeletion } from './service.mjs';
 // identity/storage/backup adapters stop startup instead of simulating deletion.
 const modulePath = process.argv[2];
 if (!modulePath) throw new Error('deletion_runtime_module_required');
-const { identity, storage, backups } = await import(pathToFileURL(resolve(modulePath)).href);
+const { identity, storage, backups, store = postgresDeletion() } = await import(pathToFileURL(resolve(modulePath)).href);
 for (const [adapter, methods] of [[identity, ['revokeAllSessions', 'revokeAppleTokens', 'deleteAccount']],
   [storage, ['eraseAccount']], [backups, ['recordDeletion']]]) {
   for (const method of methods) if (typeof adapter?.[method] !== 'function') throw new Error('deletion_adapter_required');
 }
-const service = new AccountDeletion({ store: postgresDeletion(), identity, storage, backups });
+const service = new AccountDeletion({ store, identity, storage, backups });
 let stopping = false;
 process.on('SIGTERM', () => { stopping = true; });
 process.on('SIGINT', () => { stopping = true; });

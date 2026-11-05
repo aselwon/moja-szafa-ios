@@ -1,0 +1,239 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Managed account deletion",
+    "version": "1.0.0"
+  },
+  "security": [
+    {
+      "managedSession": []
+    }
+  ],
+  "paths": {
+    "/v1/account/deletion/challenge": {
+      "post": {
+        "operationId": "startAccountDeletionChallenge",
+        "description": "Empty request body. Sends a managed OTP only to the verified address of the current managed session. Five-minute challenge bound to owner and original session; disabled until cleanup infrastructure is ready.",
+        "responses": {
+          "200": {
+            "description": "Challenge issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Challenge"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Current managed session required"
+          },
+          "503": {
+            "description": "Deletion unavailable, rate limited or not configured"
+          }
+        }
+      }
+    },
+    "/v1/account/deletion": {
+      "post": {
+        "operationId": "confirmAccountDeletion",
+        "description": "Exchanges the OTP for a new managed session of the same owner. Atomically consumes the session-bound challenge and queues cleanup. Receipt means accepted, not completed. Consumed receipt replay survives challenge expiry, but remains limited to the original operation and live original session.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Confirmation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Deletion queued; independent replica may still be offline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Session or managed OTP rejected"
+          },
+          "403": {
+            "description": "Expired, consumed, mismatched or exhausted challenge"
+          },
+          "503": {
+            "description": "Deletion unavailable or not configured"
+          }
+        }
+      }
+    },
+    "/v1/account/deletion/status": {
+      "post": {
+        "operationId": "accountDeletionReceipt",
+        "description": "Read-only recovery with receipt_token, challenge and operation, even after the managed identity is deleted. Without receipt_token the original live session is required. Does not send email, consume OTP attempts or request deletion. Accepted does not mean cleanup completed.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "operation_id",
+                  "challenge_id"
+                ],
+                "properties": {
+                  "operation_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "challenge_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "receipt_token": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{43}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Receipt status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "accepted"
+                  ],
+                  "properties": {
+                    "accepted": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Original live session required when no receipt capability is supplied"
+          },
+          "503": {
+            "description": "Deletion recovery unavailable"
+          },
+          "400": {
+            "description": "Malformed receipt capability or request"
+          }
+        },
+        "security": [
+          {
+            "managedSession": []
+          },
+          {}
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "managedSession": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque provider-issued signed session cookie value, verified live; not a JWT-only credential"
+      }
+    },
+    "schemas": {
+      "Challenge": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "method",
+          "nonce",
+          "state",
+          "receiptToken"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "method": {
+            "const": "email"
+          },
+          "nonce": {
+            "type": "null"
+          },
+          "state": {
+            "type": "null"
+          },
+          "receiptToken": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "description": "Read-only random receipt capability. Persist privately; never place in a URL or log."
+          }
+        }
+      },
+      "Confirmation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operation_id",
+          "proof"
+        ],
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "challenge_id",
+              "code"
+            ],
+            "properties": {
+              "challenge_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "code": {
+                "type": "string",
+                "pattern": "^[0-9]{4,10}$"
+              }
+            }
+          }
+        }
+      },
+      "Receipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "const": "accepted"
+          }
+        }
+      }
+    }
+  }
+}

@@ -177,6 +177,8 @@ struct AuthenticationGateView: View {
                 Task { await updateReminders() }
             }
         }
+        await dependencies.recoverDeletions(using: model, active: authenticatedDependencies,
+                                            activeAccountID: authenticatedAccountID)
         let requestedAccount = model.session?.userID
         if authenticatedAccountID != requestedAccount || authenticatedDependencies == nil {
             crashDiagnostics.detach()

@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { mkdir, open, readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { lockOwner } from '../storage/locks.mjs';
 
 export const MAX_BYTES = 12 * 1024 * 1024;
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(value);
@@ -41,6 +42,7 @@ export function privateFiles(directory) {
     return resolve(root, key);
   };
   return {
+    lockOwner: (owner, options) => lockOwner(resolve(root, '.locks'), owner, options),
     async put(key, bytes) {
       const destination = path(key);
       await mkdir(resolve(destination, '..'), { recursive: true, mode: 0o700 });
@@ -53,7 +55,14 @@ export function privateFiles(directory) {
       }
     },
     get: key => readFile(path(key)),
-    remove: key => rm(path(key), { force: true })
+    async remove(key) {
+      const destination = path(key);
+      await rm(destination, { force: true });
+      let directory;
+      try { directory = await open(resolve(destination, '..'), 'r'); }
+      catch (error) { if (error.code === 'ENOENT') return; throw error; }
+      try { await directory.sync(); } finally { await directory.close(); }
+    }
   };
 }
 
@@ -94,6 +103,8 @@ export class ImagePipeline {
     const id = this.verify(identity, token, 'upload');
     const [source, cleaned] = paired ? splitImagePair(bytes) : [bytes, null];
     if (!Buffer.isBuffer(source) || !source.length || source.length > MAX_BYTES) throw new Error('image_limit');
+    const release = await this.storage.lockOwner?.(identity);
+    try {
     const claim = await this.store.call('claim', { owner: identity, id });
     if (!claim || Boolean(claim.has_cleaned) !== paired) fail();
     if (claim.state === 'ready') return { image_id: id }; // Post-commit retry.
@@ -111,6 +122,7 @@ export class ImagePipeline {
     const completed = await this.store.call('finish', { owner: identity, id, fence: claim.fence });
     if (!completed) fail();
     return { image_id: id };
+    } finally { await release?.(); }
   }
   async downloadToken(identity, id, variant = 'thumbnail') {
     if (!uuid(identity) || !uuid(id) || !['original', 'thumbnail', 'cleaned'].includes(variant)) fail();
