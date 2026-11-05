@@ -8,6 +8,7 @@ import { generateKeyPair,exportJWK,SignJWT,createLocalJWKSet } from 'jose';
 import { OperatorAuth,operatorConfiguration } from './auth.mjs';
 import { OperatorStore } from './store.mjs';
 import { createOperatorServer } from './server.mjs';
+import { assertOperatorDatabaseRole } from './main.mjs';
 
 test('signed MFA identity through HTTP uses only the dedicated database role and atomic audited writes',async t=>{
   assert.equal(process.env.OPS_PG_TESTS,'1','Opt in on a disposable local PostgreSQL cluster');
@@ -24,6 +25,12 @@ test('signed MFA identity through HTTP uses only the dedicated database role and
   const password=randomUUID();
   await owner.query(`CREATE ROLE ${login} LOGIN NOINHERIT PASSWORD '${password}'; GRANT szafa_ops TO ${login};`);
   runtime=new Pool({database,user:login,password,max:2});
+  await assertOperatorDatabaseRole(runtime);
+  await assert.rejects(assertOperatorDatabaseRole(owner),/operations_database_role_invalid/);
+  await owner.query(`GRANT authenticated TO ${login}`);
+  await assert.rejects(assertOperatorDatabaseRole(runtime),/operations_database_role_invalid/);
+  await owner.query(`REVOKE authenticated FROM ${login}`);
+  await assertOperatorDatabaseRole(runtime);
   await assert.rejects(runtime.query('SELECT * FROM app.garments'),{code:'42501'});
   await assert.rejects(runtime.query('SELECT * FROM ops_private.operators'),{code:'42501'});
   const issuer='https://identity.example',audience='szafa-operations';

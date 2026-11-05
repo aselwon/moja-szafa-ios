@@ -4,6 +4,21 @@ import { OperatorAuth, operatorConfiguration } from './auth.mjs';
 import { OperatorStore } from './store.mjs';
 import { createOperatorServer } from './server.mjs';
 
+export async function assertOperatorDatabaseRole(pool) {
+  const {rows}=await pool.query(`SELECT current_user=session_user AND r.rolcanlogin
+    AND NOT r.rolsuper AND NOT r.rolbypassrls AND NOT r.rolinherit
+    AND NOT r.rolcreaterole AND NOT r.rolcreatedb AND NOT r.rolreplication
+    AND pg_has_role(current_user,'szafa_ops','MEMBER')
+    AND NOT EXISTS(SELECT FROM pg_auth_members m JOIN pg_roles p ON p.oid=m.roleid
+      WHERE m.member=r.oid AND p.rolname<>'szafa_ops')
+    AND NOT EXISTS(SELECT FROM pg_auth_members m JOIN pg_roles p ON p.oid=m.member WHERE p.rolname='szafa_ops')
+    AND NOT EXISTS(SELECT FROM pg_database d WHERE d.datname=current_database() AND d.datdba=r.oid)
+    AND NOT EXISTS(SELECT FROM pg_namespace n WHERE n.nspowner=r.oid AND n.nspname IN
+      ('app','api_private','ops_private','auth','neon_auth','gateway_private')) AS safe
+    FROM pg_roles r WHERE r.rolname=current_user`);
+  if(rows[0]?.safe!==true) throw new Error('operations_database_role_invalid');
+}
+
 export async function main(env=process.env) {
   const configuration=operatorConfiguration(env);
   if(!configuration || !env.OPS_DATABASE_URL) throw new Error('operations_configuration_missing');
@@ -17,11 +32,7 @@ export async function main(env=process.env) {
   }
   const pool=new Pool({connectionString:env.OPS_DATABASE_URL,max:4,connectionTimeoutMillis:5000,query_timeout:7000});
   try {
-    const {rows}=await pool.query(`SELECT NOT r.rolsuper AND NOT r.rolbypassrls AND NOT r.rolinherit
-      AND pg_has_role(current_user,'szafa_ops','MEMBER')
-      AND NOT pg_has_role(current_user,'service_role','MEMBER') AS safe
-      FROM pg_roles r WHERE r.rolname=current_user`);
-    if(rows[0]?.safe!==true) throw new Error('operations_database_role_invalid');
+    await assertOperatorDatabaseRole(pool);
     const server=createOperatorServer({auth:new OperatorAuth(configuration),store:new OperatorStore(pool),origin:configuration.origin,
       health:async()=>{
         if(!gatewayURL)return {gateway:'not_configured'};

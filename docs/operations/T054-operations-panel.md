@@ -28,6 +28,8 @@ Migration 027 creates a private `ops_private` schema, an operator registry, immu
 
 After migration 027, run `backend/operations/bootstrap.sql` as the schema owner. It creates the `szafa_ops` execution role as `NOLOGIN`, `NOINHERIT`, `NOSUPERUSER`, and `NOBYPASSRLS`, granting only schema usage and execution of the narrow operations command function. Provision a separate least-privileged `NOINHERIT LOGIN` database role as a member of `szafa_ops` through the protected deployment channel. Never reuse the consumer gateway login, owner, or `service_role` credentials. The runtime checks that its database role is not privileged and belongs to `szafa_ops` only.
 
+Before opening its loopback listener, startup verifies that `current_user` is the actual login identity, that the login is `NOINHERIT` and has no elevated role attributes, and that its only group membership is `szafa_ops`. It also refuses a login that owns the current database or protected schemas, or a `szafa_ops` role with additional inherited memberships. A failed check closes the pool and leaves the service unavailable.
+
 Operator rows must be provisioned separately after the SSO identity exists, using its exact issuer and subject and an explicit `viewer`, `support`, or `admin` role. Rows are disabled by default. This service does not create identity credentials or app users.
 
 ## Available operations and privacy
@@ -42,6 +44,8 @@ Admin policy updates use compare-and-swap version checks and execute with their 
 
 ## Validation and remaining work
 
-The current local validation includes four authentication and HTTP tests, focused SQL policy/audit tests, and one HTTP-to-PostgreSQL integration test. The tests cover signed token and recent MFA requirements, role enforcement, audit atomicity/immutability, optimistic versioning, idempotency, and request boundary checks.
+Local validation includes four authentication and HTTP tests, the full operations SQL policy/audit suite, and one HTTP-to-PostgreSQL integration test after the startup role guard was added. The tests cover signed token and recent MFA requirements, role enforcement, audit atomicity/immutability, optimistic versioning, idempotency, startup rejection of unsafe database roles, and request boundary checks. The repository harness passed 73/73 tests after the startup guard and the T054 panel files were present.
 
-Live operations access remains unvalidated. Completion requires a configured MFA-capable SSO proxy that injects the verified bearer token, separately provisioned operator identities and least-privileged database login, and an approved migration 027 deployment. No deployed IdP or proxy is configured, migration 027 remains unapplied, and T054 must not be marked complete on the strength of local tests alone.
+A synthetic browser smoke check loaded the panel against a loopback mock API and displayed a synthetic support request in both the list and detail view. This checks the browser presentation and role-gated list/detail path only; it does not authenticate through a real SSO proxy or validate an actual operator identity.
+
+Live operations access remains unvalidated. Completion requires a configured MFA-capable SSO proxy that injects the verified bearer token, separately provisioned operator identities and least-privileged database login, and an approved migration 027 deployment. No deployed IdP or proxy is configured, migration 027 remains unapplied, and the deployment is unchanged. No AI policy or quota was modified or deployed by this work. T054 must not be marked complete on the strength of local tests alone.
