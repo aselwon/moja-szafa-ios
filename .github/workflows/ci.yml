@@ -51,6 +51,9 @@ jobs:
           node-version: 22
       - name: Show toolchain
         run: xcodebuild -version
+      - name: Test crash-symbol archiving and symbolication
+        if: matrix.configuration == 'Release'
+        run: python3 scripts/test_crash_symbols.py
       - name: Clone isolated iPhone simulator from blank template
         id: simulator
         env:
@@ -109,6 +112,88 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/ProductionBuild" \
             CODE_SIGNING_ALLOWED=NO
+      - name: Build unsigned iOS device symbols
+        if: matrix.configuration == 'Release'
+        run: |
+          set -euo pipefail
+          xcodebuild build \
+            -project MojaSzafa.xcodeproj -scheme MojaSzafa -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DeviceSymbols" \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Package app and widget dSYMs with UUID manifests
+        env:
+          BUILD_CONFIGURATION: ${{ matrix.configuration }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          collect_dsyms() {
+            local products_dir="$1"
+            local output_dir="$2"
+            local manifest="$output_dir/UUID-manifest.txt"
+            mkdir -p "$output_dir"
+            : > "$manifest"
+            for name in "MojaSzafa.app.dSYM" "MojaSzafaWidget.appex.dSYM"; do
+              local bundle="$products_dir/$name"
+              if [[ ! -d "$bundle" ]]; then
+                echo "Missing required dSYM: $bundle" >&2
+                return 1
+              fi
+              ditto "$bundle" "$output_dir/$name"
+              local before_count
+              before_count="$(wc -l < "$manifest")"
+              local dwarf_binary
+              for dwarf_binary in "$bundle"/Contents/Resources/DWARF/*; do
+                [[ -f "$dwarf_binary" ]] || continue
+                local line uuid architecture
+                while IFS= read -r line; do
+                  uuid="$(awk '{print $2}' <<< "$line")"
+                  architecture="$(sed -E 's/.*\(([^)]*)\).*/\1/' <<< "$line")"
+                  printf '%s\t%s\t%s\n' "$name" "$architecture" "$uuid" >> "$manifest"
+                done < <(xcrun dwarfdump --uuid "$dwarf_binary")
+              done
+              local after_count
+              after_count="$(wc -l < "$manifest")"
+              if (( after_count <= before_count )); then
+                echo "No UUIDs found for dSYM: $bundle" >&2
+                return 1
+              fi
+            done
+          }
+          collect_dsyms \
+            "$RUNNER_TEMP/DerivedData/Build/Products/${BUILD_CONFIGURATION}-iphonesimulator" \
+            "$RUNNER_TEMP/CrashSymbols/simulator-${BUILD_CONFIGURATION}"
+          if [[ "$BUILD_CONFIGURATION" == "Release" ]]; then
+            collect_dsyms \
+              "$RUNNER_TEMP/ProductionBuild/Build/Products/Release-iphonesimulator" \
+              "$RUNNER_TEMP/CrashSymbols/simulator-production"
+            collect_dsyms \
+              "$RUNNER_TEMP/DeviceSymbols/Build/Products/Release-iphoneos" \
+              "$RUNNER_TEMP/CrashSymbols/ios-device"
+          fi
+      - name: Preserve simulator dSYMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ github.sha }}-ios-simulator-${{ matrix.configuration }}
+          path: ${{ runner.temp }}/CrashSymbols/simulator-${{ matrix.configuration }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Preserve production simulator dSYMs
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ github.sha }}-ios-simulator-production
+          path: ${{ runner.temp }}/CrashSymbols/simulator-production
+          if-no-files-found: error
+          retention-days: 30
+      - name: Preserve iOS device dSYMs
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ github.sha }}-ios-device-release
+          path: ${{ runner.temp }}/CrashSymbols/ios-device
+          if-no-files-found: error
+          retention-days: 30
       - name: Delete job simulator
         if: always() && steps.simulator.outputs.id != ''
         env:

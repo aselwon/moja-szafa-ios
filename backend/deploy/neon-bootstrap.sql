@@ -145,3 +145,11 @@ GRANT EXECUTE ON FUNCTION gateway_private.start_email_challenge(text),
 GRANT EXECUTE ON FUNCTION gateway_private.approve_identity_erasure(uuid,uuid,uuid) TO service_role;
 -- Create a separate LOGIN role belonging only to szafa_gateway through the secret
 -- provisioning channel. Never run the public gateway as szafa_owner/service_role.
+
+-- Reapply after migration 025. The gateway cannot read telemetry tables or
+-- arbitrary accounts; it can only remove rows past their fixed retention age.
+DO $$ BEGIN
+ IF to_regprocedure('app.telemetry_prune()') IS NOT NULL THEN
+  GRANT EXECUTE ON FUNCTION app.telemetry_prune() TO szafa_gateway;
+ END IF;
+END $$;

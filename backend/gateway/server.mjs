@@ -31,7 +31,7 @@ function sessionDTO(principal) {
   return { userID: principal.owner, accessToken: principal.token, refreshToken: principal.token, expiresAt: principal.expiresAt };
 }
 
-export function createGateway({ auth, store, storage, signingKey, exportDirectory, forecast, now = () => Date.now() }) {
+export function createGateway({ auth, store, storage, signingKey, exportDirectory, forecast, metrics, now = () => Date.now() }) {
   const context = new AsyncLocalStorage();
   const authenticate = async header => {
     const principal = await auth.current(bearer(header));
@@ -55,7 +55,18 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
   let active = 0;
   const server = createServer((request, response) => context.run({}, async () => {
     const requestID = randomUUID();
+    const started = process.hrtime.bigint();
+    let metricRoute = 'unknown'; let rpcError = false; let measured = false;
+    const measure = aborted => {
+      if (measured) return;
+      measured = true;
+      metrics?.record({ route: metricRoute, method: request.method, status: response.statusCode,
+        durationMs: Number(process.hrtime.bigint() - started) / 1e6, aborted, rpcError });
+    };
+    response.once('finish', () => measure(false));
+    response.once('close', () => measure(!response.writableFinished));
     const send = (status, value) => {
+      rpcError = Boolean(value?.error);
       response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff', 'X-Request-ID': requestID });
       response.end(JSON.stringify(value));
@@ -64,6 +75,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
     active++;
     try {
       const url = new URL(request.url, 'http://gateway.invalid');
+      metricRoute = metrics?.route(url.pathname) ?? 'unknown';
       if (url.search && !url.pathname.startsWith('/v1/images/') && !url.pathname.startsWith('/v1/purchase-images/')) throw new GatewayError('invalid_request', 400);
       if (request.method === 'GET' && url.pathname === '/health') return send(200, { status: 'ok' });
       if (url.pathname.startsWith('/auth/v1/')) {

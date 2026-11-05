@@ -210,6 +210,7 @@ final class GatewayRedirectPolicy: NSObject, URLSessionTaskDelegate, Sendable {
 /// Supabase/PostgREST RPC transport. No tokens, response bodies or URLs are logged.
 /// No automatic retry: ambiguous writes are retried explicitly with SaveGarment.
 struct APIClient: Sendable {
+    var telemetry: TelemetryRecorder?
     private let baseURL: URL
     private let publicAPIKey: String?
     private let transport: any APITransport
@@ -272,6 +273,29 @@ struct APIClient: Sendable {
     private struct ErrorEnvelope: Decodable { let error: APIv1.Failure }
 
     func call<Input: Encodable, Output: Decodable & Sendable>(
+        _ method: String, _ input: Input
+    ) async throws -> APIv1.Success<Output> {
+        let started = ContinuousClock.now
+        do {
+            let result: APIv1.Success<Output> = try await performCall(method, input)
+            await recordCall(method, started: started, outcome: .success)
+            return result
+        } catch {
+            await recordCall(method, started: started, outcome: .classify(error))
+            throw error
+        }
+    }
+
+    private func recordCall(_ method: String, started: ContinuousClock.Instant, outcome: TelemetryOutcome) async {
+        guard let telemetry, method != "api_v1_telemetry" else { return }
+        let elapsed = started.duration(to: .now).components
+        let seconds = Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
+        if let event = TelemetryEvent.latency(route: method, outcome: outcome, seconds: seconds) {
+            await telemetry.record(event)
+        }
+    }
+
+    private func performCall<Input: Encodable, Output: Decodable & Sendable>(
         _ method: String, _ input: Input
     ) async throws -> APIv1.Success<Output> {
         try Task.checkCancellation()

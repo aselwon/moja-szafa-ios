@@ -98,6 +98,8 @@ for database in "$fresh" "$upgrade"; do
     bash "$root/tests/purchase-sweep-race.sh" "$database"
     bash "$root/tests/jobs-concurrency.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/ai-runtime.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/telemetry.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/observability-report.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/weather-admission.sql"
     bash "$root/tests/ai-runtime-concurrency.sh" "$database"
     # PostgreSQL clients may emit a randomly generated \restrict token.

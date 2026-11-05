@@ -6,6 +6,7 @@ import { loadRPCOperations } from './contracts.mjs';
 import { createGateway } from './server.mjs';
 import { privateFiles } from '../images/pipeline.mjs';
 import { createWeatherProvider } from '../weather/met.mjs';
+import { GatewayMetrics } from '../observability/gateway-metrics.mjs';
 
 async function main() {
   const env = process.env;
@@ -26,14 +27,22 @@ async function main() {
   if (!role.rows[0]?.gateway || role.rows[0]?.worker || role.rows[0]?.bypass || role.rows[0]?.super || ['szafa_owner', 'service_role'].includes(role.rows[0]?.name)) throw new Error('least_privilege_database_role_required');
   const operations = await loadRPCOperations();
   const store = new GatewayStore(pool, operations);
+  const metrics = new GatewayMetrics({ operations, directory: env.OBSERVABILITY_DIRECTORY });
+  await metrics.restore().catch(() => process.stderr.write('gateway_metrics_restore_failed\n'));
+  const metricTimer = setInterval(() => {
+    metrics.flush().catch(() => process.stderr.write('gateway_metrics_write_failed\n'));
+    store.pruneTelemetry().catch(() => process.stderr.write('gateway_telemetry_retention_failed\n'));
+  }, 60000);
+  metricTimer.unref();
   const server = createGateway({ auth: new ManagedAuth({ baseURL: env.NEON_AUTH_BASE_URL }), store,
     storage: privateFiles(env.PRIVATE_IMAGE_DIRECTORY), signingKey: Buffer.from(env.IMAGE_SIGNING_KEY, 'hex'),
-    exportDirectory: env.EXPORT_DIRECTORY, forecast: createWeatherProvider() });
+    exportDirectory: env.EXPORT_DIRECTORY, forecast: createWeatherProvider(), metrics });
   const port = Number(env.PORT ?? 8080);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('invalid_port');
   server.listen(port, '127.0.0.1', () => process.stdout.write('gateway_ready\n'));
   for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => {
-    server.close(() => pool.end().then(() => process.exit(0)));
+    clearInterval(metricTimer);
+    server.close(() => Promise.all([pool.end(), metrics.flush()]).then(() => process.exit(0)).catch(() => process.exit(1)));
     setTimeout(() => process.exit(1), 15000).unref();
   });
 }

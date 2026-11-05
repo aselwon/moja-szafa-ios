@@ -3,6 +3,7 @@ import CryptoKit
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var telemetry: TelemetryRecorder?
     var trips: any TripRepository = UnconfiguredTripRepository()
     var tripJournalURL: URL?
     var planner: any PlannerRepository = UnconfiguredPlannerRepository()
@@ -94,15 +95,22 @@ struct AppDependencies: Sendable {
         guard let connection = apiConnection else { return self }
         do {
             guard let userID = model.session?.userID else { throw AuthError.expired }
-            let client = try APIClient(baseURL: connection.baseURL, transport: connection.transport,
+            var client = try APIClient(baseURL: connection.baseURL, transport: connection.transport,
                                        publicAPIKey: connection.publicAPIKey,
                                        unauthorized: { token in await model.rejectSession(accessToken: token) }) {
                 try await model.accessToken(for: userID)
             }
+            let telemetryURL = storageDirectory.appendingPathComponent("Telemetry")
+                .appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString + ".json")
+            // Optional diagnostics must not disable the wardrobe if its private
+            // journal is unreadable; collection stays unavailable and fails closed.
+            let telemetry = try? TelemetryRecorder(repository: client, journalURL: telemetryURL)
+            client.telemetry = telemetry
             let database = OfflineDatabase(url: storageDirectory.appendingPathComponent("Wardrobe")
                 .appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString + ".sqlite"))
-            let store = try OfflineStore(accountID: userID, database: database, remote: client)
+            let store = try OfflineStore(accountID: userID, database: database, remote: client, telemetry: telemetry)
             var result = AppDependencies(wardrobe: store, authentication: authentication)
+            result.telemetry = telemetry
             result.purchases = client
             result.weather = client
             result.apiConnection = connection
@@ -127,6 +135,8 @@ struct AppDependencies: Sendable {
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
+                try await telemetry?.invalidate()
+                if FileManager.default.fileExists(atPath: telemetryURL.path) { try FileManager.default.removeItem(at: telemetryURL) }
                 try await store.invalidateAccount()
                 if FileManager.default.fileExists(atPath: tripDirectory.path) { try FileManager.default.removeItem(at: tripDirectory) }
                 if FileManager.default.fileExists(atPath: reviewDecisions.path) { try FileManager.default.removeItem(at: reviewDecisions) }
