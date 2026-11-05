@@ -110,6 +110,8 @@ struct WardrobeThumbnail: View {
     let imageID: UUID?
     let repository: any WardrobeRepository
     var original = false
+    var height: CGFloat = 150
+    var cleaned = false
     @State private var image: UIImage?
     @State private var loading = false
 
@@ -119,16 +121,17 @@ struct WardrobeThumbnail: View {
             else if loading { ProgressView("common.loading") }
             else { Label("wardrobe.noPhoto", systemImage: "photo").font(.caption) }
         }
-        .frame(height: 150)
+        .frame(height: height)
         .frame(maxWidth: .infinity)
-        .task(id: "\(imageID?.uuidString ?? "none")-\(original)") {
+        .task(id: "\(imageID?.uuidString ?? "none")-\(original)-\(cleaned)") {
             image = nil
             guard let imageID else { return }
             loading = true
             defer { loading = false }
             do {
                 let bytes: Data
-                if original { bytes = try await repository.original(imageID: imageID) }
+                if cleaned { bytes = try await repository.cleaned(imageID: imageID) }
+                else if original { bytes = try await repository.original(imageID: imageID) }
                 else { bytes = try await repository.thumbnail(imageID: imageID) }
                 try Task.checkCancellation()
                 image = UIImage(data: bytes)
@@ -150,6 +153,7 @@ private struct GarmentDetailView: View {
     @State private var conflict = false
     @State private var confirmDeletion = false
     @State private var editInitialHistory = false
+    @State private var editAttributes = false
     @State private var initialHistoryConflict = false
     @Environment(\.dismiss) private var dismiss
 
@@ -159,11 +163,14 @@ private struct GarmentDetailView: View {
             if let detail {
                 if detail.cached { Text("wardrobe.cached") }
                 Section {
-                    WardrobeThumbnail(imageID: detail.garment.imageID, repository: repository, original: showOriginal)
-                    if detail.garment.imageID != nil {
+                    WardrobeThumbnail(imageID: detail.garment.imageID, repository: repository, original: showOriginal || detail.garment.hasCleanedImage != true,
+                        cleaned: !showOriginal && detail.garment.hasCleanedImage == true)
+                    if detail.garment.imageID != nil && detail.garment.hasCleanedImage == true {
                         Toggle("wardrobe.original", isOn: $showOriginal)
                     }
                     Text(verbatim: detail.garment.name).font(.title2)
+                    Button("garment.editDetails") { editAttributes = true }
+                        .disabled(saving || detail.garment.editableValue == nil || detail.garment.version == nil)
                     Text(LocalizedStringKey("garment.category." + detail.garment.category.rawValue))
                     Text(LocalizedStringKey("wardrobe." + detail.garment.availability.rawValue))
                     if let brand = detail.garment.brand { LabeledContent("garment.brand", value: brand) }
@@ -226,6 +233,13 @@ private struct GarmentDetailView: View {
             } else { ProgressView("common.loading") }
         }
         .navigationTitle("garment.details")
+        .sheet(isPresented: $editAttributes, onDismiss: { retry += 1 }) {
+            if let garment = detail?.garment, let value = garment.editableValue, let version = garment.version {
+                GarmentFormView(value: value, editingExisting: true) { edited in
+                    detail = try await repository.editGarment(id: id, expectedVersion: version, value: edited)
+                }
+            }
+        }
         .sheet(isPresented: $editInitialHistory) {
             if let detail {
                 NavigationStack {

@@ -145,8 +145,9 @@ private struct SuggestionReplacementPicker: View {
                     }
                 } label: {
                     HStack {
-                        WardrobeThumbnail(imageID: garment.imageID, repository: model.wardrobe)
-                            .frame(width: 64, height: 64)
+                        WardrobeThumbnail(imageID: garment.imageID, repository: model.wardrobe, height: 64)
+                            .frame(width: 64)
+                            .accessibilityHidden(true)
                         Text(verbatim: garment.name)
                     }
                 }.disabled(model.busy)

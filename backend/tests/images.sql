@@ -41,6 +41,31 @@ BEGIN
     -- Without a cleanup acknowledgement the durable deletion is returned again.
     PERFORM pg_temp.check_image(jsonb_array_length(app.images_command('{"action":"sweep"}')) = 1);
 END $$;
+DO $$
+DECLARE owner uuid := gen_random_uuid(); garment uuid := gen_random_uuid(); operation uuid := gen_random_uuid(); request jsonb; claim jsonb;
+BEGIN
+    INSERT INTO auth.users VALUES(owner);
+    INSERT INTO app.profiles(id,user_id) VALUES(owner,owner);
+    INSERT INTO app.garments(id,user_id,name,category) VALUES(garment,owner,'Source and edit','top');
+    request := jsonb_build_object('owner',owner,'garment',garment,'id',operation,'has_cleaned',true);
+    PERFORM pg_temp.check_image(app.images_command(request || '{"action":"prepare"}')->>'id'=operation::text);
+    PERFORM pg_temp.check_image(app.images_command(request || '{"action":"prepare","has_cleaned":false}')='null');
+    claim := app.images_command(request || '{"action":"claim"}');
+    PERFORM pg_temp.check_image((claim->>'has_cleaned')::boolean);
+    PERFORM pg_temp.check_image(app.images_command(request || jsonb_build_object('action','finish','fence',claim->>'fence'))='true');
+    PERFORM pg_temp.check_image((SELECT count(*)=3 FROM app.garment_images WHERE garment_id=garment));
+    PERFORM pg_temp.check_image(app.images_command(request || '{"action":"read","variant":"cleaned"}')='true');
+    PERFORM pg_temp.check_image(app.images_command(request || '{"action":"read","variant":"unknown"}')='false');
+    PERFORM pg_temp.check_image((SELECT (api_private.wardrobe_item(g)->>'hasCleanedImage')::boolean FROM app.garments g WHERE id=garment));
+    PERFORM pg_temp.check_image((SELECT content_type='image/png' AND object_key=operation::text||'/cleaned.png' FROM app.garment_images WHERE garment_id=garment AND variant='cleaned'));
+    -- A missing paired variant invalidates the entire publication, including source.
+    DELETE FROM app.garment_images WHERE garment_id=garment AND variant='cleaned';
+    PERFORM pg_temp.check_image(app.images_command(request || '{"action":"read"}')='false');
+    PERFORM app.images_command('{"action":"sweep"}');
+    PERFORM pg_temp.check_image((SELECT state='retired' FROM api_private.image_uploads WHERE id=operation));
+    PERFORM app.images_command(request || '{"action":"cleaned"}');
+    PERFORM pg_temp.check_image(NOT EXISTS(SELECT FROM app.garment_images WHERE garment_id=garment));
+END $$;
 SELECT pg_temp.check_image(NOT has_function_privilege('authenticated','app.images_command(jsonb)','EXECUTE'));
 SELECT pg_temp.check_image(NOT has_table_privilege('authenticated','api_private.image_uploads','SELECT'));
 ROLLBACK;

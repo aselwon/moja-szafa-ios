@@ -11,10 +11,9 @@ esac
 [[ "${PRODUCT_BUNDLE_IDENTIFIER:-}" == "$expected_bundle" ]] || fail 'bundle ID does not match environment'
 [[ "${INFOPLIST_KEY_AppEnvironment:-}" == "$expected_environment" ]] || fail 'Info.plist environment mismatch'
 [[ "${CODE_SIGN_STYLE:-}" == "$expected_signing" ]] || fail 'signing policy mismatch'
-# No backend has been provisioned. Fail closed, including command-line and local
-# xcconfig overrides. T007/T009 must replace this lock with approved per-environment
-# HTTPS endpoint validation when the real client is integrated (no fallback URL).
-[[ -z "${BACKEND_BASE_URL:-}" && -z "${INFOPLIST_KEY_BackendBaseURL:-}" ]] || fail 'backend endpoints are not approved yet'
+# The checked-in manifest binds each public gateway to exactly one environment.
+# Both build values must agree; command-line overrides cannot select another host.
+python3 "$(dirname "$0")/validate-backend-endpoint.py" || fail 'backend endpoint mismatch'
 if [[ "${CONFIGURATION}" == Release && "${CODE_SIGNING_ALLOWED:-YES}" != NO ]]; then
   [[ -n "${DEVELOPMENT_TEAM:-}" ]] || fail 'production signing team is required'
   [[ -n "${PROVISIONING_PROFILE_SPECIFIER:-}" ]] || fail 'explicit production provisioning profile is required'

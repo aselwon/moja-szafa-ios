@@ -6,6 +6,192 @@ import UIKit
 
 @MainActor
 final class PhotoImportTests: XCTestCase {
+    func testOfflineImportsEditAndWearSurviveRestartAndUploadTimeoutWithoutDuplicates() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let drafts = root.appendingPathComponent("drafts")
+        let accountID = UUID()
+        let remote = ImportedGarmentRemote(accountID: accountID)
+        let database = OfflineDatabase(url: root.appendingPathComponent("wardrobe.sqlite"))
+        let store = try OfflineStore(accountID: accountID, database: database, remote: remote)
+        let model = PhotoImportModel(directory: drafts)
+        let photo = try fixture()
+        model.start([{ photo }, { photo }])
+        await finish(model)
+        let ids = model.drafts.map(\.id)
+        XCTAssertEqual(ids.count, 2)
+        let value = GarmentFormValue(name: "Same shirt", category: .top, colors: ["blue"], pattern: "plain",
+            seasons: ["summer"], formality: 2, brand: "Example", priceGrosz: 4500, purchasedOn: "2026-01-01")
+        for id in ids { try await model.commitGarmentValue(value, for: id, repository: store) }
+        XCTAssertTrue(model.drafts.isEmpty, "The durable outbox owns both photos while offline")
+        try await store.saveGarment(id: ids[0], fields: .init(name: "Edited offline", category: .top, priceGrosz: 4500, availability: .laundry))
+        try await store.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [ids[0]])
+        let reopenedStore = try OfflineStore(accountID: accountID, database: database, remote: remote)
+        let offlinePage = try await reopenedStore.page(query: WardrobeQuery(), offset: 0, limit: 40)
+        XCTAssertEqual(Set(offlinePage.items.map(\.id)), Set(ids))
+        XCTAssertTrue(offlinePage.cached)
+        XCTAssertEqual(offlinePage.items.first(where: { $0.id == ids[0] })?.name, "Edited offline")
+        for garment in offlinePage.items {
+            let bytes = try await reopenedStore.thumbnail(imageID: XCTUnwrap(garment.imageID))
+            XCTAssertFalse(bytes.isEmpty, "New photos remain visible without the network")
+            XCTAssertEqual(garment.brand, "Example")
+        }
+        var counts = await remote.counts()
+        XCTAssertEqual(counts.operations, 0)
+        await remote.goOnline()
+        do { try await reopenedStore.synchronize(); XCTFail("Upload commits then times out") }
+        catch { XCTAssertEqual((error as? URLError)?.code, .timedOut) }
+        let retried = try OfflineStore(accountID: accountID, database: database, remote: remote)
+        try await retried.synchronize(now: Date().addingTimeInterval(60))
+        try await retried.synchronize(now: Date().addingTimeInterval(120))
+        let status = await retried.status()
+        XCTAssertTrue(status.outbox.isEmpty)
+        XCTAssertEqual(status.garments.count, 2)
+        counts = await remote.counts()
+        XCTAssertEqual(counts.operations, 2)
+        XCTAssertEqual(counts.images, 2)
+        XCTAssertEqual(counts.wears, 1)
+        let secondDevice = try OfflineStore(accountID: accountID,
+            database: OfflineDatabase(url: root.appendingPathComponent("second.sqlite")), remote: remote)
+        let secondPage = try await secondDevice.page(query: WardrobeQuery(), offset: 0, limit: 40)
+        XCTAssertEqual(Set(secondPage.items.map(\.id)), Set(ids))
+        XCTAssertEqual(Set(secondPage.items.compactMap(\.imageID)).count, 2)
+        XCTAssertEqual(secondPage.items.first(where: { $0.id == ids[0] })?.name, "Edited offline")
+        XCTAssertEqual(secondPage.items.first(where: { $0.id == ids[0] })?.colors, ["blue"])
+    }
+
+    func testAccountDeletionRemovesQueuedImportAndPrivatePhotoBeforeReconnect() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let accountID = UUID(), imageID = UUID()
+        let remote = ImportedGarmentRemote(accountID: accountID)
+        let db = OfflineDatabase(url: root.appendingPathComponent("wardrobe.sqlite"))
+        let store = try OfflineStore(accountID: accountID, database: db, remote: remote)
+        let operation = APIv1.SaveGarment(operationID: imageID, garmentID: UUID(), baseVersion: nil,
+            garment: .init(name: "Private shirt", category: .top, priceGrosz: nil, availability: .available))
+        try await store.importGarment(operation, image: fixture())
+        XCTAssertTrue(FileManager.default.fileExists(atPath: db.url.appendingPathExtension("images").path))
+        try await store.invalidateAccount()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: db.url.appendingPathExtension("images").path))
+        await remote.goOnline()
+        let reopened = try OfflineStore(accountID: accountID, database: db, remote: remote)
+        do { try await reopened.synchronize(); XCTFail("Deleted account cannot upload") }
+        catch { XCTAssertEqual(error as? OfflineError, .accountDeleted) }
+        do { _ = try await reopened.thumbnail(imageID: imageID); XCTFail("Deleted photo cannot be read") }
+        catch { XCTAssertEqual(error as? OfflineError, .accountDeleted) }
+        let counts = await remote.counts()
+        XCTAssertEqual(counts.operations, 0)
+        XCTAssertEqual(counts.images, 0)
+    }
+
+    func testAccountDeletionDuringPhotoUploadCannotRestoreLocalData() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let accountID = UUID(), photoID = UUID()
+        let remote = ImportedGarmentRemote(accountID: accountID)
+        await remote.suspendNextUpload()
+        let db = OfflineDatabase(url: root.appendingPathComponent("wardrobe.sqlite"))
+        let store = try OfflineStore(accountID: accountID, database: db, remote: remote)
+        let operation = APIv1.SaveGarment(operationID: photoID, garmentID: UUID(), baseVersion: nil,
+            garment: .init(name: "Private shirt", category: .top, priceGrosz: nil, availability: .available))
+        try await store.importGarment(operation, image: fixture())
+        let sync = Task { try await store.synchronize() }
+        await remote.waitForUpload()
+        try await store.invalidateAccount()
+        await remote.releaseUpload()
+        do { try await sync.value; XCTFail("Late upload must not restore a deleted account") }
+        catch { XCTAssertEqual(error as? OfflineError, .accountDeleted) }
+        let state = await store.status()
+        XCTAssertTrue(state.deleted)
+        XCTAssertTrue(state.garments.isEmpty)
+        XCTAssertTrue(state.outbox.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: db.url.appendingPathExtension("images").path))
+    }
+
+    func testEditedImportRetainsSourceAndTransparentEditAcrossRestartAndReplay() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let accountID = UUID()
+        let pairedRemote = ImportedGarmentRemote(accountID: accountID)
+        let database = OfflineDatabase(url: root.appendingPathComponent("wardrobe.sqlite"))
+        let store = try OfflineStore(accountID: accountID, database: database, remote: pairedRemote)
+        let model = PhotoImportModel(directory: root.appendingPathComponent("drafts"))
+        let input = try fixture()
+        model.start([{ input }]); await finish(model)
+        let draft = try XCTUnwrap(model.drafts.first)
+        let original = try Data(contentsOf: XCTUnwrap(draft.file))
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1; format.opaque = false
+        let edited = try XCTUnwrap(UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20), format: format).image { ctx in
+            UIColor.green.setFill(); ctx.fill(CGRect(x: 5, y: 5, width: 10, height: 10))
+        }.pngData())
+        XCTAssertTrue(model.acceptEdit(edited, for: draft.id))
+        let value = GarmentFormValue(name: "Edited shirt", category: .top, colors: [], pattern: "plain",
+            seasons: [], formality: 2, brand: nil, priceGrosz: nil, purchasedOn: nil)
+        try await model.commitGarmentValue(value, for: draft.id, repository: store)
+        XCTAssertTrue(model.drafts.isEmpty)
+        let restarted = try OfflineStore(accountID: accountID, database: database, remote: pairedRemote)
+        let detail = try await restarted.detail(id: draft.id)
+        XCTAssertEqual(detail.garment.hasCleanedImage, true)
+        let imageID = try XCTUnwrap(detail.garment.imageID)
+        let storedOriginal = try await restarted.original(imageID: imageID)
+        let storedEdit = try await restarted.cleaned(imageID: imageID)
+        XCTAssertEqual(storedOriginal, original); XCTAssertEqual(storedEdit, edited)
+        await pairedRemote.goOnline()
+        do { try await restarted.synchronize(); XCTFail("Expected committed upload timeout") }
+        catch { XCTAssertEqual((error as? URLError)?.code, .timedOut) }
+        try await restarted.synchronize(now: Date().addingTimeInterval(60))
+        let second = try OfflineStore(accountID: accountID, database: OfflineDatabase(url: root.appendingPathComponent("second.sqlite")), remote: pairedRemote)
+        try await second.synchronize()
+        let secondDetail = try await second.detail(id: draft.id)
+        XCTAssertEqual(secondDetail.garment.hasCleanedImage, true)
+        let secondOriginal = try await second.original(imageID: imageID)
+        let secondEdit = try await second.cleaned(imageID: imageID)
+        XCTAssertEqual(secondOriginal, original); XCTAssertEqual(secondEdit, edited)
+        try await restarted.invalidateAccount()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: database.url.appendingPathExtension("images").path))
+    }
+
+    func testExistingGarmentEditorPreservesIdentityHistoryAndFullMetadataOffline() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let accountID = UUID(), garmentID = UUID(), imageID = UUID()
+        let remote = ImportedGarmentRemote(accountID: accountID)
+        var fields = APIv1.GarmentFields(name: "Original", category: .top, priceGrosz: nil, availability: .laundry, archived: true)
+        fields.metadata = .init(colors: ["blue"], seasons: ["winter"], pattern: "stripes", formality: 4, brand: "Brand", purchasedOn: "2026-01-01")
+        await remote.seedExisting(.init(operationID: imageID, garmentID: garmentID, baseVersion: nil, garment: fields), image: try fixture())
+        let db = OfflineDatabase(url: root.appendingPathComponent("wardrobe.sqlite"))
+        let store = try OfflineStore(accountID: accountID, database: db, remote: remote)
+        try await store.synchronize()
+        let before = try await store.detail(id: garmentID)
+        var value = try XCTUnwrap(before.garment.editableValue)
+        XCTAssertEqual(value.pattern, "stripes")
+        XCTAssertEqual(value.formality, 4)
+        XCTAssertEqual(value.purchasedOn, "2026-01-01")
+        XCTAssertNil(value.priceGrosz)
+        await remote.goOffline()
+        value.name = "Updated"; value.category = .outerwear; value.colors = ["red"]
+        value.seasons = ["autumn"]; value.pattern = "plain"; value.formality = 2
+        value.brand = nil; value.priceGrosz = 0; value.purchasedOn = "2025-12-12"
+        let result = try await store.editGarment(id: garmentID, expectedVersion: 1, value: value)
+        XCTAssertEqual(result.garment.id, garmentID)
+        XCTAssertEqual(result.garment.imageID, before.garment.imageID)
+        XCTAssertEqual(result.wornOn, before.wornOn)
+        XCTAssertEqual(result.garment.availability, .laundry)
+        XCTAssertTrue(result.garment.archived)
+        XCTAssertEqual(result.garment.editableValue, value)
+        XCTAssertNil(result.garment.brand, "Explicitly cleared brand must not fall back to old metadata")
+        let reopened = try OfflineStore(accountID: accountID, database: db, remote: remote)
+        let persisted = try await reopened.detail(id: garmentID)
+        XCTAssertEqual(persisted.garment.editableValue, value)
+        let state = await reopened.status()
+        let pending = try XCTUnwrap(state.outbox.first?.garment)
+        XCTAssertEqual(pending.garmentID, garmentID)
+        XCTAssertEqual(pending.baseVersion, 1)
+        XCTAssertEqual(pending.garment.metadata?.purchasedOn, "2025-12-12")
+        do { _ = try await reopened.editGarment(id: garmentID, expectedVersion: 0, value: value); XCTFail("Stale editor accepted") }
+        catch { XCTAssertEqual(error as? OfflineError, .conflict) }
+    }
+
     private func fixture(type: UTType = .jpeg, orientation: Int = 1) throws -> Data {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -23,6 +209,16 @@ final class PhotoImportTests: XCTestCase {
         ] as CFDictionary)
         XCTAssertTrue(CGImageDestinationFinalize(destination))
         return data as Data
+    }
+
+    func testCompletedDraftDoesNotReappearAfterInterruptedCleanup() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let id = UUID().uuidString
+        try fixture().write(to: directory.appendingPathComponent(id + ".jpg"))
+        try Data().write(to: directory.appendingPathComponent(id + ".completed"))
+        XCTAssertTrue(PhotoImportModel(directory: directory).drafts.isEmpty)
     }
 
     func testJPEGAllOrientationsResizeAndRemoveGPS() async throws {
@@ -315,4 +511,89 @@ private struct DuplicateRepository: WardrobeRepository {
         query.page(items, offset: offset, limit: 1, cached: false)
     }
     func thumbnail(imageID: UUID) async throws -> Data { data }
+}
+
+private actor ImportedGarmentRemote: OfflineRemote {
+    let accountID: UUID
+    var operations: [UUID: APIv1.SaveGarment] = [:]
+    var images: [UUID: Data] = [:]
+    var cleanedImages: [UUID: Data] = [:]
+    var failFirstUpload = true
+    var online = false
+    var wears: [UUID: SyncWear] = [:]
+    func goOnline() { online = true }
+    func goOffline() { online = false }
+    func seedExisting(_ operation: APIv1.SaveGarment, image: Data) {
+        operations[operation.operationID] = operation
+        images[operation.operationID] = image
+        let id = UUID()
+        wears[id] = SyncWear(id: id, version: 1, deleted: false, wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [operation.garmentID])
+        online = true
+    }
+    var holdUpload = false
+    var heldUpload: CheckedContinuation<Void, Never>?
+    var uploadObserver: CheckedContinuation<Void, Never>?
+    func suspendNextUpload() { online = true; holdUpload = true; failFirstUpload = false }
+    func waitForUpload() async {
+        if heldUpload != nil { return }
+        await withCheckedContinuation { uploadObserver = $0 }
+    }
+    func releaseUpload() { heldUpload?.resume(); heldUpload = nil; holdUpload = false }
+    init(accountID: UUID) { self.accountID = accountID }
+    func counts() -> (operations: Int, images: Int, wears: Int) { (operations.count, images.count, wears.count) }
+    func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO {
+        guard online else { throw URLError(.notConnectedToInternet) }
+        if let old = operations[operation.operationID] {
+            XCTAssertEqual(old.garmentID, operation.garmentID)
+            XCTAssertEqual(old.garment, operation.garment)
+        }
+        operations[operation.operationID] = operation
+        return .init(id: operation.garmentID, version: 1, name: operation.garment.name,
+            category: operation.garment.category, priceGrosz: operation.garment.priceGrosz, availability: .available)
+    }
+    func uploadGarmentPhotos(garmentID: UUID, imageID: UUID, photos: GarmentPhotos) async throws {
+        if let old = cleanedImages[imageID] { XCTAssertEqual(old, photos.cleaned) }
+        cleanedImages[imageID] = photos.cleaned
+        try await uploadGarmentPhoto(garmentID: garmentID, imageID: imageID, data: photos.original)
+    }
+    func cleanedImage(id: UUID) async throws -> Data {
+        guard online else { throw URLError(.notConnectedToInternet) }
+        return try XCTUnwrap(cleanedImages[id])
+    }
+    func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws {
+        XCTAssertEqual(operations[imageID]?.garmentID, garmentID)
+        if let old = images[imageID] { XCTAssertEqual(old, data) }
+        images[imageID] = data
+        if holdUpload {
+            await withCheckedContinuation { continuation in
+                heldUpload = continuation
+                uploadObserver?.resume(); uploadObserver = nil
+            }
+        }
+        if failFirstUpload { failFirstUpload = false; throw URLError(.timedOut) }
+    }
+    func snapshot() async throws -> SyncSnapshot {
+        guard online else { throw URLError(.notConnectedToInternet) }
+        return SyncSnapshot(accountID: accountID, garments: operations.values.map { operation in
+            let fields = operation.garment
+            return SyncGarment(id: operation.garmentID, version: 1, deleted: false, fields: fields,
+                metadata: Garment(id: operation.garmentID, name: fields.name, category: fields.category,
+                    priceGrosz: fields.priceGrosz, imageID: images[operation.operationID] == nil ? nil : operation.operationID,
+                    hasCleanedImage: cleanedImages[operation.operationID] != nil, brand: fields.metadata?.brand, colors: fields.metadata?.colors ?? [], seasons: fields.metadata?.seasons ?? []))
+        }, wears: Array(wears.values))
+    }
+    func image(id: UUID, original: Bool) async throws -> Data {
+        guard online else { throw URLError(.notConnectedToInternet) }
+        return try XCTUnwrap(images[id])
+    }
+    func save(_ operation: SaveWear) async throws -> SyncWear {
+        guard online else { throw URLError(.notConnectedToInternet) }
+        for garmentID in operation.wear.garmentIDs {
+            XCTAssertTrue(operations.values.contains { $0.garmentID == garmentID && images[$0.operationID] != nil })
+        }
+        let wear = operation.wear
+        let saved = SyncWear(id: wear.id, version: 1, deleted: false, wornOn: wear.wornOn, timezone: wear.timezone, garmentIDs: wear.garmentIDs)
+        wears[operation.operationID] = saved
+        return saved
+    }
 }
