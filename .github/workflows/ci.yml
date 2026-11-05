@@ -77,14 +77,14 @@ jobs:
           set -euo pipefail
           echo "Using simulator $SIMULATOR_ID"
           xcodebuild build-for-testing \
-            -project MojaSzafa.xcodeproj -scheme MojaSzafa \
+            -project MojaSzafa.xcodeproj -scheme MojaSzafaStoreKit \
             -configuration "$BUILD_CONFIGURATION" -sdk iphonesimulator \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
           run_tests() {
             python3 scripts/bounded-command.py --timeout 300 -- xcodebuild test-without-building \
-              -project MojaSzafa.xcodeproj -scheme MojaSzafa \
+              -project MojaSzafa.xcodeproj -scheme MojaSzafaStoreKit \
               -configuration "$BUILD_CONFIGURATION" \
               -sdk iphonesimulator \
               -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \

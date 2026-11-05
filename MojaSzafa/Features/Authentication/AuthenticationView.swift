@@ -136,6 +136,9 @@ struct AuthenticationGateView: View {
         }
         .task { await model.restore(); await updateReminders() }
         .task(id: authenticatedAccountID) {
+            await authenticatedDependencies?.subscriptions?.start()
+        }
+        .task(id: authenticatedAccountID) {
             guard let recorder = authenticatedDependencies?.telemetry else { return }
             while !Task.isCancelled {
                 if scenePhase == .active {
@@ -178,8 +181,10 @@ struct AuthenticationGateView: View {
         if authenticatedAccountID != requestedAccount || authenticatedDependencies == nil {
             crashDiagnostics.detach()
             let previous = authenticatedDependencies?.telemetry
+            let previousSubscriptions = authenticatedDependencies?.subscriptions
             authenticatedDependencies = nil
             authenticatedAccountID = nil
+            await previousSubscriptions?.stop()
             if let previous { try? await previous.invalidate() }
             guard model.session?.userID == requestedAccount else { return }
             // Another update may have completed while the old journal was erased.

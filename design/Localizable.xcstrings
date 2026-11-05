@@ -11441,6 +11441,222 @@
           }
         }
       }
+    },
+    "subscriptions.title": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subskrypcja"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscription"
+          }
+        }
+      }
+    },
+    "subscriptions.unavailable": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakupy nie są jeszcze dostępne."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchases are not available yet."
+          }
+        }
+      }
+    },
+    "subscriptions.monthly": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Miesiąc"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month"
+          }
+        }
+      }
+    },
+    "subscriptions.yearly": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rok"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Year"
+          }
+        }
+      }
+    },
+    "subscriptions.purchase": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kup"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy"
+          }
+        }
+      }
+    },
+    "subscriptions.restore": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywróć zakupy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        }
+      }
+    },
+    "subscriptions.storePrices": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ceny i okresy pochodzą z App Store."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prices and periods come from the App Store."
+          }
+        }
+      }
+    },
+    "subscriptions.accepted": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transakcja została przyjęta przez serwer."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server accepted the transaction."
+          }
+        }
+      }
+    },
+    "subscriptions.pending": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakup czeka na zatwierdzenie w App Store."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The purchase awaits App Store approval."
+          }
+        }
+      }
+    },
+    "subscriptions.cancelled": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakup anulowano."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase cancelled."
+          }
+        }
+      }
+    },
+    "subscriptions.unconfirmed": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się potwierdzić zakupu. Przywróć zakupy, aby ponowić weryfikację."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not confirm the purchase. Restore purchases to retry verification."
+          }
+        }
+      }
+    },
+    "subscriptions.restored": {
+      "comment": "T049: lokalizowany tekst interfejsu; ceny zawsze pochodzą z StoreKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostępne transakcje zostały sprawdzone."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available transactions were checked."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

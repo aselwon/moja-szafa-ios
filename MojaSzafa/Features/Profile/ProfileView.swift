@@ -116,6 +116,7 @@ struct ProfileGateView: View {
                         NavigationStack {
                             List {
                                 NavigationLink("profile.title") { ProfileEditorView(model: model) }
+                                NavigationLink("subscriptions.title") { SubscriptionPurchaseView(service: dependencies.subscriptions) }
                                 NavigationLink("telemetry.title") { TelemetryView(recorder: dependencies.telemetry) }
                                 NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
                                 NavigationLink("reminders.title") { ReminderView(model: reminders) }
