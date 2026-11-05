@@ -136,3 +136,14 @@ try {
   for (const key of ['original.jpg','thumbnail.jpg','cleaned.png']) await assert.rejects(storage.get(`${id}/${key}`), /ENOENT/);
   await assert.rejects(service.download(owner, editToken, 'cleaned'), /access_denied/);
 } finally { await rm(pairDirectory, { recursive: true, force: true }); }
+
+{
+  const expired = new ImagePipeline({ store: { call: async () => ({ id, expired: true }) },
+    storage: {}, signingKey: randomBytes(32) });
+  const request = Readable.from([Buffer.from(JSON.stringify({ garment_id: other, operation_id: id }))]);
+  Object.assign(request, { method: 'POST', url: '/v1/images/uploads', headers: { authorization: 'owner' } });
+  const response = { writeHead(status) { this.status = status; }, end(bytes) { this.bytes = bytes; } };
+  await imageHandler(expired, async () => owner)(request, response);
+  assert.equal(response.status, 409);
+  assert.equal(JSON.parse(response.bytes).code, 'image_upload_expired');
+}

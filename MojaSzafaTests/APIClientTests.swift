@@ -2,6 +2,19 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testOnlyExplicitExpiredPrepareResponseRotatesPhotoIdentity() async throws {
+        for (status, code) in [(409, "image_upload_expired"), (409, "other_conflict"), (403, "image_upload_expired")] {
+            let body = try JSONEncoder().encode(["code": code])
+            do {
+                try await client(FixedTransport(body: body, status: status)).uploadGarmentPhoto(garmentID: UUID(), imageID: UUID(), data: Data([1]))
+                XCTFail("Failure response accepted")
+            } catch {
+                if status == 409 && code == "image_upload_expired" { XCTAssertEqual(error as? PhotoUploadError, .expired) }
+                else { XCTAssertEqual(error as? APIClientError, .http(status: status, requestID: nil)) }
+            }
+        }
+    }
+
     func testPairedUploadAndCleanedFetchUseExplicitBoundedContracts() async throws {
         let garmentID = UUID(), imageID = UUID()
         let photos = try GarmentPhotos(original: Data([255,216,1]), cleaned: Data([137,80,78,71]))

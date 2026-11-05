@@ -66,6 +66,33 @@ BEGIN
     PERFORM app.images_command(request || '{"action":"cleaned"}');
     PERFORM pg_temp.check_image(NOT EXISTS(SELECT FROM app.garment_images WHERE garment_id=garment));
 END $$;
+DO $$
+DECLARE owner uuid:=gen_random_uuid(); garment uuid:=gen_random_uuid(); old_id uuid:=gen_random_uuid(); new_id uuid:=gen_random_uuid();
+    request jsonb; old_claim jsonb; new_claim jsonb;
+BEGIN
+    INSERT INTO auth.users VALUES(owner);
+    INSERT INTO app.profiles(id,user_id) VALUES(owner,owner);
+    INSERT INTO app.garments(id,user_id,name,category) VALUES(garment,owner,'Interrupted upload','top');
+    request:=jsonb_build_object('owner',owner,'garment',garment,'id',old_id,'has_cleaned',true);
+    PERFORM app.images_command(request||'{"action":"prepare"}');
+    old_claim:=app.images_command(request||'{"action":"claim"}');
+    UPDATE api_private.image_uploads SET expires_at=clock_timestamp()-interval '1 second' WHERE id=old_id;
+    PERFORM pg_temp.check_image((app.images_command(request||'{"action":"prepare"}')->>'expired')::boolean);
+    PERFORM pg_temp.check_image(app.images_command(request||jsonb_build_object('action','finish','fence',old_claim->>'fence'))='null');
+    PERFORM pg_temp.check_image(app.images_command(request||jsonb_build_object('action','prepare','owner',gen_random_uuid()))='null');
+    PERFORM app.images_command(request||jsonb_build_object('action','prepare','id',new_id));
+    new_claim:=app.images_command(request||jsonb_build_object('action','claim','id',new_id));
+    PERFORM pg_temp.check_image(app.images_command(request||jsonb_build_object('action','finish','id',new_id,'fence',new_claim->>'fence'))='true');
+    -- Repeated old prepare/cleanup and a delayed old finish cannot affect the new namespace.
+    PERFORM pg_temp.check_image((app.images_command(request||'{"action":"prepare"}')->>'expired')::boolean);
+    PERFORM app.images_command('{"action":"sweep"}');
+    PERFORM app.images_command(request||'{"action":"cleaned"}');
+    PERFORM pg_temp.check_image(app.images_command(request||jsonb_build_object('action','read','id',new_id,'variant','cleaned'))='true');
+    PERFORM pg_temp.check_image((SELECT count(*)=3 FROM app.garment_images WHERE garment_id=garment));
+    PERFORM pg_temp.check_image(NOT EXISTS(SELECT FROM app.garment_images WHERE garment_id=garment AND object_key LIKE old_id::text||'/%'));
+    DELETE FROM auth.users WHERE id=owner;
+    PERFORM pg_temp.check_image(app.images_command(request||'{"action":"prepare"}')='null');
+END $$;
 SELECT pg_temp.check_image(NOT has_function_privilege('authenticated','app.images_command(jsonb)','EXECUTE'));
 SELECT pg_temp.check_image(NOT has_table_privilege('authenticated','api_private.image_uploads','SELECT'));
 ROLLBACK;

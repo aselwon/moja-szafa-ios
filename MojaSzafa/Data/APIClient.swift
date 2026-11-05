@@ -1,5 +1,7 @@
 import Foundation
 
+enum PhotoUploadError: Error, Equatable { case expired }
+
 extension APIClient: SubscriptionTransactionReceiver {
     var configured: Bool { true }
 
@@ -584,6 +586,12 @@ extension APIClient {
             request.setValue(type, forHTTPHeaderField: "Content-Type")
             let (result, response) = try await transport.send(request)
             if response.statusCode == 401 { await unauthorized(token) }
+            if !purchase, method == "POST", response.statusCode == 409 {
+                struct Failure: Decodable { let code: String }
+                if (try? JSONDecoder().decode(Failure.self, from: result).code) == "image_upload_expired" {
+                    throw PhotoUploadError.expired
+                }
+            }
             guard response.statusCode == 200 else { throw APIClientError.http(status: response.statusCode, requestID: nil) }
             try Task.checkCancellation(); return result
         }
