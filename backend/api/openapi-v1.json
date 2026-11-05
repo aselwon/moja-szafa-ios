@@ -1371,6 +1371,13 @@
                 }
               }
             ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "formMetadata": {
+            "$ref": "#/components/schemas/GarmentMetadata"
           }
         },
         "required": [

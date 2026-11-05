@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 /// Local import metadata. Money is integer grosz; purchase date is a calendar date, never an instant.
-struct GarmentFormValue: Codable, Equatable {
+struct GarmentFormValue: Codable, Equatable, Sendable {
     var name: String
     var category: APIv1.Category
     var colors: [String]
@@ -12,6 +12,15 @@ struct GarmentFormValue: Codable, Equatable {
     var brand: String?
     var priceGrosz: Int64?
     var purchasedOn: String?
+}
+
+extension Garment {
+    var editableValue: GarmentFormValue? {
+        guard let metadata = formMetadata else { return nil }
+        return GarmentFormValue(name: name, category: category, colors: metadata.colors,
+            pattern: metadata.pattern, seasons: metadata.seasons, formality: metadata.formality,
+            brand: metadata.brand, priceGrosz: priceGrosz, purchasedOn: metadata.purchasedOn)
+    }
 }
 
 /// Only attributes AI is allowed to suggest. No price, brand or purchase date.
@@ -161,15 +170,17 @@ struct GarmentFormView: View {
     @State private var error: String?
     @State private var saving = false
     private let locked: Bool
+    private let editingExisting: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var duplicates: DuplicatePhotoReview?
     private let duplicateReview: (() async -> DuplicatePhotoReview)?
     private let save: (GarmentFormValue) async throws -> Void
 
     init(value: GarmentFormValue?, suggestions: GarmentSuggestions? = nil,
-         duplicateReview: (() async -> DuplicatePhotoReview)? = nil, locked: Bool = false,
+         duplicateReview: (() async -> DuplicatePhotoReview)? = nil, locked: Bool = false, editingExisting: Bool = false,
          save: @escaping (GarmentFormValue) async throws -> Void) {
         _input = State(initialValue: GarmentFormInput(value: value, suggestions: suggestions))
+        self.editingExisting = editingExisting
         self.locked = locked
         self.save = save
         self.duplicateReview = duplicateReview
@@ -199,7 +210,7 @@ struct GarmentFormView: View {
                 }
 
                 Section {
-                    Text(locked ? "import.pendingSave" : "garment.draftExplanation")
+                    Text(locked ? "import.pendingSave" : editingExisting ? "garment.editExplanation" : "garment.draftExplanation")
                     TextField("garment.name", text: $input.name)
                     Picker("garment.category", selection: $input.category) {
                         ForEach(APIv1.Category.allCases, id: \.self) { category in
@@ -243,13 +254,15 @@ struct GarmentFormView: View {
                 .disabled(saving || locked)
                 Section {
                     if let error { Text(LocalizedStringKey(error)).foregroundStyle(Color("danger")) }
-                    Button(LocalizedStringKey(duplicates?.matches.isEmpty == false ? "duplicate.keepBoth" : "garment.save")) {
+                    Button(LocalizedStringKey(duplicates?.matches.isEmpty == false ? "duplicate.keepBoth" : editingExisting ? "common.save" : "garment.save")) {
                         guard !saving else { return }
                         saving = true
                         Task {
                             defer { saving = false }
                             do { try await save(input.validated()); dismiss() }
                             catch let validation as GarmentFormInput.Validation { self.error = validation.rawValue }
+                            catch OfflineError.conflict { self.error = "sync.conflict" }
+                            catch OfflineError.pendingChange { self.error = "sync.pending" }
                             catch { self.error = "import.saveFailed" }
                         }
                     }.disabled(saving)
