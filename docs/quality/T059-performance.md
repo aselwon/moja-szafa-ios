@@ -59,6 +59,28 @@ end-to-end text API p95 <=800 ms gate, warm-launch p95 <=2 s, AI p95 <=30 s, or
 beta crash-free-session target. Device, OS, network profile, and staging
 conditions remain unresolved, so this run is not final T059 acceptance.
 
+## Native persistence measurement (2026-11-05)
+
+The focused Release `OfflinePerformanceTests` run measured reopening the real
+SQLite store, decoding its JSON snapshot, and projecting cached statistics on
+an iOS 27.2 simulator. The deterministic synthetic fixture contained 1,000
+garments, 1,826 days of wear history, and 9,130 garment memberships. After five
+warmups, it recorded 100 samples; the database JSON was 769,802 bytes. The raw
+JSON with every sample is preserved in
+[`evidence/T059-native-persistence-baseline.json`](evidence/T059-native-persistence-baseline.json).
+
+| Samples | p50 (ms) | p95 (ms) | Max (ms) |
+| ---: | ---: | ---: | ---: |
+| 100 | 13.745417 | 15.578583 | 17.978750 |
+
+The run used Xcode 27.2 on an Apple Silicon MacBook-Pro host and the iOS 27.2
+simulator. The test ran in Release with testability enabled and code signing
+disabled. It measures warm-filesystem persistence reopen, JSON decoding, and
+cached-statistics projection only. It does not measure full application launch,
+UI rendering, API/network latency, AI latency, or physical-device behavior.
+Those measurements and the relevant staging/reliability evidence remain
+outstanding; this preliminary native result does not close T059 acceptance.
+
 ## Reproduction
 
 Run from the repository root with local PostgreSQL 15 tools and a disposable
