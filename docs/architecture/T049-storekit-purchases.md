@@ -67,6 +67,12 @@ simulator state. An earlier Release attempt on an existing simulator displayed
 an Apple Account prompt and was stopped without credentials. The focused
 subscription and authentication suites previously passed 23/23 on iOS 27.2.
 
+On CI, a fresh simulator took about 89 seconds to launch the provisioning test
+host, leaving less than half a second before the original 90-second command
+limit expired. No assertion result was recorded. The provisioning command now
+has a 300-second startup budget, matching the focused suite; the one-time
+recovery remains limited to launch/timeouts before any test starts.
+
 ## Remaining external acceptance
 
 Live monthly/yearly products in one App Store Connect group, approved prices and
