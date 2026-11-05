@@ -8,6 +8,7 @@ import { DataExports } from '../exports/service.mjs';
 import { exportHandler } from '../exports/http.mjs';
 import { weatherHandler } from '../weather/http.mjs';
 import { SubscriptionVerificationError } from './subscriptions/verification.mjs';
+import { DeletionReauthentication } from './deletion-reauth.mjs';
 
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 async function jsonBody(request, limit = 16384) {
@@ -32,7 +33,8 @@ function sessionDTO(principal) {
   return { userID: principal.owner, accessToken: principal.token, refreshToken: principal.token, expiresAt: principal.expiresAt };
 }
 
-export function createGateway({ auth, store, storage, signingKey, exportDirectory, forecast, metrics, subscriptions, now = () => Date.now() }) {
+export function createGateway({ auth, store, storage, signingKey, exportDirectory, forecast, metrics, subscriptions, deletionEnabled = false, now = () => Date.now() }) {
+  const deletion = deletionEnabled ? new DeletionReauthentication({ auth, store }) : null;
   const context = new AsyncLocalStorage();
   const authenticate = async header => {
     const principal = await auth.current(bearer(header));
@@ -87,6 +89,22 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
       metricRoute = metrics?.route(url.pathname) ?? 'unknown';
       if (url.search && !url.pathname.startsWith('/v1/images/') && !url.pathname.startsWith('/v1/purchase-images/') && !url.pathname.startsWith('/v1/recognition-images/')) throw new GatewayError('invalid_request', 400);
       if (request.method === 'GET' && url.pathname === '/health') return send(200, { status: 'ok' });
+      if (url.pathname === '/v1/account/deletion' || url.pathname === '/v1/account/deletion/challenge' || url.pathname === '/v1/account/deletion/status') {
+        if (!deletion || request.method !== 'POST') throw new GatewayError('deletion_unavailable', 503);
+        if (url.pathname.endsWith('/status')) {
+          const input = await jsonBody(request);
+          const principal = input?.receipt_token === undefined ? await auth.current(bearer(request.headers.authorization)) : null;
+          return send(200, await deletion.status(principal, input));
+        }
+        const principal = await auth.current(bearer(request.headers.authorization));
+        if (url.pathname.endsWith('/challenge')) {
+          // Existing native client sends an empty body. Reject arbitrary payloads.
+          let size = 0;
+          for await (const chunk of request) { size += chunk.length; if (size > 0) throw new GatewayError('invalid_request', 400); }
+          return send(200, await deletion.start(principal));
+        }
+        return send(202, await deletion.confirm(principal, await jsonBody(request)));
+      }
       if (url.pathname.startsWith('/auth/v1/')) {
         if (request.method !== 'POST') throw new GatewayError('not_found', 404);
         const body = await jsonBody(request);

@@ -15,6 +15,7 @@ struct AppDependencies: Sendable {
     var wearStore: OfflineStore?
     var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
+    var deletionJournalURL: URL?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
     var photoRecognition: (any PhotoRecognitionService)?
     var dataExports: (any DataExportService)?
@@ -134,6 +135,7 @@ struct AppDependencies: Sendable {
             result.aiConsent = client
             result.photoRecognition = client
             result.dataExports = client.dataExports
+            result.deletionJournalURL = storageDirectory.appendingPathComponent("DeletionProgress").appendingPathComponent(connection.identifier).appendingPathComponent(userID.uuidString + ".json")
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
                                                             accessToken: { try await model.accessToken(for: userID) })
             let purchaseDrafts = result.purchaseDirectory(accountID: userID)
@@ -144,7 +146,7 @@ struct AppDependencies: Sendable {
             let subscriptions = result.subscriptions
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
-                guard model.session?.userID == accountID else { return }
+                guard model.session?.userID == accountID else { throw AuthError.expired }
                 await subscriptions?.stop()
                 try await telemetry?.invalidate()
                 if FileManager.default.fileExists(atPath: telemetryURL.path) { try FileManager.default.removeItem(at: telemetryURL) }
@@ -167,6 +169,64 @@ struct AppDependencies: Sendable {
             }
             return result
         } catch { return AppDependencies(wardrobe: UnconfiguredWardrobeRepository(), authentication: authentication) }
+    }
+
+    /// Recover accepted deletions even when the provider has already removed the
+    /// login session. Only validated journals in this gateway's namespace apply.
+    @MainActor
+    func recoverDeletions(using model: AuthenticationModel, active: AppDependencies?, activeAccountID: UUID?,
+                          storageDirectory: URL = .applicationSupportDirectory) async {
+        guard let connection = apiConnection else { return }
+        let directory = storageDirectory.appendingPathComponent("DeletionProgress").appendingPathComponent(connection.identifier)
+        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey]) else { return }
+        let receiptClient = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
+                                                 accessToken: { throw AuthError.expired })
+        for file in files where file.pathExtension == "json" {
+            guard let accountID = UUID(uuidString: file.deletingPathExtension().lastPathComponent) else { continue }
+            do {
+                let attributes = try file.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                guard attributes.isRegularFile == true, attributes.isSymbolicLink != true,
+                      var progress = try DeletionProgress.read(from: file, operationID: accountID) else { continue }
+                if !progress.accepted {
+                    guard let challenge = progress.challenge, let token = challenge.receiptToken,
+                          try await receiptClient.receipt(operationID: accountID, challengeID: challenge.id, token: token) else { continue }
+                    progress = DeletionProgress(operationID: accountID, challenge: nil, accepted: true)
+                    try progress.write(to: file)
+                }
+                // Fence live actors before clearing disk. Their in-flight replies
+                // cannot restore erased data after the account is invalidated.
+                if activeAccountID == accountID {
+                    await active?.subscriptions?.stop()
+                    try await active?.telemetry?.invalidate()
+                    try await active?.offline?.invalidateAccount()
+                }
+                let client = try APIClient(baseURL: connection.baseURL, transport: connection.transport,
+                                           publicAPIKey: connection.publicAPIKey) { throw AuthError.expired }
+                let database = OfflineDatabase(url: storageDirectory.appendingPathComponent("Wardrobe")
+                    .appendingPathComponent(connection.identifier).appendingPathComponent(accountID.uuidString + ".sqlite"))
+                let offline = try OfflineStore(accountID: accountID, database: database, remote: client)
+                try await offline.invalidateAccount()
+                var paths = ["Trips", "Planner"].map {
+                    storageDirectory.appendingPathComponent($0).appendingPathComponent(connection.identifier).appendingPathComponent(accountID.uuidString)
+                }
+                paths.append(storageDirectory.appendingPathComponent("Telemetry").appendingPathComponent(connection.identifier).appendingPathComponent(accountID.uuidString + ".json"))
+                paths += [purchaseDirectory(accountID: accountID), reviewDecisionsURL(accountID: accountID),
+                          personalizationIntentURL(accountID: accountID), generationIntentURL(accountID: accountID),
+                          URL.applicationSupportDirectory.appendingPathComponent("PhotoDrafts").appendingPathComponent(accountID.uuidString)]
+                for path in paths where FileManager.default.fileExists(atPath: path.path) { try FileManager.default.removeItem(at: path) }
+                try ProfileStore.local.remove(accountID: accountID)
+                if model.session == nil || model.session?.userID == accountID {
+                    let exports = DataExportClient.temporaryDirectory
+                    if FileManager.default.fileExists(atPath: exports.path) { try FileManager.default.removeItem(at: exports) }
+                }
+                try model.finishAccountDeletion(accountID: accountID)
+                try FileManager.default.removeItem(at: file)
+            } catch {
+                // Keep the durable receipt and retry next foreground. Never turn
+                // a failed/unknown recovery into a second deletion request.
+                continue
+            }
+        }
     }
 
     static func live() -> AppDependencies {

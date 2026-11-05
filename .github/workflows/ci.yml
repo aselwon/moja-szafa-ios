@@ -33,6 +33,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --prefix backend/gateway
       - name: Provision image decoder for tests
         run: python3 -m pip install -r backend/images/requirements.txt
+      - name: Provision POSIX private-storage locks
+        run: npm ci --prefix backend/storage --no-audit --no-fund
       - name: Validate repository, environment guards and secrets
         run: |
           node --test scripts/select-ios-simulator.test.mjs
@@ -286,7 +288,7 @@ jobs:
         run: |
           if [[ -f backend/tests/run-tests.sh ]]; then
             bash backend/tests/run-tests.sh
-            GATEWAY_PG_TESTS=1 node --test backend/gateway/postgres.test.mjs
+            GATEWAY_PG_TESTS=1 node --test --test-concurrency=1 backend/gateway/postgres.test.mjs backend/gateway/erasure-postgres.test.mjs
             OPS_PG_TESTS=1 node --test backend/operations/postgres.test.mjs
           else
             echo 'Testy migracji powstaną w T008 (backend/tests/run-tests.sh).'
