@@ -76,15 +76,31 @@ jobs:
         run: |
           set -euo pipefail
           echo "Using simulator $SIMULATOR_ID"
+          case "$BUILD_CONFIGURATION" in
+            Debug) STOREKIT_SCHEME=MojaSzafaStoreKit ;;
+            Staging|Release) STOREKIT_SCHEME="MojaSzafaStoreKit$BUILD_CONFIGURATION" ;;
+            *) echo "Unsupported configuration: $BUILD_CONFIGURATION" >&2; exit 1 ;;
+          esac
           xcodebuild build-for-testing \
-            -project MojaSzafa.xcodeproj -scheme MojaSzafaStoreKit \
+            -project MojaSzafa.xcodeproj -scheme "$STOREKIT_SCHEME" \
             -configuration "$BUILD_CONFIGURATION" -sdk iphonesimulator \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
+          # Provision local StoreKit before launching the purchase-test host.
+          # This step never buys a product; the subsequent suite must still
+          # complete and verify the real local StoreKit purchase.
+          python3 scripts/bounded-command.py --timeout 90 -- xcodebuild test-without-building \
+            -project MojaSzafa.xcodeproj -scheme "$STOREKIT_SCHEME" \
+            -configuration "$BUILD_CONFIGURATION" -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -only-testing:MojaSzafaTests/SubscriptionStoreKitTests/testProvisionLocalStoreKitConfiguration \
+            -resultBundlePath "$RUNNER_TEMP/$BUILD_CONFIGURATION-storekit-setup.xcresult" \
+            CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
           run_tests() {
             python3 scripts/bounded-command.py --timeout 300 -- xcodebuild test-without-building \
-              -project MojaSzafa.xcodeproj -scheme MojaSzafaStoreKit \
+              -project MojaSzafa.xcodeproj -scheme "$STOREKIT_SCHEME" \
               -configuration "$BUILD_CONFIGURATION" \
               -sdk iphonesimulator \
               -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \

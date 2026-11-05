@@ -30,11 +30,16 @@ permanently suppressed. No local `isPlus` value or device clock grants AI access
 ## Local verification
 
 `MojaSzafaTests/TestProducts.storekit` contains two clearly synthetic test-only
-products and sample prices. The dedicated `MojaSzafaStoreKit` test scheme injects
-this fixture through its test launch action only. The normal `MojaSzafa` scheme
-and production configuration do not inject or reference the fixture. It is not an
-approved offer and is not uploaded to App Store Connect. Apple supports local StoreKit
-configuration before App Store Connect setup:
+products and sample prices. Dedicated `MojaSzafaStoreKit`,
+`MojaSzafaStoreKitStaging`, and `MojaSzafaStoreKitRelease` schemes inject the
+fixture through their launch actions. Their test actions reference
+`MojaSzafaStoreKit.xctestplan`, which selects the test target and disables
+parallel test execution. StoreKit configuration is not a supported test-plan
+option in the installed Xcode; the fixture path belongs to the scheme's
+`StoreKitConfigurationFileReference`. The normal `MojaSzafa` and
+`MojaSzafa-Staging` schemes and production configuration do not reference the
+fixture. It is not an approved offer and is not uploaded to App Store Connect.
+Apple supports local StoreKit configuration before App Store Connect setup:
 [StoreKit testing setup](https://developer.apple.com/documentation/Xcode/setting-up-storekit-testing-in-xcode).
 
 `SubscriptionTests` covers missing configuration, mixed groups, pending/cancelled
@@ -48,9 +53,19 @@ The initial iOS 26.5 runtime fails StoreKit configuration mutation with
 `SKInternalErrorDomain Code=3`, including under ad-hoc simulator signing. This is
 a [documented Apple runtime issue](https://developer.apple.com/forums/thread/826971).
 Use a compatible runtime for this integration test; do not turn that failure into
-a skipped/passed purchase test. The actual StoreKit integration test passed 1/1 on the iOS 27.2 simulator using
-the dedicated scheme. The focused subscription and authentication suites passed
-23/23 on the same runtime. This verifies local fixture behavior only.
+a skipped/passed purchase test. A fresh iOS 27.2 Release simulator
+(`0209F467-2EA6-488F-86E2-30FF825F5492`) built successfully with CI's
+unsigned/testability settings. CI now runs a separate provisioning test host
+first: it loads the local fixture with `SKTestSession`, resets it, disables
+dialogs, and confirms there are no transactions. It performs no purchase. That
+test passed 1/1 (0.354 seconds); the next, separate process ran the actual local
+purchase/verification/restore-scan test, which passed 1/1 (0.172 seconds). Both
+used the Release app bundle `pl.mojaszafa.app` on the fresh simulator, with no
+Apple account interaction. This validates the two-step flow on that simulator;
+it does not establish that provisioning is necessary on every runtime or
+simulator state. An earlier Release attempt on an existing simulator displayed
+an Apple Account prompt and was stopped without credentials. The focused
+subscription and authentication suites previously passed 23/23 on iOS 27.2.
 
 ## Remaining external acceptance
 
