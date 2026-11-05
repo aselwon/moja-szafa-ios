@@ -89,6 +89,7 @@ struct AuthenticationView: View {
 }
 
 struct AuthenticationGateView: View {
+    @EnvironmentObject private var reminders: ReminderModel
     let dependencies: AppDependencies
     @State private var model: AuthenticationModel
     @State private var showAccount = false
@@ -125,10 +126,21 @@ struct AuthenticationGateView: View {
                 NavigationStack { AuthenticationView(model: model) }
             }
         }
-        .task { await model.restore() }
-        .onChange(of: model.session?.userID) { _, _ in showAccount = false }
+        .task { await model.restore(); updateReminders() }
+        .onChange(of: model.session?.userID) { _, _ in showAccount = false; updateReminders() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await model.restoreOrRefresh() } }
+            if phase == .active { Task { await model.restoreOrRefresh(); updateReminders(); await reminders.refresh() } }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
+            Task { await reminders.refresh() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            Task { await reminders.refresh() }
+        }
+    }
+    private func updateReminders() {
+        let authenticated = dependencies.authenticated(using: model)
+        reminders.sessionChanged(accountID: model.session?.userID, gateway: dependencies.sessionStoreService,
+            repository: authenticated.planner)
     }
 }

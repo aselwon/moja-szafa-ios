@@ -79,8 +79,12 @@ final class PlannerModel: ObservableObject {
     private var revision = 0
     private var journalFailed = false
     private var range: (String, String)?
+    private let mutationStarted: @MainActor () -> Void
+    private let mutationFinished: @MainActor () -> Void
 
-    init(repository: any PlannerRepository, journalURL: URL? = nil) {
+    init(repository: any PlannerRepository, journalURL: URL? = nil,
+         mutationStarted: @escaping @MainActor () -> Void = {}, mutationFinished: @escaping @MainActor () -> Void = {}) {
+        self.mutationStarted = mutationStarted; self.mutationFinished = mutationFinished
         self.repository = repository; self.journalURL = journalURL
         if let journalURL, FileManager.default.fileExists(atPath: journalURL.path) {
             do { pending = try JSONDecoder().decode(PlannerMutation.self, from: Data(contentsOf: journalURL)) }
@@ -118,7 +122,8 @@ final class PlannerModel: ObservableObject {
     func change(_ request: PlannerMutation) async -> Bool {
         guard !saving, !journalFailed, pending == nil || pending == request else { return false }
         saving = true; errorKey = nil; revision += 1
-        defer { saving = false }
+        mutationStarted()
+        defer { saving = false; mutationFinished() }
         let original = items.first { $0.id == request.id }
         do {
             if pending == nil { try persist(request); pending = request }
