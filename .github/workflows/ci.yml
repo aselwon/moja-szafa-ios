@@ -90,8 +90,10 @@ jobs:
           # Provision local StoreKit before launching the purchase-test host.
           # This step never buys a product; the subsequent suite must still
           # complete and verify the real local StoreKit purchase.
+          # Cold test-host startup can take about 90 seconds, so allow 300 seconds
+          # here instead of timing out just as XCTest begins.
           provision_storekit() {
-            python3 scripts/bounded-command.py --timeout 90 -- xcodebuild test-without-building \
+            python3 scripts/bounded-command.py --timeout 300 -- xcodebuild test-without-building \
               -project MojaSzafa.xcodeproj -scheme "$STOREKIT_SCHEME" \
               -configuration "$BUILD_CONFIGURATION" -sdk iphonesimulator \
               -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
