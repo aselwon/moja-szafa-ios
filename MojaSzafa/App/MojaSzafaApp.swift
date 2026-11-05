@@ -7,6 +7,7 @@ import UIKit
 struct MojaSzafaApp: App {
     private let dependencies = AppDependencies.live()
     @StateObject private var reminders = ReminderModel.live()
+    @StateObject private var widget = WardrobeWidgetModel.live()
 
     init() {
         #if DEBUG
@@ -27,7 +28,7 @@ struct MojaSzafaApp: App {
                 #else
                 AuthenticationGateView(dependencies: dependencies)
                 #endif
-            }.tint(Color("accent")).environmentObject(reminders)
+            }.tint(Color("accent")).environmentObject(reminders).environmentObject(widget)
         }
     }
 }

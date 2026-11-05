@@ -1,0 +1,330 @@
+{
+  "sourceLanguage": "pl",
+  "strings": {
+    "widget.title": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan na dziś"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's plan"
+          }
+        }
+      }
+    },
+    "widget.planned %lld": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld zaplanowanych zestawów"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld planned outfits"
+          }
+        }
+      }
+    },
+    "widget.openToRefresh": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz aplikację, aby odświeżyć liczbę."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the app to refresh the count."
+          }
+        }
+      }
+    },
+    "widget.confirm": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm wear"
+          }
+        }
+      }
+    },
+    "widget.description": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prywatna liczba zestawów z dzisiejszego planu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A private count of today’s planned outfits."
+          }
+        }
+      }
+    },
+    "widget.intentTitle": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm wear"
+          }
+        }
+      }
+    },
+    "widget.intentDescription": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz aplikację, aby potwierdzić noszenie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the app to confirm wearing an outfit."
+          }
+        }
+      }
+    },
+    "widget.shortcutTitle": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm wear"
+          }
+        }
+      }
+    },
+    "widget.settingsTitle": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widżet i skrót"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widget and shortcut"
+          }
+        }
+      }
+    },
+    "widget.privacy": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Po włączeniu widżet udostępnia wyłącznie liczbę zestawów zaplanowanych na dziś. Nie udostępnia nazw zestawów, zdjęć, cen ani tokenów konta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When enabled, the widget shares only a count of outfits planned for today. It does not share outfit names, photos, prices, or account tokens."
+          }
+        }
+      }
+    },
+    "widget.enable": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Włącz widżet na dziś"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable today’s widget"
+          }
+        }
+      }
+    },
+    "widget.unavailable": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Współdzielony magazyn widżetu jest niedostępny w tej wersji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared widget storage is unavailable in this build."
+          }
+        }
+      }
+    },
+    "widget.refreshExplanation": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikacja odświeża liczbę po pobraniu dzisiejszego planu. Migawka wygasa po maksymalnie 15 minutach lub o północy. iOS decyduje, kiedy ponownie narysować widżet, więc zmiany mogą nie pojawić się natychmiast."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app refreshes the count after reading today’s plan. The snapshot expires within 15 minutes or at midnight. iOS controls when the widget redraws, so changes may not appear immediately."
+          }
+        }
+      }
+    },
+    "widget.confirmExplanation": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrót otwiera ekran potwierdzenia w aplikacji. Sam skrót nie zapisuje noszenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The shortcut opens the confirmation screen in the app. It does not record wear by itself."
+          }
+        }
+      }
+    },
+    "widget.refresh": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odśwież teraz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh now"
+          }
+        }
+      }
+    },
+    "widget.storage": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać ustawienia widżetu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save the widget setting."
+          }
+        }
+      }
+    },
+    "widget.clearFailed": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się usunąć danych widżetu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not clear widget data."
+          }
+        }
+      }
+    },
+    "widget.failed": {
+      "comment": "T046: WidgetKit and wear confirmation UI; private aggregate only.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odświeżyć liczby w widżecie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not refresh the widget count."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
