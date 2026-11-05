@@ -572,9 +572,12 @@ extension APIClient {
     func uploadGarmentPhotos(garmentID: UUID, imageID: UUID, photos: GarmentPhotos) async throws {
         try await uploadPhoto(parentID: garmentID, imageID: imageID, data: photos.uploadData, purchase: false, hasCleaned: photos.cleaned != nil)
     }
-    private func uploadPhoto(parentID: UUID, imageID: UUID, data: Data, purchase: Bool, hasCleaned: Bool = false) async throws {
-        guard !data.isEmpty, data.count <= (hasCleaned ? 24 * 1_048_576 + 4 : 12 * 1_048_576), !purchase || !hasCleaned else { throw APIClientError.invalidRequest }
-        let prefix = purchase ? "/v1/purchase-images/uploads" : "/v1/images/uploads"
+    func uploadRecognitionPhoto(draftID: UUID, imageID: UUID, data: Data) async throws {
+        try await uploadPhoto(parentID: draftID, imageID: imageID, data: data, purchase: false, recognition: true)
+    }
+    private func uploadPhoto(parentID: UUID, imageID: UUID, data: Data, purchase: Bool, hasCleaned: Bool = false, recognition: Bool = false) async throws {
+        guard !data.isEmpty, data.count <= (hasCleaned ? 24 * 1_048_576 + 4 : 12 * 1_048_576), !(purchase && recognition), !(purchase || recognition) || !hasCleaned else { throw APIClientError.invalidRequest }
+        let prefix = recognition ? "/v1/recognition-images/uploads" : purchase ? "/v1/purchase-images/uploads" : "/v1/images/uploads"
         let token = try await accessToken()
         guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
         let origin = URL(string: "https://\(baseURL.host!)\(baseURL.port.map { ":\($0)" } ?? "")")!
@@ -595,7 +598,7 @@ extension APIClient {
             guard response.statusCode == 200 else { throw APIClientError.http(status: response.statusCode, requestID: nil) }
             try Task.checkCancellation(); return result
         }
-        var payload: [String: Any] = [purchase ? "candidate_id" : "garment_id": parentID.uuidString.lowercased(), "operation_id": imageID.uuidString.lowercased()]
+        var payload: [String: Any] = [recognition ? "draft_id" : purchase ? "candidate_id" : "garment_id": parentID.uuidString.lowercased(), "operation_id": imageID.uuidString.lowercased()]
         if hasCleaned { payload["has_cleaned"] = true }
         let body = try JSONSerialization.data(withJSONObject: payload)
         let prepared = try await send(origin.appendingPathComponent(prefix), method: "POST", body: body, type: "application/json")

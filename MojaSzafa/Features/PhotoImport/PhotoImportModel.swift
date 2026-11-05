@@ -116,7 +116,7 @@ final class PhotoImportModel: ObservableObject {
 
     /// Atomic replacement leaves the previous selection intact if storage fails.
     func acceptEdit(_ data: Data, for id: UUID) -> Bool {
-        guard !running, !hasPendingImport(id), let index = drafts.firstIndex(where: { $0.id == id }),
+        guard !running, !hasPendingImport(id), !hasPendingRecognition(id), let index = drafts.firstIndex(where: { $0.id == id }),
               let original = drafts[index].file else { return false }
         let destination = original.deletingPathExtension().appendingPathExtension("png")
         do {
@@ -164,7 +164,7 @@ final class PhotoImportModel: ObservableObject {
 
     func commitGarmentValue(_ value: GarmentFormValue, for id: UUID,
                             repository: any WardrobeRepository) async throws {
-        guard !running, let draft = drafts.first(where: { $0.id == id }), let file = draft.file else {
+        guard !running, !hasPendingRecognition(id), let draft = drafts.first(where: { $0.id == id }), let file = draft.file else {
             throw PhotoImportError.invalidImage
         }
         var fields = APIv1.GarmentFields(name: value.name, category: value.category,
@@ -210,7 +210,7 @@ final class PhotoImportModel: ObservableObject {
     }
 
     func remove(_ id: UUID) {
-        guard !running, !hasPendingImport(id), let draft = drafts.first(where: { $0.id == id }) else { return }
+        guard !running, !hasPendingImport(id), !hasPendingRecognition(id), let draft = drafts.first(where: { $0.id == id }) else { return }
         do {
             let metadata = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
             if FileManager.default.fileExists(atPath: metadata.path) { try FileManager.default.removeItem(at: metadata) }
@@ -432,5 +432,203 @@ extension PhotoImportModel {
             }
         } catch { review.incomplete = true }
         return review
+    }
+}
+
+/// Retains the complete result object until the existing closed recognition
+/// validator checks it; unknown metadata fields must not disappear in decoding.
+indirect enum RecognitionJSON: Codable, Sendable {
+    case object([String: RecognitionJSON]), array([RecognitionJSON]), string(String), number(Double), bool(Bool), null
+    init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer()
+        if value.decodeNil() { self = .null }
+        else if let v = try? value.decode(Bool.self) { self = .bool(v) }
+        else if let v = try? value.decode(String.self) { self = .string(v) }
+        else if let v = try? value.decode(Double.self) { self = .number(v) }
+        else if let v = try? value.decode([String: Self].self) { self = .object(v) }
+        else { self = .array(try value.decode([Self].self)) }
+    }
+    func encode(to encoder: Encoder) throws {
+        var value = encoder.singleValueContainer()
+        switch self {
+        case .object(let v): try value.encode(v)
+        case .array(let v): try value.encode(v)
+        case .string(let v): try value.encode(v)
+        case .number(let v): try value.encode(v)
+        case .bool(let v): try value.encode(v)
+        case .null: try value.encodeNil()
+        }
+    }
+}
+
+struct PhotoRecognitionStatus: Decodable, Sendable {
+    let job_id: UUID
+    let draft_id: UUID
+    let image_id: UUID
+    let status: String
+    let error_code: String?
+    let result: RecognitionJSON?
+}
+protocol PhotoRecognitionService: Sendable {
+    func uploadRecognitionPhoto(draftID: UUID, imageID: UUID, data: Data) async throws
+    func enqueueRecognition(draftID: UUID, imageID: UUID, operationID: UUID) async throws -> PhotoRecognitionStatus
+    func recognitionResult(draftID: UUID, imageID: UUID, jobID: UUID) async throws -> PhotoRecognitionStatus
+    func discardRecognition(draftID: UUID) async throws
+}
+
+extension APIClient: PhotoRecognitionService {
+    func enqueueRecognition(draftID: UUID, imageID: UUID, operationID: UUID) async throws -> PhotoRecognitionStatus {
+        let response: APIv1.Success<PhotoRecognitionStatus> = try await call("api_v1_recognition", [
+            "action": "enqueue", "draft_id": draftID.uuidString, "image_id": imageID.uuidString, "operation_id": operationID.uuidString])
+        return try checkedRecognition(response.data, draftID: draftID, imageID: imageID)
+    }
+    func recognitionResult(draftID: UUID, imageID: UUID, jobID: UUID) async throws -> PhotoRecognitionStatus {
+        let response: APIv1.Success<PhotoRecognitionStatus> = try await call("api_v1_recognition", [
+            "action": "result", "draft_id": draftID.uuidString, "image_id": imageID.uuidString, "job_id": jobID.uuidString])
+        guard response.data.job_id == jobID else { throw APIClientError.invalidResponse }
+        return try checkedRecognition(response.data, draftID: draftID, imageID: imageID)
+    }
+    func discardRecognition(draftID: UUID) async throws {
+        struct Receipt: Decodable { let discarded: Bool }
+        do {
+            let response: APIv1.Success<Receipt> = try await call("api_v1_recognition", ["action": "discard", "draft_id": draftID.uuidString])
+            guard response.data.discarded else { throw APIClientError.invalidResponse }
+        } catch let error as APIv1.Failure where error.code == "not_found" {
+            // An upload can fail before creating its private remote draft.
+            // Canonical absence completes cleanup; authentication and transport
+            // failures must retain the durable cleanup request for a retry.
+        }
+    }
+    private func checkedRecognition(_ value: PhotoRecognitionStatus, draftID: UUID, imageID: UUID) throws -> PhotoRecognitionStatus {
+        guard value.draft_id == draftID, value.image_id == imageID,
+              ["queued", "running", "succeeded", "cancelled", "dead_letter"].contains(value.status) else { throw APIClientError.invalidResponse }
+        if value.status == "succeeded", let result = value.result {
+            _ = try GarmentRecognition.decodeDraft(JSONEncoder().encode(result))
+        }
+        return value
+    }
+}
+
+private struct PhotoRecognitionIntent: Codable {
+    let localID: UUID
+    let draftID: UUID
+    var imageID: UUID
+    let operationID: UUID
+    let digest: String
+    var jobID: UUID?
+}
+
+extension PhotoImportModel {
+    private func analysisURL(_ id: UUID, _ suffix: String) -> URL {
+        directory.appendingPathComponent(id.uuidString).appendingPathExtension(suffix)
+    }
+    func hasPendingRecognition(_ id: UUID) -> Bool {
+        FileManager.default.fileExists(atPath: analysisURL(id, "analysis-intent").path)
+    }
+    private func readAnalysis(_ id: UUID) throws -> PhotoRecognitionIntent? {
+        let url = analysisURL(id, "analysis-intent")
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        let data = try PhotoProcessor.read(url)
+        guard data.count <= 4096 else { throw PhotoImportError.invalidImage }
+        let intent = try JSONDecoder().decode(PhotoRecognitionIntent.self, from: data)
+        guard intent.localID == id else { throw PhotoImportError.invalidImage }
+        return intent
+    }
+    private func writeAnalysis(_ intent: PhotoRecognitionIntent) throws {
+        try JSONEncoder().encode(intent).write(to: analysisURL(intent.localID, "analysis-intent"), options: [.atomic, .completeFileProtection])
+    }
+    /// Release local editing immediately, but keep a durable private remote-cleanup
+    /// request. A delayed result for the old remote draft will never be applied.
+    private func finishAnalysis(_ intent: PhotoRecognitionIntent) throws {
+        try JSONEncoder().encode(intent.draftID).write(to: analysisURL(intent.draftID, "analysis-cleanup"), options: [.atomic, .completeFileProtection])
+        for suffix in ["analysis-intent", "analysis-upload"] {
+            let url = analysisURL(intent.localID, suffix)
+            if FileManager.default.fileExists(atPath: url.path) { try FileManager.default.removeItem(at: url) }
+        }
+    }
+    func continueManually(_ id: UUID) {
+        guard !running else { return }
+        do {
+            if let intent = try readAnalysis(id) { try finishAnalysis(intent) }
+            if let index = drafts.firstIndex(where: { $0.id == id }) { drafts[index].status = "import.ready" }
+            message = nil
+        } catch { message = "import.storageFailed" }
+    }
+    func cleanRecognitionDrafts(using service: any PhotoRecognitionService) async {
+        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else { return }
+        for file in files where file.pathExtension == "analysis-cleanup" {
+            do {
+                let id = try JSONDecoder().decode(UUID.self, from: PhotoProcessor.read(file))
+                guard file.deletingPathExtension().lastPathComponent == id.uuidString else { continue }
+                try await service.discardRecognition(draftID: id)
+                try FileManager.default.removeItem(at: file)
+            } catch { /* Retry on next visit; the server also expires private drafts. */ }
+        }
+    }
+    func startRecognition(_ id: UUID, using service: any PhotoRecognitionService, maxPolls: Int = 10, pollDelay: Duration = .seconds(2)) {
+        guard !running, !hasPendingImport(id), let draft = drafts.first(where: { $0.id == id }), let source = draft.displayFile else { return }
+        running = true
+        task = Task { [weak self] in
+            guard let self else { return }
+            defer { running = false; task = nil }
+            do {
+                var intent: PhotoRecognitionIntent
+                if let existing = try readAnalysis(id) { intent = existing }
+                else {
+                    let bytes = try PhotoProcessor.read(source)
+                    let digest = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+                    intent = PhotoRecognitionIntent(localID: id, draftID: UUID(), imageID: UUID(), operationID: UUID(), digest: digest)
+                    try bytes.write(to: analysisURL(id, "analysis-upload"), options: [.atomic, .completeFileProtection])
+                    try writeAnalysis(intent)
+                }
+                let bytes = try PhotoProcessor.read(analysisURL(id, "analysis-upload"))
+                guard SHA256.hash(data: bytes).map({ String(format: "%02x", $0) }).joined() == intent.digest else { throw PhotoImportError.invalidImage }
+                if let index = drafts.firstIndex(where: { $0.id == id }) { drafts[index].status = "recognition.pending" }
+                if intent.jobID == nil {
+                    do {
+                        try await service.uploadRecognitionPhoto(draftID: intent.draftID, imageID: intent.imageID, data: bytes)
+                    } catch PhotoUploadError.expired {
+                        intent.imageID = UUID()
+                        try writeAnalysis(intent)
+                        try await service.uploadRecognitionPhoto(draftID: intent.draftID, imageID: intent.imageID, data: bytes)
+                    }
+                    try Task.checkCancellation()
+                    let receipt = try await service.enqueueRecognition(draftID: intent.draftID, imageID: intent.imageID, operationID: intent.operationID)
+                    guard receipt.draft_id == intent.draftID, receipt.image_id == intent.imageID else { throw APIClientError.invalidResponse }
+                    intent.jobID = receipt.job_id
+                    try writeAnalysis(intent)
+                }
+                for attempt in 0..<max(1, min(maxPolls, 30)) {
+                    try Task.checkCancellation()
+                    guard let job = intent.jobID else { throw APIClientError.invalidResponse }
+                    let status = try await service.recognitionResult(draftID: intent.draftID, imageID: intent.imageID, jobID: job)
+                    try Task.checkCancellation()
+                    guard status.job_id == job, status.draft_id == intent.draftID, status.image_id == intent.imageID else { throw APIClientError.invalidResponse }
+                    if status.status == "succeeded" {
+                        guard let result = status.result else { throw APIClientError.invalidResponse }
+                        let data = try JSONEncoder().encode(result)
+                        _ = try GarmentRecognition.decodeDraft(data)
+                        // Both edits and manual confirmation are locked while this
+                        // durable request owns the current local draft revision.
+                        try data.write(to: analysisURL(id, "recognition"), options: [.atomic, .completeFileProtection])
+                        try finishAnalysis(intent)
+                        if let index = drafts.firstIndex(where: { $0.id == id }) { drafts[index].status = "recognition.ready" }
+                        message = nil
+                        await cleanRecognitionDrafts(using: service)
+                        return
+                    }
+                    if ["cancelled", "dead_letter"].contains(status.status) {
+                        try finishAnalysis(intent)
+                        message = "recognition.failed"
+                        return
+                    }
+                    guard ["queued", "running"].contains(status.status) else { throw APIClientError.invalidResponse }
+                    if attempt + 1 < maxPolls { try await Task.sleep(for: pollDelay) }
+                }
+                message = "recognition.pending"
+            } catch {
+                message = Task.isCancelled ? "recognition.pending" : "recognition.failed"
+            }
+        }
     }
 }
