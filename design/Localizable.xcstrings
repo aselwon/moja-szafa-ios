@@ -5037,13 +5037,13 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zapisz dane w szkicu na tym urządzeniu. Szkic nie jest jeszcze ubraniem w szafie."
+            "value": "Sprawdź dane przed dodaniem ubrania i zdjęcia do swojej szafy."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save details in a draft on this device. The draft is not yet a wardrobe item."
+            "value": "Review the details before adding the garment and photo to your wardrobe."
           }
         }
       },
@@ -12053,6 +12053,40 @@
           }
         }
       }
+    },
+    "import.pendingSave": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapis oczekuje. Ponów, aby dokończyć dodawanie; dane i zdjęcie są zachowane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This save is pending. Retry to finish adding this item; its details and photo are preserved."
+          }
+        }
+      },
+      "comment": "Import form: immutable pending save after a network failure; retry preserves garment identity."
+    },
+    "import.saveFailed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się dokończyć zapisu. Rzecz została zachowana tutaj; ponów po połączeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not finish saving. Your item is kept here; retry when connected."
+          }
+        }
+      },
+      "comment": "Import form: saving failed, retained local draft can be retried."
     }
   },
   "version": "1.0"

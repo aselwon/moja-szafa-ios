@@ -135,15 +135,37 @@ enum APIv1 {
     }
     enum Availability: String, Codable, Sendable, CaseIterable { case available, laundry, unavailable }
 
+    struct GarmentMetadata: Codable, Sendable, Equatable {
+        let colors: [String]
+        let seasons: [String]
+        let pattern: String?
+        let formality: Int?
+        let brand: String?
+        let purchasedOn: String?
+        enum CodingKeys: String, CodingKey {
+            case colors, seasons, pattern, formality, brand
+            case purchasedOn = "purchased_on"
+        }
+        func encode(to encoder: any Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encode(colors, forKey: .colors)
+            try c.encode(seasons, forKey: .seasons)
+            try c.encode(pattern, forKey: .pattern)
+            try c.encode(formality, forKey: .formality)
+            try c.encode(brand, forKey: .brand)
+            try c.encode(purchasedOn, forKey: .purchasedOn)
+        }
+    }
     struct GarmentFields: Codable, Sendable, Equatable {
         let name: String
         let category: Category
         let priceGrosz: Int64?
         let availability: Availability
         var archived: Bool? = nil
+        var metadata: GarmentMetadata? = nil
 
         enum CodingKeys: String, CodingKey {
-            case name, category, availability, archived
+            case name, category, availability, archived, metadata
             case priceGrosz = "price_grosz"
         }
         func validate() throws {
@@ -158,6 +180,7 @@ enum APIv1 {
             try c.encode(priceGrosz, forKey: .priceGrosz)
             try c.encode(availability, forKey: .availability)
             try c.encodeIfPresent(archived, forKey: .archived)
+            try c.encodeIfPresent(metadata, forKey: .metadata)
         }
     }
     struct GarmentDTO: Decodable, Sendable, Equatable {
@@ -533,7 +556,16 @@ extension APIClient {
         try await wardrobeImage(imageID: imageID, original: false, purchase: true)
     }
     func uploadCandidatePhoto(candidateID: UUID, imageID: UUID, data: Data) async throws {
+        try await uploadPhoto(parentID: candidateID, imageID: imageID, data: data, purchase: true)
+    }
+
+    func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws {
+        try await uploadPhoto(parentID: garmentID, imageID: imageID, data: data, purchase: false)
+    }
+
+    private func uploadPhoto(parentID: UUID, imageID: UUID, data: Data, purchase: Bool) async throws {
         guard !data.isEmpty, data.count <= 12 * 1_048_576 else { throw APIClientError.invalidRequest }
+        let prefix = purchase ? "/v1/purchase-images/uploads" : "/v1/images/uploads"
         let token = try await accessToken()
         guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
         let origin = URL(string: "https://\(baseURL.host!)\(baseURL.port.map { ":\($0)" } ?? "")")!
@@ -548,13 +580,17 @@ extension APIClient {
             guard response.statusCode == 200 else { throw APIClientError.http(status: response.statusCode, requestID: nil) }
             try Task.checkCancellation(); return result
         }
-        let body = try JSONEncoder().encode(["candidate_id":candidateID.uuidString.lowercased(), "operation_id":imageID.uuidString.lowercased()])
-        let prepared = try await send(origin.appendingPathComponent("/v1/purchase-images/uploads"), method: "POST", body: body, type: "application/json")
+        let body = try JSONEncoder().encode([purchase ? "candidate_id" : "garment_id":parentID.uuidString.lowercased(), "operation_id":imageID.uuidString.lowercased()])
+        let prepared = try await send(origin.appendingPathComponent(prefix), method: "POST", body: body, type: "application/json")
         struct Upload: Decodable { let image_id: UUID; let upload_url: String }
         let upload = try JSONDecoder().decode(Upload.self, from: prepared)
         guard upload.image_id == imageID, let components = URLComponents(string: upload.upload_url), components.scheme == nil, components.host == nil,
-              components.path == "/v1/purchase-images/uploads/\(imageID.uuidString.lowercased())", components.fragment == nil,
+              components.path == "\(prefix)/\(imageID.uuidString.lowercased())", components.fragment == nil,
               let url = URL(string: upload.upload_url, relativeTo: origin)?.absoluteURL else { throw APIClientError.invalidResponse }
-        _ = try await send(url, method: "PUT", body: data, type: "image/jpeg")
+        let completed = try await send(url, method: "PUT", body: data, type: "application/octet-stream")
+        struct Acknowledgement: Decodable { let image_id: UUID }
+        guard try JSONDecoder().decode(Acknowledgement.self, from: completed).image_id == imageID else {
+            throw APIClientError.invalidResponse
+        }
     }
 }
