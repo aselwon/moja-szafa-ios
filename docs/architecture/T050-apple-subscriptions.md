@@ -94,7 +94,18 @@ PostgreSQL 15.19. Focused lifecycle, deduplication, owner/environment isolation,
 export, billing-retry and refund-reversal cases passed, as did one actual
 least-privilege `GatewayStore` PostgreSQL integration test. The Node verifier
 suite uses synthetic transactions and an ephemeral test certificate chain;
-the runtime verifier pins Apple's root CA and rejects that test chain. Native
-purchase wiring, live Apple merchant validation and App Store
-notification delivery remain pending. No production product IDs, prices,
-merchant records or live transactions have been validated.
+the runtime verifier pins Apple's root CA and rejects that test chain.
+
+The native client is now wired to the catalog and transaction receiver. Before
+purchase or restore it verifies that the server catalog is available and exactly
+matches the app build's bundle identifier, environment, and configured monthly
+and yearly product identifiers. Receipt delivery uses the authenticated account;
+the client accepts only an exact transaction-ID acknowledgement before it
+finishes the StoreKit transaction. The focused native API, service, and
+authentication tests passed 37/37.
+
+End-to-end verification with live Apple services, merchant account setup,
+production product configuration, and real App Store Server Notifications remain
+pending. The native purchase flow stays unavailable while required product or
+gateway configuration is absent. No live merchant transactions have been
+validated.
