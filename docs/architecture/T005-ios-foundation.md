@@ -6,12 +6,15 @@ The repository contains a native SwiftUI iPhone application, an XCTest target,
 and the shared `MojaSzafa` scheme. No package manager, generator, downloaded
 fonts or third-party dependencies are required. Open `MojaSzafa.xcodeproj`.
 
-The locally verified toolchain is **Xcode 27.2 (build 27B52)**. CI uses the
-runner-managed Xcode on GitHub's `macos-latest`; that toolchain is not pinned by
-this repository. The source uses Swift 6 language mode, structured concurrency
-and a deployment target of **iOS 17.0**. This is a provisional engineering
-baseline, not an owner-approved support policy: product decision D08 still
-needs confirmation of supported devices, OS versions and test hardware.
+The locally verified toolchain is **Xcode 27.2 (build 27B52)**. The checked-in
+workflow runs validation on `ubuntu-latest` and its iOS matrix on self-hosted
+macOS runners labeled `self-hosted`, `macOS`, and `ios`. It reports
+`xcodebuild -version` but does not select or pin an Xcode version; the installed
+version depends on the self-hosted runners. The source uses Swift 6 language
+mode, structured concurrency and a deployment target of **iOS 17.0**. This is a
+provisional engineering baseline, not an owner-approved support policy: product
+decision D08 still needs confirmation of supported devices, OS versions and test
+hardware.
 This does not assert that a given Xcode meets future App Store submission rules;
 that verification belongs to T064.
 
@@ -37,9 +40,9 @@ Use a fresh result-bundle path for each test run. Simulator builds require no
 Apple account. Device builds require a real team and registered bundle ID;
 `pl.mojaszafa.app` is a local project identifier, not a claimed registration.
 Signing policy, environment separation and CI are documented in
-[T006](../operations/T006-environments-ci.md). CI uses the runner's default Xcode
-on `macos-latest` and runs all three configurations; it fails if the toolchain is
-unavailable. PR #98 at head `b51e5c0bb4ea97c5fc05b58bab03fec4885624e3` passed
+[T006](../operations/T006-environments-ci.md). CI uses the installed Xcode on
+the self-hosted macOS runners and runs all three configurations; it fails if the
+toolchain is unavailable. PR #98 at head `b51e5c0bb4ea97c5fc05b58bab03fec4885624e3` passed
 all five required checks and was merged into `main` at
 `880fb50ac9e0c5fb429043ed55af37dbeaaf059e`. This is CI evidence for that
 revision, not proof of physical-device, accessibility or production-service
