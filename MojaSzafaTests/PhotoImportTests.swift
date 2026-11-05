@@ -6,6 +6,53 @@ import UIKit
 
 @MainActor
 final class PhotoImportTests: XCTestCase {
+    func testImportRetryAfterRestartKeepsTwoIdenticalWardrobeItemsAndTheirPhotos() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let drafts = root.appendingPathComponent("drafts")
+        let accountID = UUID()
+        let remote = ImportedGarmentRemote(accountID: accountID)
+        let database = OfflineDatabase(url: root.appendingPathComponent("wardrobe.sqlite"))
+        let store = try OfflineStore(accountID: accountID, database: database, remote: remote)
+        let model = PhotoImportModel(directory: drafts)
+        let photo = try fixture()
+        model.start([{ photo }, { photo }])
+        await finish(model)
+        let ids = model.drafts.map(\.id)
+        XCTAssertEqual(ids.count, 2)
+        let value = GarmentFormValue(name: "Same shirt", category: .top, colors: ["blue"], pattern: "plain",
+            seasons: ["summer"], formality: 2, brand: "Example", priceGrosz: 4500, purchasedOn: "2026-01-01")
+        do {
+            try await model.commitGarmentValue(value, for: ids[0], repository: store)
+            XCTFail("First upload commits then times out")
+        } catch { XCTAssertEqual((error as? URLError)?.code, .timedOut) }
+        XCTAssertTrue(model.hasPendingImport(ids[0]))
+        model.remove(ids[0])
+        XCTAssertEqual(model.drafts.count, 2, "An uncertain save must retain its retry intent")
+        let reopened = PhotoImportModel(directory: drafts)
+        let reopenedStore = try OfflineStore(accountID: accountID, database: database, remote: remote)
+        try await reopened.commitGarmentValue(value, for: ids[0], repository: reopenedStore)
+        try await reopened.commitGarmentValue(value, for: ids[1], repository: reopenedStore)
+        XCTAssertTrue(reopened.drafts.isEmpty)
+        let page = try await reopenedStore.page(query: WardrobeQuery(), offset: 0, limit: 40)
+        XCTAssertEqual(Set(page.items.map(\.id)), Set(ids))
+        XCTAssertEqual(Set(page.items.compactMap(\.imageID)).count, 2)
+        for garment in page.items {
+            XCTAssertEqual(garment.brand, "Example")
+            XCTAssertEqual(garment.colors, ["blue"])
+            XCTAssertEqual(garment.priceGrosz, 4500)
+            let bytes = try await reopenedStore.thumbnail(imageID: XCTUnwrap(garment.imageID))
+            XCTAssertFalse(bytes.isEmpty)
+        }
+        let counts = await remote.counts()
+        XCTAssertEqual(counts.operations, 2)
+        XCTAssertEqual(counts.images, 2)
+        let secondDevice = try OfflineStore(accountID: accountID,
+            database: OfflineDatabase(url: root.appendingPathComponent("second.sqlite")), remote: remote)
+        let secondPage = try await secondDevice.page(query: WardrobeQuery(), offset: 0, limit: 40)
+        XCTAssertEqual(Set(secondPage.items.map(\.id)), Set(ids))
+    }
+
     private func fixture(type: UTType = .jpeg, orientation: Int = 1) throws -> Data {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -23,6 +70,16 @@ final class PhotoImportTests: XCTestCase {
         ] as CFDictionary)
         XCTAssertTrue(CGImageDestinationFinalize(destination))
         return data as Data
+    }
+
+    func testCompletedDraftDoesNotReappearAfterInterruptedCleanup() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let id = UUID().uuidString
+        try fixture().write(to: directory.appendingPathComponent(id + ".jpg"))
+        try Data().write(to: directory.appendingPathComponent(id + ".completed"))
+        XCTAssertTrue(PhotoImportModel(directory: directory).drafts.isEmpty)
     }
 
     func testJPEGAllOrientationsResizeAndRemoveGPS() async throws {
@@ -315,4 +372,39 @@ private struct DuplicateRepository: WardrobeRepository {
         query.page(items, offset: offset, limit: 1, cached: false)
     }
     func thumbnail(imageID: UUID) async throws -> Data { data }
+}
+
+private actor ImportedGarmentRemote: OfflineRemote {
+    let accountID: UUID
+    var operations: [UUID: APIv1.SaveGarment] = [:]
+    var images: [UUID: Data] = [:]
+    var failFirstUpload = true
+    init(accountID: UUID) { self.accountID = accountID }
+    func counts() -> (operations: Int, images: Int) { (operations.count, images.count) }
+    func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO {
+        if let old = operations[operation.operationID] {
+            XCTAssertEqual(old.garmentID, operation.garmentID)
+            XCTAssertEqual(old.garment, operation.garment)
+        }
+        operations[operation.operationID] = operation
+        return .init(id: operation.garmentID, version: 1, name: operation.garment.name,
+            category: operation.garment.category, priceGrosz: operation.garment.priceGrosz, availability: .available)
+    }
+    func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws {
+        XCTAssertEqual(operations[imageID]?.garmentID, garmentID)
+        if let old = images[imageID] { XCTAssertEqual(old, data) }
+        images[imageID] = data
+        if failFirstUpload { failFirstUpload = false; throw URLError(.timedOut) }
+    }
+    func snapshot() async throws -> SyncSnapshot {
+        SyncSnapshot(accountID: accountID, garments: operations.values.map { operation in
+            let fields = operation.garment
+            return SyncGarment(id: operation.garmentID, version: 1, deleted: false, fields: fields,
+                metadata: Garment(id: operation.garmentID, name: fields.name, category: fields.category,
+                    priceGrosz: fields.priceGrosz, imageID: images[operation.operationID] == nil ? nil : operation.operationID,
+                    brand: fields.metadata?.brand, colors: fields.metadata?.colors ?? [], seasons: fields.metadata?.seasons ?? []))
+        }, wears: [])
+    }
+    func image(id: UUID, original: Bool) async throws -> Data { try XCTUnwrap(images[id]) }
+    func save(_ operation: SaveWear) async throws -> SyncWear { throw RepositoryError.backendNotConfigured }
 }

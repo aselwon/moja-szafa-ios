@@ -71,6 +71,7 @@ for database in "$fresh" "$upgrade"; do
     bash "$root/migrate.sh" "$database"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -v expected_migration_count="$expected_migration_count" -f "$root/tests/schema.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/api.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/import-metadata.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/wardrobe.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/garment-deletion.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/outfits.sql"

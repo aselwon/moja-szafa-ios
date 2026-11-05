@@ -15,12 +15,12 @@ local crop does not hide an identical source photo.
 
 The form displays up to five matching photos and available names. The save
 button explicitly offers to save a separate item when matches are present.
-Nothing is merged, deleted or rejected by this check. Existing local draft
-persistence is unchanged; this task does not introduce a new upload/save API.
-Missing backend configuration, cached pages, unreadable photos and failed
-requests mark the review incomplete without blocking manual saving. Reopening
-the form reruns the check. Large wardrobes require sequential thumbnail reads;
-review is cancellable when the form closes and saving remains available.
+Nothing is merged, deleted or rejected by this check. The import form now
+commits completed items through the wardrobe metadata and photo upload path;
+see [T025 import/save verification](T025-import-save.md). Missing backend
+configuration, cached pages, unreadable photos and failed requests mark the
+review incomplete. Reopening the form reruns the check. Large wardrobes require
+sequential thumbnail reads; review is cancellable when the form closes.
 
 ## Automated verification
 
@@ -42,7 +42,8 @@ review is cancellable when the form closes and saving remains available.
    the active/archived wardrobe. Confirm useful warnings and inspect any false
    positives; no action should merge items automatically.
 3. Disconnect the network with uncached wardrobe images. Confirm the incomplete
-   review message and successful local save. Reopen online to retry.
+   review message and that the pending import remains available for retry; do
+   not expect a new wardrobe item until metadata and photo upload are confirmed.
 4. Review PL/EN, VoiceOver, large Dynamic Type and dark mode. The warning,
    previews, cancel and save controls must remain accessible.
 

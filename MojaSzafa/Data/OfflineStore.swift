@@ -143,6 +143,7 @@ struct DeleteGarment: Codable, Sendable {
 }
 
 protocol OfflineRemote: Sendable {
+    func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws
     func visibility(_ operation: WearVisibility) async throws -> SyncWear
     func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment
     func delete(_ operation: DeleteGarment) async throws
@@ -153,6 +154,7 @@ protocol OfflineRemote: Sendable {
 }
 
 extension OfflineRemote {
+    func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws { throw RepositoryError.backendNotConfigured }
     func visibility(_ operation: WearVisibility) async throws -> SyncWear { throw RepositoryError.backendNotConfigured }
     func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment { throw RepositoryError.backendNotConfigured }
     func delete(_ operation: DeleteGarment) async throws { throw RepositoryError.backendNotConfigured }
@@ -395,6 +397,27 @@ actor OfflineStore: WardrobeRepository {
         var next = state
         next.outbox.removeAll { $0.id == pending.id }
         try commit(next)
+        try merge(snapshot)
+    }
+
+    /// The import draft retains the immutable operation and image until both server
+    /// writes acknowledge it. Retrying after a timeout replays the exact same IDs.
+    func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws {
+        try requireActive()
+        try operation.validate()
+        guard operation.baseVersion == nil, !image.isEmpty, image.count <= PhotoProcessor.maxBytes else {
+            throw APIClientError.invalidRequest
+        }
+        let dto = try await remote.save(operation)
+        try requireActive()
+        guard dto.id == operation.garmentID else { throw APIClientError.invalidResponse }
+        try await remote.uploadGarmentPhoto(garmentID: operation.garmentID,
+                                           imageID: operation.operationID, data: image)
+        try requireActive()
+        let snapshot = try await remote.snapshot()
+        guard snapshot.garments.contains(where: {
+            $0.id == operation.garmentID && !$0.deleted && $0.metadata?.imageID == operation.operationID
+        }) else { throw APIClientError.invalidResponse }
         try merge(snapshot)
     }
 
