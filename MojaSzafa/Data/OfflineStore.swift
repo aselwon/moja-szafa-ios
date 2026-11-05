@@ -232,6 +232,7 @@ actor OfflineStore: WardrobeRepository {
         var wears: [SyncWear] = []
         var outbox: [Pending] = []
         var lastRemovedWearID: UUID? = nil
+        var importedGarments: [UUID: UUID]? = nil
     }
     private let database: OfflineDatabase
     private let remote: any OfflineRemote
@@ -359,6 +360,7 @@ actor OfflineStore: WardrobeRepository {
         next.garments.append(SyncGarment(id: id, version: item.version, deleted: true,
             fields: APIv1.GarmentFields(name: "Deleted", category: .other, priceGrosz: nil, availability: .unavailable)))
         next.outbox.removeAll { $0.garment?.garmentID == id || $0.initialHistory?.id == id }
+        next.importedGarments = next.importedGarments?.filter { $0.value != id }
         let operation = DeleteGarment(operationID: UUID(), garmentID: id)
         next.outbox.insert(Pending(id: operation.operationID, garment: nil, wear: nil, deletion: operation), at: 0)
         scrubDeletedMembership(&next)
@@ -447,7 +449,7 @@ actor OfflineStore: WardrobeRepository {
             throw APIClientError.invalidRequest
         }
         if let existing = state.garments.first(where: { $0.id == operation.garmentID }) {
-            guard !existing.deleted, existing.metadata?.imageID == operation.operationID else { throw OfflineError.conflict }
+            guard !existing.deleted, existing.metadata?.imageID == operation.operationID || state.importedGarments?[operation.operationID] == operation.garmentID else { throw OfflineError.conflict }
             return // Local commit succeeded before the import screen's cleanup/restart.
         }
         guard !state.outbox.contains(where: { $0.id == operation.operationID }) else { throw OfflineError.conflict }
@@ -464,6 +466,8 @@ actor OfflineStore: WardrobeRepository {
             metadata: Garment(id: operation.garmentID, name: fields.name, category: fields.category,
                 availability: fields.availability, priceGrosz: fields.priceGrosz, imageID: operation.operationID, hasCleanedImage: photos.cleaned != nil,
                 brand: fields.metadata?.brand, colors: fields.metadata?.colors ?? [], seasons: fields.metadata?.seasons ?? [])))
+        if next.importedGarments == nil { next.importedGarments = [:] }
+        next.importedGarments?[operation.operationID] = operation.garmentID
         next.outbox.append(Pending(id: operation.operationID, garment: operation, wear: nil, photoID: operation.operationID))
         do { try commit(next) }
         catch { try? FileManager.default.removeItem(at: file); throw error }
@@ -666,6 +670,25 @@ actor OfflineStore: WardrobeRepository {
         try commit(next)
     }
 
+    private func replaceExpiredPhoto(pendingID: UUID, garmentID: UUID, oldID: UUID, photos: GarmentPhotos) throws -> UUID {
+        try requireActive()
+        guard let pendingIndex = state.outbox.firstIndex(where: { $0.id == pendingID && $0.photoID == oldID }),
+              let garmentIndex = state.garments.firstIndex(where: { $0.id == garmentID && !$0.deleted }),
+              state.garments[garmentIndex].metadata != nil else { throw OfflineError.conflict }
+        let replacement = UUID()
+        let file = importPhotoURL(replacement)
+        try photos.storedData.write(to: file, options: [.atomic, .completeFileProtection])
+        var next = state
+        next.outbox[pendingIndex].photoID = replacement
+        next.garments[garmentIndex].metadata?.imageID = replacement
+        if next.importedGarments == nil { next.importedGarments = [:] }
+        next.importedGarments?[pendingID] = garmentID
+        do { try commit(next) }
+        catch { try? FileManager.default.removeItem(at: file); throw error }
+        try? FileManager.default.removeItem(at: importPhotoURL(oldID))
+        return replacement
+    }
+
     /// Trigger on foreground/reconnect or explicit retry. Retry dates survive
     /// restart; no background timer or unbounded network loop is required.
     func synchronize(now: Date = Date()) async throws {
@@ -721,7 +744,14 @@ actor OfflineStore: WardrobeRepository {
                         if state.garments.contains(where: { $0.id == dto.id && $0.deleted }) { continue }
                         if let photoID = pending.photoID {
                             let photos = try GarmentPhotos.read(importPhotoURL(photoID))
-                            try await remote.uploadGarmentPhotos(garmentID: operation.garmentID, imageID: photoID, photos: photos)
+                            do {
+                                try await remote.uploadGarmentPhotos(garmentID: operation.garmentID, imageID: photoID, photos: photos)
+                            } catch PhotoUploadError.expired {
+                                let replacement = try replaceExpiredPhoto(pendingID: id, garmentID: operation.garmentID, oldID: photoID, photos: photos)
+                                // One replacement per pass bounds retries even if a server
+                                // repeatedly rejects attempts. Its ID is durable before send.
+                                try await remote.uploadGarmentPhotos(garmentID: operation.garmentID, imageID: replacement, photos: photos)
+                            }
                             try requireActive()
                         }
                         var next = state
