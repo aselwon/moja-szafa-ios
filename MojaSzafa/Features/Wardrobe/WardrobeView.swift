@@ -110,6 +110,7 @@ struct WardrobeThumbnail: View {
     let imageID: UUID?
     let repository: any WardrobeRepository
     var original = false
+    var height: CGFloat = 150
     var cleaned = false
     @State private var image: UIImage?
     @State private var loading = false
@@ -120,7 +121,7 @@ struct WardrobeThumbnail: View {
             else if loading { ProgressView("common.loading") }
             else { Label("wardrobe.noPhoto", systemImage: "photo").font(.caption) }
         }
-        .frame(height: 150)
+        .frame(height: height)
         .frame(maxWidth: .infinity)
         .task(id: "\(imageID?.uuidString ?? "none")-\(original)-\(cleaned)") {
             image = nil
