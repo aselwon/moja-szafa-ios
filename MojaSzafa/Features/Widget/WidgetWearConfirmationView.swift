@@ -31,7 +31,7 @@ struct WidgetWearConfirmationView: View {
             if planner.nextCursor != nil {
                 Button("wardrobe.more") { Task { await planner.load(from: day, through: day, more: true) } }.disabled(planner.loading)
             }
-            Button("common.retry") { Task { await planner.load(from: day, through: day) } }.disabled(planner.loading || planner.saving)
+            Button("widget.refresh") { Task { await planner.load(from: day, through: day) } }.disabled(planner.loading || planner.saving)
             NavigationLink("widget.chooseOutfit") {
                 OutfitsView(repository: dependencies.outfits, wardrobe: dependencies.wardrobe,
                     wearStore: dependencies.wearStore ?? dependencies.offline, personalization: personalization)
@@ -39,6 +39,9 @@ struct WidgetWearConfirmationView: View {
         }
         .navigationTitle("widget.confirmTitle")
         .task(id: day) { await planner.load(from: day, through: day) }
+        .onReceive(NotificationCenter.default.publisher(for: WearIntentRoute.notification)) { _ in
+            Task { await planner.load(from: day, through: day) }
+        }
         .confirmationDialog("planner.confirmTitle", isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } })) {
             if let plan = confirming {
                 Button("planner.confirm") {

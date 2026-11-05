@@ -90,6 +90,7 @@ struct AuthenticationView: View {
 
 struct AuthenticationGateView: View {
     @EnvironmentObject private var reminders: ReminderModel
+    @EnvironmentObject private var widget: WardrobeWidgetModel
     let dependencies: AppDependencies
     @State private var model: AuthenticationModel
     @State private var showAccount = false
@@ -129,18 +130,27 @@ struct AuthenticationGateView: View {
         .task { await model.restore(); updateReminders() }
         .onChange(of: model.session?.userID) { _, _ in showAccount = false; updateReminders() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await model.restoreOrRefresh(); updateReminders(); await reminders.refresh() } }
+            if phase == .active { Task { await model.restoreOrRefresh(); updateReminders(); await reminders.refresh(); await widget.refresh() } }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: WearIntentRoute.notification)) { _ in
+            showAccount = false; widget.consumeIntent()
+        }
+        .onOpenURL { url in
+            guard let scheme = Bundle.main.object(forInfoDictionaryKey: "AppURLScheme") as? String else { return }
+            widget.open(url, expectedScheme: scheme)
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
-            Task { await reminders.refresh() }
+            Task { await reminders.refresh(); await widget.refresh() }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-            Task { await reminders.refresh() }
+            Task { await reminders.refresh(); await widget.refresh() }
         }
     }
     private func updateReminders() {
         let authenticated = dependencies.authenticated(using: model)
         reminders.sessionChanged(accountID: model.session?.userID, gateway: dependencies.sessionStoreService,
+            repository: authenticated.planner)
+        widget.sessionChanged(accountID: model.session?.userID, gateway: dependencies.sessionStoreService,
             repository: authenticated.planner)
     }
 }

@@ -84,6 +84,7 @@ struct ProfileEditorView: View {
 
 struct ProfileGateView: View {
     @EnvironmentObject private var reminders: ReminderModel
+    @EnvironmentObject private var widget: WardrobeWidgetModel
     let dependencies: AppDependencies
     private let accountID: UUID
     @State private var model: ProfileModel
@@ -107,7 +108,7 @@ struct ProfileGateView: View {
             } else if !model.saved.onboardingCompleted {
                 NavigationStack { ProfileEditorView(model: model, onboarding: true) }
             } else {
-                AppRootView(dependencies: dependencies, accountID: accountID, reminders: reminders)
+                AppRootView(dependencies: dependencies, accountID: accountID, reminders: reminders, widget: widget)
                     .safeAreaInset(edge: .top) {
                         Button("profile.title") { showProfile = true }.padding(8)
                     }
@@ -117,6 +118,7 @@ struct ProfileGateView: View {
                                 NavigationLink("profile.title") { ProfileEditorView(model: model) }
                                 NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
                                 NavigationLink("reminders.title") { ReminderView(model: reminders) }
+                                NavigationLink("widget.settingsTitle") { WidgetSettingsView(model: widget) }
                                 NavigationLink("export.title") { DataExportView(service: dependencies.dataExports) }
                                 NavigationLink("deletion.title") {
                                     AccountDeletionView(service: dependencies.accountDeletion, accountID: accountID) {
@@ -131,6 +133,7 @@ struct ProfileGateView: View {
             }
         }
         .task { model.load() }
+        .onReceive(NotificationCenter.default.publisher(for: WearIntentRoute.notification)) { _ in showProfile = false }
     }
 }
 

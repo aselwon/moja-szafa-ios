@@ -34,6 +34,22 @@ final class WidgetTests: XCTestCase {
         XCTAssertNil(store.read(now: now, timezone: .gmt))
         XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
     }
+    func testSharedContainerWhenHostHasSigningEntitlement() throws {
+        let store = WidgetSnapshotStore.live()
+        guard store.available else {
+            throw XCTSkip("Shared App Group access requires an entitled host; run this test with local simulator signing enabled.")
+        }
+        // The dedicated test simulator has no real account or wardrobe data.
+        // Keep the smoke synchronous so app startup cannot interleave a clear.
+        defer { try? store.clear() }
+        let now = Date()
+        let value = snapshot(now: now, zone: .current)
+        try store.write(value)
+        XCTAssertEqual(store.read(now: now), value)
+        try store.clear()
+        XCTAssertNil(store.read(now: now))
+    }
+
     func testRoutingRejectsForeignSchemesAndParameters() {
         XCTAssertTrue(WardrobeWidgetIdentity.accepts(URL(string: "mojaszafa-dev://wear")!, expectedScheme: "mojaszafa-dev"))
         for value in ["mojaszafa://wear", "https://wear", "mojaszafa-dev://wear?confirm=true", "mojaszafa-dev://wear/path",
