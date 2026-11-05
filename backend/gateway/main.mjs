@@ -8,6 +8,8 @@ import { privateFiles } from '../images/pipeline.mjs';
 import { createWeatherProvider } from '../weather/met.mjs';
 import { GatewayMetrics } from '../observability/gateway-metrics.mjs';
 import { createSubscriptionVerifier } from './subscriptions/verification.mjs';
+import { startImageRetention } from './image-retention.mjs';
+import { startExportRetention } from './export-retention.mjs';
 
 async function main() {
   const env = process.env;
@@ -42,9 +44,12 @@ async function main() {
   const port = Number(env.PORT ?? 8080);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('invalid_port');
   server.listen(port, '127.0.0.1', () => process.stdout.write('gateway_ready\n'));
+  const imageRetention = startImageRetention({ store, directory: env.PRIVATE_IMAGE_DIRECTORY });
+  const exportRetention = startExportRetention({ store, directory: env.EXPORT_DIRECTORY });
   for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => {
     clearInterval(metricTimer);
-    server.close(() => Promise.all([pool.end(), metrics.flush()]).then(() => process.exit(0)).catch(() => process.exit(1)));
+    const retentionStopped = Promise.all([imageRetention.stop(), exportRetention.stop()]);
+    server.close(() => retentionStopped.then(() => Promise.all([pool.end(), metrics.flush()])).then(() => process.exit(0)).catch(() => process.exit(1)));
     setTimeout(() => process.exit(1), 15000).unref();
   });
 }

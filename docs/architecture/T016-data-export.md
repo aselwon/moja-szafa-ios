@@ -1,8 +1,9 @@
 # T016 — Private data export
 
-Repository implementation; no backend deployment or real-account verification is
-claimed. T007 gateway/storage provisioning and T013 device authentication remain
-external prerequisites. `AppDependencies.live()` still fails closed.
+Repository implementation; no production deployment or real-account/device
+acceptance is claimed. The current client composition is configuration-gated:
+missing or unsafe public gateway configuration returns an unconfigured wardrobe
+repository. Gateway export requests require a verified current session.
 
 ## User flow and contract
 
@@ -48,64 +49,80 @@ bigint range; currency stays PLN. Local dates, estimated prior wears and trackin
 boundary remain unchanged. Plans never become wear events. Empty tables are `[]`.
 Ready garment photos include original, cleaned and thumbnail variants when
 present. Each image has `archive_path` under `photos/`, based on its UUID and
-validated MIME type. The archive contains no storage keys, auth tables, session
-credentials, operator audit, worker leases, provider configuration or billing
-transaction identifiers. New database columns are not automatically exported.
+validated MIME type. The gateway's private image adapter stores `original.jpg`,
+`thumbnail.jpg` and (when present) `cleaned.png` in its private volume; export
+reads use the authorized storage adapter. The archive contains no storage keys,
+auth tables, session credentials, operator audit, worker leases, provider
+configuration or billing transaction identifiers. New database columns are not
+automatically exported.
 
 This is an export of synchronized server data. Device-local T014 preferences,
 unsynced outbox changes/drafts and temporary purchase-candidate image objects are
 not currently part of the archive; the UI explicitly describes local data scope.
-The existing T011 filesystem adapter supplies normalized original/thumbnail JPEGs;
-future cleaned-image storage must provide the same trusted `get(key)` interface.
+The gateway's private filesystem adapter supplies normalized original/thumbnail
+JPEGs and optional cleaned PNGs through the trusted `get(key)` interface.
 
 ## Runtime integration and retention
 
-Apply migration 009 through `backend/migrate.sh`; historical migrations are
-unchanged. `app.exports_command` is executable only by service_role. Do not expose
-it directly to app roles. The HTTP runtime composes:
+Migration 009 provides the export ledger. The HTTP gateway binds export commands
+to the authenticated request context and applies its 512 MiB archive cap:
 
 ```js
-const service = new DataExports({
-  store: postgresExports(),
-  storage: privateFiles(privateImageDirectory),
-  directory: privateExportSpool
-});
-const handler = exportHandler(service, verifyCurrentSession);
+const exports = storage && exportDirectory
+  ? exportHandler(new DataExports({
+      store: commands('exports'), storage, directory: exportDirectory,
+      maxBytes: 512 * 1024 ** 2,
+    }), authenticate)
+  : null;
 ```
 
-Use the existing T011 adapters and verified T013 gateway authenticator. The
-runtime must verify JWT signature, issuer, audience, expiry and revoked/deleted
-sessions. Credentials come from existing secure libpq configuration, never argv,
-source or logs. The spool must be a dedicated private volume outside web roots,
-with enough disk space and monitoring; archive directories/files use 0700/0600.
-Deployments with multiple service processes need gateway-wide concurrency limits.
-This implementation permits two archive builders per process and one per account.
-Default archive budget is 20 GiB; metadata reads are bounded at 64 MiB. Limits
-fail explicitly, never truncate successful exports. Validate capacity with the
-1000-garment fixture before production; use an approved larger budget if required.
+The gateway passes the bearer session token to Managed Auth's
+`/get-session?disableCookieCache=true` endpoint. It validates the returned
+session/user IDs, verified email, non-banned/non-impersonated state and expiry,
+then binds that session to the database request context. It does not locally
+verify JWT signatures or issuer/audience claims. Its database login must be a
+least-privilege member of `szafa_gateway`, never `service_role` or the owner. The
+public gateway does not read the export ledger directly. The updated
+`backend/deploy/neon-bootstrap.sql` grants it only the no-argument
+`gateway_private.prune_exports()` maintenance function; that fixed-action
+SECURITY DEFINER wrapper can purge expired export snapshots but accepts no owner,
+path or arbitrary command. The bootstrap grant and this runtime version are not
+deployed yet.
 
-Run `backend/exports/cleanup.mjs PRIVATE_EXPORT_SPOOL` under supervision with the
-same database and spool as HTTP. It sweeps every 10 seconds, including startup.
-Expired or soft-deleted-account snapshot payloads are nulled; operation UUIDs
-remain to prevent replay from renewing expiry. Hard account deletion cascades the
-ledger. Successful/error transfers erase spools; the sweeper removes crash-left
-spools after 15 minutes. Database/API expiry is enforced even if cleanup is down.
-Alert on `export_cleanup_unavailable`; rerun cleanup after restore before serving
-traffic. Backups follow the backend's separately approved retention policy.
-No background provider, paid API, network installation or cloud changes are needed.
+The gateway starts export retention on startup, then waits 60 seconds after each
+sweep completes before scheduling the next one. Runs do not overlap, and shutdown
+waits for an in-flight sweep. The sweep uses the same private spool as the HTTP
+export service: expired or soft-deleted-account snapshot payloads are nulled;
+operation UUIDs remain to prevent replay from renewing expiry. Hard account
+deletion cascades the ledger. Successful/error transfers erase spools; the sweep
+removes crash-left spools after 15 minutes. Database/API expiry is enforced even
+if cleanup is unavailable. Apply the updated bootstrap grants and deploy the
+gateway runtime before relying on scheduled retention.
+
+`backend/exports/cleanup.mjs PRIVATE_EXPORT_SPOOL` remains a standalone
+alternative for environments that do not use gateway-managed retention. Do not
+run it alongside the gateway scheduler against the same spool/database. The
+spool must be a dedicated private volume outside web roots, with enough disk
+space and monitoring; archive directories/files use 0700/0600. This code permits
+two archive builders per process and one per account. `DataExports` has a 20 GiB
+library default, but the current HTTP gateway explicitly enforces a 512 MiB
+per-archive cap; metadata reads are bounded at 64 MiB. Limits fail explicitly,
+never truncate successful exports. Validate capacity with the 1000-garment
+fixture before production; use an approved larger gateway cap if required.
+Backups follow the backend's separately approved retention policy.
 
 ## Verification and remaining gates
 
-- `export PATH=/home/harness/.local/bin:$PATH && node scripts/harness-check.mjs`:
-  archive read by Python's independent tar reader; exact large prices, photos,
-  history/plans, foreign-owner denial, expiry (including during IO), revocation,
-  missing storage, limits, cleanup and generic HTTP errors.
-- `bash backend/tests/run-tests.sh` on PostgreSQL 15: fresh/upgrade migration,
-  snapshot consistency, idempotent expiry, two-owner isolation, field exclusions,
-  image authorization, deletion and cleanup, client-role privilege denial.
-  Included in the existing CI postgres job. No PostgreSQL binaries in this sandbox.
-- Existing macOS CI must compile Debug/Staging/Release and run DataExportTests
-  (timeout replay, no false success, cleanup). No Xcode/Swift SDK in this sandbox.
+- `node scripts/harness-check.mjs`: passed 89/89 checks in the current checkout,
+  including archive behavior and the two export-retention scheduler tests.
+- `PGHOST=127.0.0.1 PGPORT=<disposable-local-port> PGUSER=postgres
+  GATEWAY_PG_TESTS=1 node --test backend/gateway/postgres.test.mjs`: passed 1/1
+  against a disposable local PostgreSQL 15 container. This exercises gateway
+  bootstrap, owner isolation, replay, session revocation and deletion guards;
+  it does not deploy the bootstrap or gateway runtime.
+- The full SQL lifecycle suite and native `DataExportTests` were not rerun for
+  this retention change. CI must compile Debug/Staging/Release and run the native
+  export tests before merge.
 - Authorized staging/iPhone check: request from account A, save to Files, extract
   TAR, compare JSON and photo bytes against fixtures including prices/history/
   future plans. Try A's UUID as B and unauthenticated; verify no payload. Retry

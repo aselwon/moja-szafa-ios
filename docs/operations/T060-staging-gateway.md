@@ -22,3 +22,14 @@ session.
 Positive authentication and native-app end-to-end behavior remain unverified.
 This is staging evidence only and does not establish a stable production
 origin, photo-storage acceptance, or production readiness.
+
+## Endpoint update — 2026-11-05
+
+After the staging quick-tunnel service was restarted, the currently configured
+public origin is `https://frozen-clearing-seek-ancient.trycloudflare.com`.
+The public `/health` route returned HTTP 200 at the time of this update; the
+previous quick-tunnel hostname returned HTTP 530 and is no longer configured.
+The hostname remains temporary and can change after another restart. The
+checked-in staging allowlist and `Staging.xcconfig` use the current hostname.
+This endpoint update does not verify signed-in authentication or native-app
+end-to-end behavior.
