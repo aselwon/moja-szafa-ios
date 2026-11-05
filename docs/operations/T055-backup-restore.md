@@ -143,6 +143,16 @@ from the snapshot need no garment row; deleted accounts are handled by the accou
 replay. A missing or unavailable profile for a surviving identity causes replay to fail rather than
 silently claim successful deletion. Ingress must remain fenced throughout.
 
+For each surviving owner with a replayed garment deletion, SQL also scrubs all
+restored mutation request/response payloads, invalidates prepared export snapshots,
+and cancels and scrubs restored AI jobs. This deliberately invalidates owner-wide
+caches instead of relying on incomplete matching of nested garment references.
+Other owners' caches and surviving domain records remain unchanged. Mutation and
+job operation IDs remain reserved: old requests fail rather than returning private
+cached data or executing again. Users must refresh after recovery and resolve
+any pending-operation conflict before creating a new intent. AI dispatch receipts,
+usage reservations and recorded costs remain intact; recovery does not reset limits.
+
 The SQL is only the relational replay phase, not the complete erasure service.
 Before reopening, additionally:
 
@@ -150,16 +160,16 @@ Before reopening, additionally:
   created after the snapshot), erase bytes and **every retained object version**,
   verify absence and retry failures durably. T011's repeated sweep can assist with
   the current volume; future candidate assets need their own cleanup integration.
-- Purge/redact private mutation request/response data and job results referencing
-  deleted garments; handle operational audit/deletion evidence under approved
-  retention. Review other restored caches/export/support artifacts. Never print
-  these payloads. Retain operation suppression identifiers so retries cannot
-  recreate erased data.
+- Verify SQL payload scrubbing and purge exported archive bytes and any external
+  provider/support caches. Handle operational audit/deletion evidence under
+  approved retention. Never print private payloads. Retain operation suppression
+  identifiers so retries cannot recreate erased data.
 - Verify the replayed garment tombstones at the API/sync boundary, including
   future restore and stale-device writes. The synthetic drill checks fresh stale
-  create intents against restored and post-backup garment IDs. Recovered cached
-  mutation responses and provider-managed identities/sessions still require the
-  separate reopening checks above; these are not proven by a UUID fence alone.
+  create intents against restored and post-backup garment IDs, cached response
+  rejection, invalidated exports/jobs and isolation of another owner's caches.
+  Provider-managed identities/sessions and archive bytes still require the
+  separate reopening checks above; these are not proven by SQL assertions alone.
 - Repeat replay through a final watermark while ingress remains fenced. Verify
   other owners are unchanged and interrupted byte deletion resumes idempotently.
 

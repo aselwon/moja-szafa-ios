@@ -16,6 +16,7 @@ DO $$
 DECLARE
     deletion record;
     outcome jsonb;
+    affected_owners uuid[] := '{}';
     previous_subject text := current_setting('request.jwt.claim.sub', true);
 BEGIN
     FOR deletion IN
@@ -31,9 +32,26 @@ BEGIN
         IF outcome->'data' IS DISTINCT FROM 'true'::jsonb THEN
             RAISE EXCEPTION 'Recovery garment deletion failed';
         END IF;
+        affected_owners := array_append(affected_owners, deletion.user_id);
     END LOOP;
+    -- Restored responses can contain deleted attributes even when the domain
+    -- rows are scrubbed. Keep operation IDs, but invalidate owner-wide caches:
+    -- guessing which nested payload references the garment is not sufficient.
+    UPDATE api_private.mutations SET request='{}'::jsonb, response=NULL
+        WHERE user_id=ANY(affected_owners);
+    UPDATE api_private.data_exports SET snapshot=NULL,
+        expires_at=least(expires_at,clock_timestamp())
+        WHERE user_id=ANY(affected_owners);
+    -- Fence restored workers before scrubbing their input/output. Keep IDs,
+    -- accounting and dispatch receipts so recovery cannot reset spending limits.
+    UPDATE app.ai_jobs SET status='cancelled', lease_token=NULL,
+        lease_expires_at=NULL, finished_at=coalesce(finished_at,clock_timestamp()),
+        error_code='recovery_invalidated'
+        WHERE user_id=ANY(affected_owners);
+    UPDATE api_private.job_payloads p SET input='{}'::jsonb, result=NULL
+        FROM app.ai_jobs j WHERE j.id=p.job_id AND j.user_id=ANY(affected_owners);
     PERFORM set_config('request.jwt.claim.sub', coalesce(previous_subject, ''), true);
 END $$;
 DELETE FROM auth.users u USING recovery_accounts d WHERE u.id = d.user_id;
--- Private idempotency responses can contain resurrected garment metadata.
--- See runbook: invalidate all response caches before opening recovered service.
+-- Export spool bytes and external provider caches still require the runbook's
+-- independent byte-erasure and session-revocation gates before reopening.
