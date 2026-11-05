@@ -159,15 +159,18 @@ struct GarmentFormInput {
 struct GarmentFormView: View {
     @State private var input: GarmentFormInput
     @State private var error: String?
+    @State private var saving = false
+    private let locked: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var duplicates: DuplicatePhotoReview?
     private let duplicateReview: (() async -> DuplicatePhotoReview)?
-    private let save: (GarmentFormValue) throws -> Void
+    private let save: (GarmentFormValue) async throws -> Void
 
     init(value: GarmentFormValue?, suggestions: GarmentSuggestions? = nil,
-         duplicateReview: (() async -> DuplicatePhotoReview)? = nil,
-         save: @escaping (GarmentFormValue) throws -> Void) {
+         duplicateReview: (() async -> DuplicatePhotoReview)? = nil, locked: Bool = false,
+         save: @escaping (GarmentFormValue) async throws -> Void) {
         _input = State(initialValue: GarmentFormInput(value: value, suggestions: suggestions))
+        self.locked = locked
         self.save = save
         self.duplicateReview = duplicateReview
     }
@@ -196,7 +199,7 @@ struct GarmentFormView: View {
                 }
 
                 Section {
-                    Text("garment.draftExplanation")
+                    Text(locked ? "import.pendingSave" : "garment.draftExplanation")
                     TextField("garment.name", text: $input.name)
                     Picker("garment.category", selection: $input.category) {
                         ForEach(APIv1.Category.allCases, id: \.self) { category in
@@ -209,11 +212,13 @@ struct GarmentFormView: View {
                         Toggle("recognition.reviewed", isOn: $input.reviewed)
                     }
                 }
+                .disabled(saving || locked)
                 Section("garment.colors") {
                     ForEach(GarmentFormInput.palette, id: \.self) { color in
                         Toggle(LocalizedStringKey("garment.color.\(color)"), isOn: membership(color, in: $input.colors))
                     }
                 }
+                .disabled(saving || locked)
                 Section("garment.details") {
                     TextField("garment.pattern", text: $input.pattern)
                     ForEach(GarmentFormInput.seasons, id: \.self) { season in
@@ -225,6 +230,7 @@ struct GarmentFormView: View {
                         }
                     }
                 }
+                .disabled(saving || locked)
                 Section("garment.purchase") {
                     TextField("garment.brand", text: $input.brand)
                     TextField("garment.price", text: $input.price).keyboardType(.decimalPad)
@@ -234,18 +240,25 @@ struct GarmentFormView: View {
                         DatePicker("garment.date", selection: $input.purchaseDate, in: ...Date(), displayedComponents: .date)
                     }
                 }
+                .disabled(saving || locked)
                 Section {
                     if let error { Text(LocalizedStringKey(error)).foregroundStyle(Color("danger")) }
                     Button(LocalizedStringKey(duplicates?.matches.isEmpty == false ? "duplicate.keepBoth" : "garment.save")) {
-                        do { try save(input.validated()); dismiss() }
-                        catch let validation as GarmentFormInput.Validation { self.error = validation.rawValue }
-                        catch { self.error = "import.storageFailed" }
-                    }
+                        guard !saving else { return }
+                        saving = true
+                        Task {
+                            defer { saving = false }
+                            do { try await save(input.validated()); dismiss() }
+                            catch let validation as GarmentFormInput.Validation { self.error = validation.rawValue }
+                            catch { self.error = "import.saveFailed" }
+                        }
+                    }.disabled(saving)
+                    if saving { ProgressView("common.loading") }
                 }
             }
             .navigationTitle("garment.title")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("common.cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("common.cancel") { dismiss() }.disabled(saving) }
             }
         }
         .task {
