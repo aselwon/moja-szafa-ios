@@ -241,6 +241,19 @@ actor OfflineStore: WardrobeRepository {
 
     func status() -> State { state }
 
+    func statisticsSnapshot() async throws -> StatisticsSnapshot {
+        do { try await synchronize() }
+        catch {
+            if error is CancellationError || Task.isCancelled { throw error }
+            try requireActive()
+            if !(error is URLError) { throw error }
+        }
+        try requireActive()
+        return StatisticsSnapshot(garments: state.garments.filter { !$0.deleted }.map(\.display),
+            wears: state.wears, cached: true, pendingChanges: !state.outbox.isEmpty)
+    }
+
+
     func garments() async throws -> [Garment] {
         do { try await synchronize() }
         catch {
@@ -287,6 +300,17 @@ actor OfflineStore: WardrobeRepository {
         let data = try await remote.image(id: id, original: original)
         try requireActive()
         return data
+    }
+
+    func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail {
+        try requireActive()
+        guard let item = state.garments.first(where: { $0.id == id && !$0.deleted }) else { throw OfflineError.invalidState }
+        // Keep the latest availability in the same actor transaction; a stale
+        // review row must not change a newer laundry/unavailable selection.
+        try saveGarment(id: id, fields: APIv1.GarmentFields(name: item.fields.name,
+            category: item.fields.category, priceGrosz: item.fields.priceGrosz,
+            availability: item.fields.availability, archived: archived))
+        return try await detail(id: id)
     }
 
     func setStatus(id: UUID, availability: APIv1.Availability, archived: Bool) async throws -> GarmentDetail {
