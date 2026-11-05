@@ -1,0 +1,7 @@
+#include "Staging.xcconfig"
+PRODUCT_BUNDLE_IDENTIFIER = pl.mojaszafa.app.staging.widget
+INFOPLIST_KEY_CFBundleDisplayName = Moja Szafa Widget Staging
+INFOPLIST_FILE = Configuration/MojaSzafaWidget-Info.plist
+CODE_SIGN_ENTITLEMENTS = Configuration/MojaSzafaWidget.entitlements
+APPLICATION_EXTENSION_API_ONLY = YES
+SKIP_INSTALL = YES

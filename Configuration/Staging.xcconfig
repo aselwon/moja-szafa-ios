@@ -1,5 +1,7 @@
 // Public configuration only. No credentials or registered Apple identities assumed.
 APP_ENVIRONMENT = staging
+APP_GROUP_IDENTIFIER = group.pl.mojaszafa.app.staging
+APP_URL_SCHEME = mojaszafa-staging
 PRODUCT_BUNDLE_IDENTIFIER = pl.mojaszafa.app.staging
 INFOPLIST_KEY_CFBundleDisplayName = Moja Szafa Staging
 INFOPLIST_KEY_AppEnvironment = $(APP_ENVIRONMENT)

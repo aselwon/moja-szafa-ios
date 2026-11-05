@@ -1,0 +1,22 @@
+{
+  "sourceLanguage": "pl",
+  "strings": {
+    "Confirm wear in \\(.applicationName)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm wear in \\(.applicationName)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź noszenie w aplikacji \\(.applicationName)"
+          }
+        }
+      }
+    }
+  }
+}
