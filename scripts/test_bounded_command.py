@@ -33,7 +33,11 @@ class BoundedCommandTests(unittest.TestCase):
             child = ("import signal,time; from pathlib import Path; "
                      "signal.signal(signal.SIGTERM,signal.SIG_IGN); "
                      f"p=Path({str(heartbeat)!r})\n"
-                     "while True:\n p.write_text(str(time.monotonic())); time.sleep(.02)")
+                     # SIGKILL may interrupt a write after truncation. Publish
+                     # atomically so the assertion observes the last complete
+                     # heartbeat instead of mistaking a torn write for failure.
+                     "while True:\n p.with_suffix('.tmp').write_text(str(time.monotonic())); "
+                     "p.with_suffix('.tmp').replace(p); time.sleep(.02)")
             parent = f"import subprocess,sys; subprocess.Popen([sys.executable,'-c',{child!r}]).wait()"
             self.assertEqual(bounded.run([sys.executable, "-c", parent], .5), 124)
             time.sleep(.05)

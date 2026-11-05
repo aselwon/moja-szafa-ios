@@ -3,6 +3,7 @@ import CryptoKit
 
 /// Composition root. Features receive protocols, not global service singletons.
 struct AppDependencies: Sendable {
+    var subscriptions: SubscriptionService?
     var telemetry: TelemetryRecorder?
     var trips: any TripRepository = UnconfiguredTripRepository()
     var tripJournalURL: URL?
@@ -111,6 +112,11 @@ struct AppDependencies: Sendable {
             let store = try OfflineStore(accountID: userID, database: database, remote: client, telemetry: telemetry)
             var result = AppDependencies(wardrobe: store, authentication: authentication)
             result.telemetry = telemetry
+            if let products = SubscriptionConfiguration.configured() {
+                result.subscriptions = SubscriptionService(configuration: products, accountID: userID,
+                    storefront: StoreKitStorefront(configuration: products, accountID: userID),
+                    receiver: UnconfiguredSubscriptionReceiver())
+            }
             result.purchases = client
             result.weather = client
             result.apiConnection = connection
@@ -132,9 +138,11 @@ struct AppDependencies: Sendable {
             let personalizationIntent = result.personalizationIntentURL(accountID: userID)
             let reviewDecisions = result.reviewDecisionsURL(accountID: userID)
             let accountID = model.session?.userID
+            let subscriptions = result.subscriptions
             result.deletionCleanup = {
                 guard let accountID else { throw AuthError.expired }
                 guard model.session?.userID == accountID else { return }
+                await subscriptions?.stop()
                 try await telemetry?.invalidate()
                 if FileManager.default.fileExists(atPath: telemetryURL.path) { try FileManager.default.removeItem(at: telemetryURL) }
                 try await store.invalidateAccount()
