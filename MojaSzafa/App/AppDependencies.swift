@@ -16,6 +16,7 @@ struct AppDependencies: Sendable {
     var outfits: any OutfitRepository = UnconfiguredOutfitRepository()
     var accountDeletion: (any AccountDeletionService)?
     var deletionCleanup: (@MainActor @Sendable () async throws -> Void)?
+    var photoRecognition: (any PhotoRecognitionService)?
     var dataExports: (any DataExportService)?
     var aiConsent: (any AIConsentService)?
     let wardrobe: any WardrobeRepository
@@ -77,6 +78,7 @@ struct AppDependencies: Sendable {
         result.plannerJournalURL = storageDirectory.appendingPathComponent(accountID.uuidString).appendingPathComponent("planner-pending.json")
         result.suggestions = client
         result.aiConsent = client
+        result.photoRecognition = client
         result.dataExports = client.dataExports
         return result
     }
@@ -130,7 +132,8 @@ struct AppDependencies: Sendable {
             result.plannerJournalURL = plannerDirectory.appendingPathComponent("pending.json")
             result.suggestions = client
             result.aiConsent = client
-            result.dataExports = client.dataExports
+            result.photoRecognition = client
+        result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
                                                             accessToken: { try await model.accessToken(for: userID) })
             let purchaseDrafts = result.purchaseDirectory(accountID: userID)

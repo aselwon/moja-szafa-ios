@@ -47,6 +47,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
   } });
   const images = storage && signingKey ? imageHandler(new ImagePipeline({ store: commands('images'), storage, signingKey }), authenticate) : null;
   const purchaseImages = storage && signingKey ? imageHandler(new ImagePipeline({ store: commands('purchase_images'), storage, signingKey }), authenticate, { prefix: '/v1/purchase-images', parentField: 'candidate_id' }) : null;
+  const recognitionImages = storage && signingKey ? imageHandler(new ImagePipeline({ store: commands('recognition_images'), storage, signingKey }), authenticate, { prefix: '/v1/recognition-images', parentField: 'draft_id' }) : null;
   const exports = storage && exportDirectory ? exportHandler(new DataExports({
     store: commands('exports'), storage, directory: exportDirectory, maxBytes: 512 * 1024 ** 2,
   }), authenticate) : null;
@@ -84,7 +85,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
     try {
       const url = new URL(request.url, 'http://gateway.invalid');
       metricRoute = metrics?.route(url.pathname) ?? 'unknown';
-      if (url.search && !url.pathname.startsWith('/v1/images/') && !url.pathname.startsWith('/v1/purchase-images/')) throw new GatewayError('invalid_request', 400);
+      if (url.search && !url.pathname.startsWith('/v1/images/') && !url.pathname.startsWith('/v1/purchase-images/') && !url.pathname.startsWith('/v1/recognition-images/')) throw new GatewayError('invalid_request', 400);
       if (request.method === 'GET' && url.pathname === '/health') return send(200, { status: 'ok' });
       if (url.pathname.startsWith('/auth/v1/')) {
         if (request.method !== 'POST') throw new GatewayError('not_found', 404);
@@ -170,6 +171,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
         return send(200, await store.rpc(context.getStore().principal, rpc[1], body.request));
       }
       if (url.pathname.startsWith('/v1/purchase-images/') && purchaseImages) return await purchaseImages(request, response);
+      if (url.pathname.startsWith('/v1/recognition-images/') && recognitionImages) return await recognitionImages(request, response);
       if (url.pathname.startsWith('/v1/images/') && images) return await images(request, response);
       if (url.pathname.startsWith('/v1/exports/') && exports) return await exports(request, response);
       throw new GatewayError('not_found', 404);

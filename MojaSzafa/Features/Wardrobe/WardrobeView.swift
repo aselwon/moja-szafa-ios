@@ -4,10 +4,14 @@ struct WardrobeView: View {
     @StateObject private var model: WardrobeModel
     @StateObject private var imports: PhotoImportModel
     private let allowsPhotoImport: Bool
+    private let recognition: (any PhotoRecognitionService)?
+    private let consent: (any AIConsentService)?
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.scenePhase) private var scenePhase
 
-    init(repository: any WardrobeRepository, accountID: UUID, allowsPhotoImport: Bool = true) {
+    init(repository: any WardrobeRepository, accountID: UUID, allowsPhotoImport: Bool = true, recognition: (any PhotoRecognitionService)? = nil, consent: (any AIConsentService)? = nil) {
+        self.recognition = recognition
+        self.consent = consent
         self.allowsPhotoImport = allowsPhotoImport
         _imports = StateObject(wrappedValue: PhotoImportModel(directory: URL.applicationSupportDirectory
             .appendingPathComponent("PhotoDrafts").appendingPathComponent(accountID.uuidString)))
@@ -18,7 +22,7 @@ struct WardrobeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if allowsPhotoImport {
-                    NavigationLink("import.title") { PhotoImportView(model: imports, repository: model.repository) }
+                    NavigationLink("import.title") { PhotoImportView(model: imports, repository: model.repository, recognition: recognition, consent: consent) }
                 }
                 controls
                 if model.cached { Text("wardrobe.cached").font(.callout) }

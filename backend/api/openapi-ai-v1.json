@@ -490,6 +490,116 @@
           }
         }
       }
+    },
+    "/rest/v1/rpc/api_v1_recognition": {
+      "post": {
+        "operationId": "api_v1_recognition",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Analyze an owned, private, unexpired photo draft before wardrobe confirmation. Admission is consent- and quota-gated. Keep draft, image and operation IDs stable on retry. Result reads bind all three draft/image/job IDs and only return completed draft metadata. Discard invalidates the draft and cancels unsent analysis; it never deletes a confirmed wardrobe garment.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "request"
+                ],
+                "properties": {
+                  "request": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "action",
+                          "draft_id",
+                          "image_id",
+                          "operation_id"
+                        ],
+                        "properties": {
+                          "action": {
+                            "const": "enqueue"
+                          },
+                          "draft_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "image_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "operation_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "action",
+                          "draft_id",
+                          "image_id",
+                          "job_id"
+                        ],
+                        "properties": {
+                          "action": {
+                            "const": "result"
+                          },
+                          "draft_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "image_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "job_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "action",
+                          "draft_id"
+                        ],
+                        "properties": {
+                          "action": {
+                            "const": "discard"
+                          },
+                          "draft_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Versioned data or error envelope with request_id. Enqueue returns job_id, draft_id, image_id and status. Result also includes error_code and the validated garment-recognition-v1 draft result, or null until succeeded. Discard returns discarded=true; it does not send an external AI request."
+          },
+          "401": {
+            "description": "Live owner session required"
+          }
+        }
+      }
     }
   },
   "components": {
