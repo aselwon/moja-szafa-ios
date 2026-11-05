@@ -66,7 +66,7 @@ struct PhotoImportView: View {
                     Text(LocalizedStringKey(draft.status))
                     if draft.file != nil {
                         if let recognition {
-                            Button(model.hasPendingRecognition(draft.id) ? "recognition.resume" : "recognition.analyze") {
+                            Button(LocalizedStringKey(model.hasPendingRecognition(draft.id) ? "recognition.resume" : "recognition.analyze")) {
                                 model.startRecognition(draft.id, using: recognition)
                             }.disabled(model.running || model.hasPendingImport(draft.id))
                             if model.hasPendingRecognition(draft.id) {

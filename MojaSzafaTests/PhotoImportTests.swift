@@ -6,6 +6,78 @@ import UIKit
 
 @MainActor
 final class PhotoImportTests: XCTestCase {
+    func testRecognitionLostAdmissionResponseResumesSameIntentAfterRestart() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let photo = try fixture()
+        let first = PhotoImportModel(directory: root)
+        first.start([{ photo }]); await finish(first)
+        let id = try XCTUnwrap(first.drafts.first?.id)
+        let manual = GarmentFormValue(name: "My shirt", category: .top, colors: [], pattern: nil,
+            seasons: [], formality: nil, brand: "Manual brand", priceGrosz: 1234, purchasedOn: nil)
+        try first.saveGarmentValue(manual, for: id)
+        let service = RecognitionFixture(mode: "lost-enqueue")
+        first.startRecognition(id, using: service, maxPolls: 1, pollDelay: .zero); await finish(first)
+        XCTAssertTrue(first.hasPendingRecognition(id))
+        XCTAssertNil(try first.recognitionSuggestions(for: id))
+        let restarted = PhotoImportModel(directory: root)
+        restarted.startRecognition(id, using: service, maxPolls: 1, pollDelay: .zero); await finish(restarted)
+        let requests = await service.requests
+        XCTAssertEqual(requests.count, 2)
+        XCTAssertEqual(requests[0].operation, requests[1].operation)
+        XCTAssertEqual(requests[0].image, requests[1].image)
+        XCTAssertEqual(requests[0].draft, requests[1].draft)
+        let uploads = await service.uploads
+        XCTAssertEqual(uploads[0].bytes, uploads[1].bytes)
+        XCTAssertEqual(try restarted.recognitionSuggestions(for: id)?.colors, ["blue"])
+        XCTAssertEqual(try restarted.garmentValue(for: id), manual, "AI cannot overwrite confirmed manual fields")
+        XCTAssertEqual(restarted.drafts.count, 1, "Suggestions do not commit or remove the local wardrobe draft")
+        XCTAssertFalse(restarted.hasPendingRecognition(id))
+    }
+
+    func testRecognitionManualFallbackUnlocksDraftAndCleanupSurvivesRestart() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let photo = try fixture(), model = PhotoImportModel(directory: root)
+        model.start([{ photo }]); await finish(model)
+        let id = try XCTUnwrap(model.drafts.first?.id)
+        let service = RecognitionFixture(mode: "queued")
+        model.startRecognition(id, using: service, maxPolls: 1, pollDelay: .zero); await finish(model)
+        XCTAssertTrue(model.hasPendingRecognition(id))
+        XCTAssertFalse(model.acceptEdit(photo, for: id), "A pending result is bound to immutable photo bytes")
+        model.continueManually(id)
+        XCTAssertFalse(model.hasPendingRecognition(id))
+        XCTAssertEqual(model.drafts.count, 1)
+        XCTAssertTrue(model.acceptEdit(photo, for: id))
+        await service.setCleanupFailure(true)
+        await model.cleanRecognitionDrafts(using: service)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).filter { $0.hasSuffix("analysis-cleanup") }.count, 1)
+        let restarted = PhotoImportModel(directory: root)
+        await service.setCleanupFailure(false)
+        await restarted.cleanRecognitionDrafts(using: service)
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: root.path).contains { $0.hasSuffix("analysis-cleanup") })
+        XCTAssertEqual(restarted.drafts.count, 1)
+    }
+
+    func testRecognitionExpiredUploadRotatesOnlyImageAndRejectsMalformedResult() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let photo = try fixture(), model = PhotoImportModel(directory: root)
+        model.start([{ photo }]); await finish(model)
+        let id = try XCTUnwrap(model.drafts.first?.id)
+        let service = RecognitionFixture(mode: "expired-invalid")
+        model.startRecognition(id, using: service, maxPolls: 1, pollDelay: .zero); await finish(model)
+        let uploads = await service.uploads
+        XCTAssertEqual(uploads.count, 2)
+        XCTAssertNotEqual(uploads[0].image, uploads[1].image)
+        XCTAssertEqual(uploads[0].draft, uploads[1].draft)
+        XCTAssertEqual(uploads[0].bytes, uploads[1].bytes)
+        XCTAssertNil(try model.recognitionSuggestions(for: id), "Unvalidated metadata must not reach the form")
+        XCTAssertTrue(model.hasPendingRecognition(id))
+        model.continueManually(id)
+        XCTAssertFalse(model.hasPendingRecognition(id))
+    }
+
     func testOfflineImportsEditAndWearSurviveRestartAndUploadTimeoutWithoutDuplicates() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -657,5 +729,36 @@ private actor ImportedGarmentRemote: OfflineRemote {
         let saved = SyncWear(id: wear.id, version: 1, deleted: false, wornOn: wear.wornOn, timezone: wear.timezone, garmentIDs: wear.garmentIDs)
         wears[operation.operationID] = saved
         return saved
+    }
+}
+
+
+private actor RecognitionFixture: PhotoRecognitionService {
+    let mode: String
+    let job = UUID()
+    var requests: [(draft: UUID, image: UUID, operation: UUID)] = []
+    var uploads: [(draft: UUID, image: UUID, bytes: Data)] = []
+    var cleanupFailure = false
+    init(mode: String) { self.mode = mode }
+    func setCleanupFailure(_ value: Bool) { cleanupFailure = value }
+    func uploadRecognitionPhoto(draftID: UUID, imageID: UUID, data: Data) async throws {
+        uploads.append((draftID, imageID, data))
+        if mode == "expired-invalid", uploads.count == 1 { throw PhotoUploadError.expired }
+    }
+    func enqueueRecognition(draftID: UUID, imageID: UUID, operationID: UUID) async throws -> PhotoRecognitionStatus {
+        requests.append((draftID, imageID, operationID))
+        if mode == "lost-enqueue", requests.count == 1 { throw URLError(.timedOut) }
+        return PhotoRecognitionStatus(job_id: job, draft_id: draftID, image_id: imageID, status: "queued", error_code: nil, result: nil)
+    }
+    func recognitionResult(draftID: UUID, imageID: UUID, jobID: UUID) async throws -> PhotoRecognitionStatus {
+        if mode == "queued" { return PhotoRecognitionStatus(job_id: job, draft_id: draftID, image_id: imageID, status: "queued", error_code: nil, result: nil) }
+        let metadata: [String: Any] = ["category": "top", "colors": ["blue"], "pattern": "plain", "seasons": ["summer"], "formality": 2, "confidence": 0.9, "multiple_items": false]
+        var object: [String: Any] = ["schema_version": "garment-recognition-v1", "state": "draft", "metadata": metadata]
+        if mode == "expired-invalid" { object["metadata"] = ["price_grosz": 999] }
+        let result = try JSONDecoder().decode(RecognitionJSON.self, from: JSONSerialization.data(withJSONObject: object))
+        return PhotoRecognitionStatus(job_id: job, draft_id: draftID, image_id: imageID, status: "succeeded", error_code: nil, result: result)
+    }
+    func discardRecognition(draftID: UUID) async throws {
+        if cleanupFailure { throw URLError(.notConnectedToInternet) }
     }
 }

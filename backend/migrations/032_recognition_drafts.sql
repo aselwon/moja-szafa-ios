@@ -41,7 +41,11 @@ BEGIN
     VALUES(image,owner_id,NULL,draft) ON CONFLICT DO NOTHING;
  END IF;
  SELECT * INTO row FROM api_private.image_uploads WHERE id=image AND user_id=owner_id AND recognition_id=draft FOR UPDATE;
- IF NOT FOUND OR row.state='retired' THEN RETURN NULL; END IF;
+ IF NOT FOUND THEN RETURN NULL; END IF;
+ IF row.state='retired' THEN
+  IF action='prepare' THEN RETURN jsonb_build_object('id',row.id,'expired',true); END IF;
+  RETURN NULL;
+ END IF;
  IF action='prepare' THEN
   RETURN jsonb_build_object('id',row.id);
  ELSIF action='claim' THEN

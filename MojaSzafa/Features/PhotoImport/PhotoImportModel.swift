@@ -490,8 +490,14 @@ extension APIClient: PhotoRecognitionService {
     }
     func discardRecognition(draftID: UUID) async throws {
         struct Receipt: Decodable { let discarded: Bool }
-        let response: APIv1.Success<Receipt> = try await call("api_v1_recognition", ["action": "discard", "draft_id": draftID.uuidString])
-        guard response.data.discarded else { throw APIClientError.invalidResponse }
+        do {
+            let response: APIv1.Success<Receipt> = try await call("api_v1_recognition", ["action": "discard", "draft_id": draftID.uuidString])
+            guard response.data.discarded else { throw APIClientError.invalidResponse }
+        } catch let error as APIv1.Failure where error.code == "not_found" {
+            // An upload can fail before creating its private remote draft.
+            // Canonical absence completes cleanup; authentication and transport
+            // failures must retain the durable cleanup request for a retry.
+        }
     }
     private func checkedRecognition(_ value: PhotoRecognitionStatus, draftID: UUID, imageID: UUID) throws -> PhotoRecognitionStatus {
         guard value.draft_id == draftID, value.image_id == imageID,
@@ -506,7 +512,7 @@ extension APIClient: PhotoRecognitionService {
 private struct PhotoRecognitionIntent: Codable {
     let localID: UUID
     let draftID: UUID
-    let imageID: UUID
+    var imageID: UUID
     let operationID: UUID
     let digest: String
     var jobID: UUID?
@@ -579,7 +585,13 @@ extension PhotoImportModel {
                 guard SHA256.hash(data: bytes).map({ String(format: "%02x", $0) }).joined() == intent.digest else { throw PhotoImportError.invalidImage }
                 if let index = drafts.firstIndex(where: { $0.id == id }) { drafts[index].status = "recognition.pending" }
                 if intent.jobID == nil {
-                    try await service.uploadRecognitionPhoto(draftID: intent.draftID, imageID: intent.imageID, data: bytes)
+                    do {
+                        try await service.uploadRecognitionPhoto(draftID: intent.draftID, imageID: intent.imageID, data: bytes)
+                    } catch PhotoUploadError.expired {
+                        intent.imageID = UUID()
+                        try writeAnalysis(intent)
+                        try await service.uploadRecognitionPhoto(draftID: intent.draftID, imageID: intent.imageID, data: bytes)
+                    }
                     try Task.checkCancellation()
                     let receipt = try await service.enqueueRecognition(draftID: intent.draftID, imageID: intent.imageID, operationID: intent.operationID)
                     guard receipt.draft_id == intent.draftID, receipt.image_id == intent.imageID else { throw APIClientError.invalidResponse }
@@ -590,6 +602,7 @@ extension PhotoImportModel {
                     try Task.checkCancellation()
                     guard let job = intent.jobID else { throw APIClientError.invalidResponse }
                     let status = try await service.recognitionResult(draftID: intent.draftID, imageID: intent.imageID, jobID: job)
+                    try Task.checkCancellation()
                     guard status.job_id == job, status.draft_id == intent.draftID, status.image_id == intent.imageID else { throw APIClientError.invalidResponse }
                     if status.status == "succeeded" {
                         guard let result = status.result else { throw APIClientError.invalidResponse }

@@ -161,3 +161,49 @@ test('checked-in RPC contracts reject duplicates, mismatched paths and malformed
    await assert.rejects(()=>loadRPCOperations(url));
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('recognition draft upload and reads stay on the authenticated private target', async t => {
+  const draft = randomUUID(), image = randomUUID(), other = randomUUID();
+  const calls = [];
+  let expired = false;
+  const principal = { owner, sessionID };
+  const server = createGateway({
+    auth: { current: async token => {
+      if (token === 'synthetic-other.signature') return { owner: other, sessionID };
+      if (token !== cookie) throw new GatewayError('unauthorized',401);
+      return principal;
+    } },
+    store: {
+      operations: new Set(), session: async () => {},
+      command: async (identity,kind,action,input) => {
+        calls.push({identity,kind,action,input});
+        if (kind !== 'recognition_images' || identity.owner !== owner) return null;
+        if (action === 'prepare') {
+          assert.equal(input.owner,owner); assert.equal(input.garment,draft);
+          return {id:image,...(expired?{expired:true}:{})};
+        }
+        if (action === 'read') return input.id === image;
+        return null;
+      }
+    },
+    storage: { get: async key => { assert.equal(key,`${image}/thumbnail.jpg`); return Buffer.from('synthetic-private-thumbnail'); } },
+    signingKey: Buffer.alloc(32,1)
+  });
+  server.listen(0,'127.0.0.1'); await once(server,'listening'); t.after(()=>close(server));
+  const origin=`http://127.0.0.1:${server.address().port}`;
+  const post=(path,body={},token=cookie)=>fetch(origin+path,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const prepared=await post('/v1/recognition-images/uploads',{draft_id:draft,operation_id:image,owner:other});
+  assert.equal(prepared.status,200);
+  assert.equal((await prepared.json()).upload_url.startsWith(`/v1/recognition-images/uploads/${image}?token=`),true);
+  assert.equal((await post('/v1/recognition-images/uploads',{draft_id:draft,operation_id:image,has_cleaned:true})).status,403);
+  const capability=await (await post(`/v1/recognition-images/${image}/thumbnail/url`)).json();
+  const own=await fetch(origin+capability.url,{headers:{Authorization:`Bearer ${cookie}`}});
+  assert.equal(own.status,200); assert.equal(own.headers.get('cache-control'),'private, no-store');
+  assert.equal(await own.text(),'synthetic-private-thumbnail');
+  const foreign=await fetch(origin+capability.url,{headers:{Authorization:'Bearer synthetic-other.signature'}});
+  assert.equal(foreign.status,403,'a capability cannot change the authenticated owner');
+  expired=true;
+  const retry=await post('/v1/recognition-images/uploads',{draft_id:draft,operation_id:image});
+  assert.equal(retry.status,409); assert.equal((await retry.json()).code,'image_upload_expired');
+  assert(calls.every(call=>call.kind==='recognition_images'),'no garment or purchase side effects');
+});

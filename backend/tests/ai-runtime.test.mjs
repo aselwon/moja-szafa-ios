@@ -27,11 +27,11 @@ test('Cloudflare configuration fixes endpoint and free model allowlist; unsafe o
  await assert.rejects(()=>cloudflareEnvironment(env,{...io,read:async()=> 'token\r\ninjection'}));
 });
 
-test('frozen generation and result contracts reference real SQL RPCs',async()=>{
+test('AI contracts reference real SQL RPCs',async()=>{
  const {readFile}=await import('node:fs/promises');
  const contract=JSON.parse(await readFile(new URL('../api/openapi-ai-v1.json',import.meta.url),'utf8'));
- const sql=await readFile(new URL('../migrations/016_ai_runtime_guardrails.sql',import.meta.url),'utf8');
- assert.equal(Object.keys(contract.paths).length,2);
+ const sql=(await Promise.all(['016_ai_runtime_guardrails.sql','032_recognition_drafts.sql'].map(file=>readFile(new URL('../migrations/'+file,import.meta.url),'utf8')))).join('\n');
+ assert.deepEqual(Object.keys(contract.paths).sort(),['/rest/v1/rpc/api_v1_generate_outfits','/rest/v1/rpc/api_v1_job_result','/rest/v1/rpc/api_v1_recognition']);
  for(const [path,route] of Object.entries(contract.paths)) {
    assert.equal(path,'/rest/v1/rpc/'+route.post.operationId);
    assert(sql.includes(`CREATE FUNCTION app.${route.post.operationId}(request jsonb)`));

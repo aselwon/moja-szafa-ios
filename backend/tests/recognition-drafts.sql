@@ -47,4 +47,18 @@ BEGIN
  PERFORM pg_temp.assert_true(app.recognition_images_command(jsonb_build_object('action','read','owner',a,'id',image,'variant','thumbnail')) IS NULL,'discarded bytes inaccessible');
  PERFORM pg_temp.assert_true(app.images_command('{"action":"sweep"}') @> jsonb_build_array(jsonb_build_object('id',image)),'shared sweep includes discarded draft');
 END $$;
+DO $$
+DECLARE owner_id uuid:='00000000-0000-0000-0000-000000000171'; draft uuid:=gen_random_uuid();
+ old_image uuid:=gen_random_uuid(); replacement uuid:=gen_random_uuid(); claim jsonb;
+BEGIN
+ PERFORM app.recognition_images_command(jsonb_build_object('action','prepare','owner',owner_id,'garment',draft,'id',old_image));
+ claim:=app.recognition_images_command(jsonb_build_object('action','claim','owner',owner_id,'id',old_image));
+ UPDATE api_private.image_uploads SET expires_at=clock_timestamp()-interval '1 second' WHERE id=old_image;
+ PERFORM pg_temp.assert_true(app.recognition_images_command(jsonb_build_object('action','prepare','owner',owner_id,'garment',draft,'id',old_image))->>'expired'='true','expired namespace asks client to rotate');
+ PERFORM pg_temp.assert_true(app.recognition_images_command(jsonb_build_object('action','prepare','owner',owner_id,'garment',draft,'id',replacement))->>'id'=replacement::text,'replacement uses same private draft');
+ PERFORM pg_temp.assert_true(app.recognition_images_command(jsonb_build_object('action','finish','owner',owner_id,'id',old_image,'fence',claim->>'fence')) IS NULL,'late retired writer cannot publish');
+ UPDATE api_private.recognition_drafts SET expires_at=clock_timestamp()-interval '1 second' WHERE id=draft;
+ PERFORM pg_temp.assert_true(app.recognition_images_command(jsonb_build_object('action','claim','owner',owner_id,'id',replacement)) IS NULL,'expired draft cannot claim replacement');
+ PERFORM pg_temp.assert_true(app.images_command('{"action":"sweep"}') @> jsonb_build_array(jsonb_build_object('id',replacement)),'expired draft bytes are swept');
+END $$;
 ROLLBACK;

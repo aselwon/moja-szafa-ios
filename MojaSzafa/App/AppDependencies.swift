@@ -133,7 +133,7 @@ struct AppDependencies: Sendable {
             result.suggestions = client
             result.aiConsent = client
             result.photoRecognition = client
-        result.dataExports = client.dataExports
+            result.dataExports = client.dataExports
             result.accountDeletion = AccountDeletionClient(baseURL: connection.baseURL, transport: connection.transport,
                                                             accessToken: { try await model.accessToken(for: userID) })
             let purchaseDrafts = result.purchaseDirectory(accountID: userID)
