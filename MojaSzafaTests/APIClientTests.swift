@@ -2,6 +2,57 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testRecognitionUploadUsesPrivateDraftEndpointAndRejectsForeignAcknowledgement() async throws {
+        let draft = UUID(), image = UUID(), bytes = Data([1, 2, 3])
+        for mode in ["success", "foreign-url", "wrong-ack"] {
+            let transport = ImportPhotoTransport(garmentID: draft, imageID: image, bytes: bytes, mode: mode, recognition: true)
+            do {
+                try await client(transport).uploadRecognitionPhoto(draftID: draft, imageID: image, data: bytes)
+                XCTAssertEqual(mode, "success")
+            } catch { XCTAssertNotEqual(mode, "success"); XCTAssertEqual(error as? APIClientError, .invalidResponse) }
+            let puts = await transport.putCount
+            XCTAssertEqual(puts, mode == "foreign-url" ? 0 : 1)
+        }
+    }
+
+    func testRecognitionResultRejectsForeignBindingAndInvalidState() async throws {
+        let draft = UUID(), image = UUID(), job = UUID()
+        let valid: [String: Any] = ["draft_id": draft.uuidString, "image_id": image.uuidString,
+                                   "job_id": job.uuidString, "status": "running"]
+        for key in ["valid", "draft_id", "image_id", "job_id", "status", "result"] {
+            var payload = valid
+            if key == "status" { payload[key] = "invented" }
+            else if key == "result" { payload["status"] = "succeeded"; payload[key] = ["unexpected": "metadata"] }
+            else if key != "valid" { payload[key] = UUID().uuidString }
+            let body = try JSONSerialization.data(withJSONObject: ["request_id": UUID().uuidString, "data": payload])
+            do {
+                _ = try await client(FixedTransport(body: body, status: 200)).recognitionResult(draftID: draft, imageID: image, jobID: job)
+                XCTAssertEqual(key, "valid")
+            } catch { XCTAssertNotEqual(key, "valid") }
+        }
+    }
+
+    func testRecognitionCleanupAcceptsOnlyConfirmedDiscardOrCanonicalAbsence() async throws {
+        let requestID = UUID().uuidString
+        let success = Data("{\"request_id\":\"\(requestID)\",\"data\":{\"discarded\":true}}".utf8)
+        try await client(FixedTransport(body: success, status: 200)).discardRecognition(draftID: UUID())
+        for code in ["not_found", "unauthorized", "internal_error"] {
+            let body = Data("{\"error\":{\"code\":\"\(code)\",\"message\":\"Synthetic failure\",\"request_id\":\"\(requestID)\"}}".utf8)
+            do {
+                try await client(FixedTransport(body: body, status: 200)).discardRecognition(draftID: UUID())
+                XCTAssertEqual(code, "not_found")
+            } catch let error as APIv1.Failure {
+                XCTAssertNotEqual(code, "not_found"); XCTAssertEqual(error.code, code)
+            }
+        }
+        for status in [401, 404, 503] {
+            do {
+                try await client(FixedTransport(body: Data(), status: status)).discardRecognition(draftID: UUID())
+                XCTFail("Unconfirmed remote absence must retain cleanup")
+            } catch { XCTAssertTrue(error is APIClientError) }
+        }
+    }
+
     func testOnlyExplicitExpiredPrepareResponseRotatesPhotoIdentity() async throws {
         for (status, code) in [(409, "image_upload_expired"), (409, "other_conflict"), (403, "image_upload_expired")] {
             let body = try JSONEncoder().encode(["code": code])
@@ -366,26 +417,37 @@ private actor ImportPhotoTransport: APITransport {
     let imageID: UUID
     let bytes: Data
     let mode: String
+    let recognition: Bool
     private(set) var putCount = 0
-    init(garmentID: UUID, imageID: UUID, bytes: Data, mode: String) {
+    init(garmentID: UUID, imageID: UUID, bytes: Data, mode: String, recognition: Bool = false) {
         self.garmentID = garmentID; self.imageID = imageID; self.bytes = bytes; self.mode = mode
+        self.recognition = recognition
     }
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         XCTAssertEqual(request.url?.host, "example.invalid")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-only-token")
         let body: [String: String]
+        let prefix = recognition ? "/v1/recognition-images/uploads" : "/v1/images/uploads"
         if request.httpMethod == "POST" {
-            XCTAssertEqual(request.url?.path, "/v1/images/uploads")
+            XCTAssertEqual(request.url?.path, prefix)
             let input = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
-            XCTAssertEqual(input["garment_id"] as? String, garmentID.uuidString.lowercased())
-            XCTAssertEqual(input["operation_id"] as? String, imageID.uuidString.lowercased())
-            XCTAssertEqual(input["has_cleaned"] as? Bool, mode == "paired" ? true : nil)
-            let path = "/v1/images/uploads/\(imageID.uuidString.lowercased())?token=test-upload"
+            let parent = input[recognition ? "draft_id" : "garment_id"] as? String
+            let operation = input["operation_id"] as? String
+            let hasCleaned = input["has_cleaned"] as? Bool
+            XCTAssertEqual(parent, garmentID.uuidString.lowercased())
+            if recognition {
+                let hasGarment = input.keys.contains("garment_id")
+                let hasCandidate = input.keys.contains("candidate_id")
+                XCTAssertFalse(hasGarment); XCTAssertFalse(hasCandidate)
+            }
+            XCTAssertEqual(operation, imageID.uuidString.lowercased())
+            XCTAssertEqual(hasCleaned, mode == "paired" ? true : nil)
+            let path = "\(prefix)/\(imageID.uuidString.lowercased())?token=test-upload"
             body = ["image_id": imageID.uuidString, "upload_url": mode == "foreign-url" ? "https://foreign.invalid" + path : path]
         } else {
             putCount += 1
             XCTAssertEqual(request.httpMethod, "PUT")
-            XCTAssertEqual(request.url?.path, "/v1/images/uploads/\(imageID.uuidString.lowercased())")
+            XCTAssertEqual(request.url?.path, "\(prefix)/\(imageID.uuidString.lowercased())")
             XCTAssertEqual(request.httpBody, bytes)
             XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), mode == "paired" ? "application/vnd.szafa.image-pair" : "application/octet-stream")
             body = ["image_id": (mode == "wrong-ack" ? UUID() : imageID).uuidString]

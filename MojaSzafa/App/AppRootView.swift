@@ -42,7 +42,7 @@ struct AppRootView: View {
             } }
                 .tabItem { Label("tab.today", systemImage: "sun.max") }.tag(0)
             NavigationStack {
-                WardrobeView(repository: dependencies.wardrobe, accountID: accountID)
+                WardrobeView(repository: dependencies.wardrobe, accountID: accountID, recognition: dependencies.photoRecognition, consent: dependencies.aiConsent)
                     .toolbar { NavigationLink("purchase.title") { PurchasePreviewView(dependencies: dependencies, accountID: accountID) } }
             }
                 .tabItem { Label("tab.wardrobe", systemImage: "tshirt") }.tag(1)

@@ -12121,6 +12121,125 @@
           }
         }
       }
+    },
+    "recognition.analyze": {
+      "comment": "T028: optional image recognition action and status.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przeanalizuj zdjęcie przez AI"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyze photo with AI"
+          }
+        }
+      }
+    },
+    "recognition.resume": {
+      "comment": "T028: optional image recognition action and status.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wznów analizę"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume analysis"
+          }
+        }
+      }
+    },
+    "recognition.manual": {
+      "comment": "T028: optional image recognition action and status.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontynuuj ręcznie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue manually"
+          }
+        }
+      }
+    },
+    "recognition.pending": {
+      "comment": "T028: optional image recognition action and status.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analiza w toku. Możesz wznowić później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysis pending. You can resume later."
+          }
+        }
+      }
+    },
+    "recognition.ready": {
+      "comment": "T028: optional image recognition action and status.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugestie gotowe — sprawdź przed zapisaniem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions ready — review before saving."
+          }
+        }
+      }
+    },
+    "recognition.failed": {
+      "comment": "T028: optional image recognition action and status.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analiza niedostępna. Ponów lub kontynuuj ręcznie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysis unavailable. Retry or continue manually."
+          }
+        }
+      }
+    },
+    "recognition.explanation": {
+      "comment": "T028: optional image recognition action and status.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugestie AI są opcjonalne. Przed analizą sprawdź ustawienia prywatności; nic nie trafi do szafy bez Twojego zatwierdzenia."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI suggestions are optional. Review privacy settings before analysis; nothing is added to your wardrobe until you confirm."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

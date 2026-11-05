@@ -141,6 +141,8 @@ BEGIN
     result := app.images_command(payload);
   ELSIF kind='purchase_images' AND action IN ('prepare','claim','finish','read') THEN
     result := app.purchase_images_command(payload);
+  ELSIF kind='recognition_images' AND action IN ('prepare','claim','finish','read') THEN
+    result := app.recognition_images_command(payload);
   ELSIF kind='exports' AND action IN ('prepare','check','read','image') THEN
     result := app.exports_command(payload);
   ELSE RAISE EXCEPTION 'Unsupported operation' USING ERRCODE='42501';

@@ -156,6 +156,20 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,
     'privileged image commands must overwrite a supplied owner with the current session owner');
   await assert.rejects(store.command(a,'images','sweep',{}),/Unsupported operation/);
+  const recognitionDraft=randomUUID(), recognitionImage=randomUUID();
+  const garmentCount=(await ownerPool.query('SELECT count(*)::int AS n FROM app.garments')).rows[0].n;
+  assert.equal((await store.command(a,'recognition_images','prepare',{garment:recognitionDraft,id:recognitionImage})).id,recognitionImage);
+  assert.equal(await store.command(b,'recognition_images','prepare',{owner:a.owner,garment:recognitionDraft,id:recognitionImage}),null);
+  const recognitionClaim=await store.command(a,'recognition_images','claim',{id:recognitionImage});
+  assert.equal(recognitionClaim.state,'processing');
+  assert.equal(await store.command(a,'recognition_images','finish',{id:recognitionImage,fence:recognitionClaim.fence}),true);
+  assert.equal(await store.command(a,'recognition_images','read',{id:recognitionImage,variant:'thumbnail'}),true);
+  assert.equal(await store.command(b,'recognition_images','read',{owner:a.owner,id:recognitionImage,variant:'thumbnail'}),null);
+  assert.equal((await ownerPool.query('SELECT count(*)::int AS n FROM app.garments')).rows[0].n,garmentCount,'private recognition upload never saves a garment');
+  await assert.rejects(store.command(a,'recognition_images','sweep',{}),/Unsupported operation/);
+  const discarded=await call('api_v1_recognition',{action:'discard',draft_id:recognitionDraft});
+  assert.equal(discarded.body.data?.discarded,true,JSON.stringify(discarded.body));
+  assert.equal(await store.command(a,'recognition_images','read',{id:recognitionImage,variant:'thumbnail'}),null);
   const deleted = await call('api_v1_delete_garment',{operationID:randomUUID(),garmentID:garment});
   assert.equal(deleted.status,200);
   assert.equal(deleted.body.data,true,'native camelCase delete payload reaches the canonical gateway route and SQL');

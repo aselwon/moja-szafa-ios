@@ -41,33 +41,49 @@ correct. For multiple garments, no suggested attributes are applied: the user
 must enter one garment manually or return to crop the image. Cancellation does
 not save metadata. Missing/invalid analysis leaves the manual form available.
 
-## Integration limits and verification
+## Integration and validation
 
-The existing T027 runtime/storage integration and owner-approved provider are
-not configured here. The current job status API does not deliver private result
-payloads to iOS; no production caller of `acceptRecognition` exists yet. A trusted
-owner-scoped result delivery path must bind job, image revision and local draft
-before invoking it, refuse stale completions after edits/account changes, and
-honor T015 consent. Do not expose raw worker output or telemetry through the
-public job listing. End-to-end recognition is therefore not claimed as working
-in a deployed app; this is a real integration gap, not a simulated success.
+The native import flow now connects to the owner-scoped backend. It persists a
+protected analysis intent and image digest before upload, retries with stable
+draft/operation IDs, rotates only the image ID after an expired upload, and
+resumes a queued job after restart. Enqueue and result responses must match the
+current draft, image and job IDs; the client validates the result again before
+persisting suggestions. Editing, manual fallback and removal prevent a late
+result from being applied. A result remains a suggestion until the user saves
+the garment through the existing form.
 
-Local evidence: `node scripts/harness-check.mjs` passes, including closed-schema,
-threshold, purchase-field rejection, runtime-hook bypass, and worker tests.
-`GarmentFormTests` adds decoding, required review, manual correction,
-multiple-item fallback, draft persistence/isolation, edit invalidation and cleanup
-tests. These XCTest cases require macOS/Xcode and were not executed on Linux.
+Migration 032 adds private expiring recognition drafts and the distinct
+`recognition_images` resource command. The recognition RPC scopes enqueue,
+result and discard to the authenticated owner and current image. Dispatch checks
+that the private draft is still live and its image is ready; discard retires the
+upload and cancels queued analysis. The public job listing does not expose the
+private result. The gateway bootstrap and the new resource mapping are exercised
+by a separate PostgreSQL gateway integration test.
 
-Before acceptance in the app:
+Verified local backend evidence on 2026-11-05:
 
-1. Run the existing macOS CI build/test matrix, including `GarmentFormTests`.
-2. Complete the authenticated result delivery integration above and configure
-   approved T027 runtime hooks/provider on staging with owner authorization.
-3. On an iPhone, analyze clear, ambiguous, multi-item and failed images; confirm
-   editable draft behavior, review gating, cancellation, manual fallback, restart
-   persistence, PL/EN, VoiceOver and Dynamic Type. Confirm no purchase facts are
-   populated and no garment is created without explicit user saving.
-4. Measure real classification quality/calibration with the separate evaluation
-   dataset; synthetic tests do not establish model accuracy.
+- `node scripts/harness-check.mjs`: 87/87 tests passed, including recognition
+  schema validation, threshold handling, purchase-field rejection and runtime
+  hook bypass checks.
+- `backend/tests/run-tests.sh` on disposable PostgreSQL 15: clean install,
+  populated v001 upgrade, replay, atomic rollback, checksum and schema/security
+  contracts, all SQL/concurrency fixtures including recognition drafts, and the
+  synthetic recovery drill passed.
+- Gateway PostgreSQL integration on a fresh disposable PostgreSQL 15 cluster:
+  1/1 passed with recognition prepare/claim/finish/read, owner isolation,
+  discard and no-garment-creation assertions.
 
-No paid APIs, deployments, account changes or external verification were used.
+An earlier focused Release XCTest run passed 53/53 before the latest cleanup
+and transport test updates. After those updates, the focused `APIClientTests`
+run passed 22/22 on the simulator (`/private/tmp/T028RecognitionAPIFinal2.xcresult`).
+The latest `PhotoImportTests` and `GarmentFormTests` have not been rerun after
+all current edits, so full native verification remains pending. No external AI
+call, AI activation, or deployment was part of these checks, and synthetic
+tests do not establish real-image accuracy or confidence calibration.
+
+Remaining acceptance work is to run the focused native import/recognition tests
+and macOS CI matrix, then review clear, ambiguous, multi-item and failed-image
+flows on an iPhone, including PL/EN, VoiceOver, Dynamic Type, correction gating,
+cancellation, manual fallback and restart behavior. Confirm no purchase facts are
+populated and no garment is created without explicit user saving. Validate
+classification quality and calibration separately with the T033 evaluation set.

@@ -15,6 +15,8 @@ private struct ImportedPhoto: Transferable, Sendable {
 struct PhotoImportView: View {
     @ObservedObject var model: PhotoImportModel
     var repository: (any WardrobeRepository)? = nil
+    var recognition: (any PhotoRecognitionService)? = nil
+    var consent: (any AIConsentService)? = nil
     @State private var selection: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var editing: PhotoImportModel.Draft?
@@ -41,6 +43,10 @@ struct PhotoImportView: View {
                 } label: { Label("import.camera", systemImage: "camera") }
                     .disabled(model.running || requestingCamera)
                 Text("import.explanation")
+                if recognition != nil {
+                    Text("recognition.explanation")
+                    NavigationLink("privacy.title") { AIPrivacyView(service: consent) }
+                }
                 if cameraDenied {
                     Text("import.cameraDenied")
                     Button("import.settings") {
@@ -59,20 +65,32 @@ struct PhotoImportView: View {
                     }
                     Text(LocalizedStringKey(draft.status))
                     if draft.file != nil {
+                        if let recognition {
+                            Button(LocalizedStringKey(model.hasPendingRecognition(draft.id) ? "recognition.resume" : "recognition.analyze")) {
+                                model.startRecognition(draft.id, using: recognition)
+                            }.disabled(model.running || model.hasPendingImport(draft.id))
+                            if model.hasPendingRecognition(draft.id) {
+                                Button("recognition.manual") {
+                                    model.continueManually(draft.id)
+                                    Task { await model.cleanRecognitionDrafts(using: recognition) }
+                                }.disabled(model.running)
+                            }
+                        }
                         Button("garment.title") {
                             do { formDraft = FormDraft(id: draft.id, value: try model.garmentValue(for: draft.id),
                                                        suggestions: try? model.recognitionSuggestions(for: draft.id)) }
                             catch { model.message = "import.storageFailed" }
-                        }.disabled(model.running)
+                        }.disabled(model.running || model.hasPendingRecognition(draft.id))
                         Button("edit.title") { editing = draft }
-                            .disabled(model.running || model.hasPendingImport(draft.id))
+                            .disabled(model.running || model.hasPendingImport(draft.id) || model.hasPendingRecognition(draft.id))
                     }
                     Button("import.remove", role: .destructive) { model.remove(draft.id) }
-                        .disabled(model.running || model.hasPendingImport(draft.id))
+                        .disabled(model.running || model.hasPendingImport(draft.id) || model.hasPendingRecognition(draft.id))
                 }
             }
         }
         .navigationTitle("import.title")
+        .task { if let recognition { await model.cleanRecognitionDrafts(using: recognition) } }
         .onChange(of: selection) { _, items in
             guard !items.isEmpty else { return }
             let loaders: [@MainActor () async throws -> Data] = items.map { item in

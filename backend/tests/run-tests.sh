@@ -92,6 +92,7 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/jobs.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/consent.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/images.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/recognition-drafts.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/exports.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/deletion.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/suggestions.sql"
