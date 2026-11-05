@@ -164,7 +164,7 @@ final class PhotoImportModel: ObservableObject {
 
     func commitGarmentValue(_ value: GarmentFormValue, for id: UUID,
                             repository: any WardrobeRepository) async throws {
-        guard !running, let draft = drafts.first(where: { $0.id == id }), let file = draft.displayFile else {
+        guard !running, let draft = drafts.first(where: { $0.id == id }), let file = draft.file else {
             throw PhotoImportError.invalidImage
         }
         var fields = APIv1.GarmentFields(name: value.name, category: value.category,
@@ -181,13 +181,14 @@ final class PhotoImportModel: ObservableObject {
             operation = APIv1.SaveGarment(operationID: UUID(), garmentID: id, baseVersion: nil, garment: fields)
             // Freeze the bytes before persisting the intent; subsequent retries cannot
             // accidentally publish a newly edited image under an already-used ID.
-            try PhotoProcessor.read(file).write(to: photo, options: [.atomic, .completeFileProtection])
+            let photos = try GarmentPhotos(original: PhotoProcessor.read(file), cleaned: draft.editedFile.map { try PhotoProcessor.read($0) })
+            try photos.storedData.write(to: photo, options: [.atomic, .completeFileProtection])
             try saveGarmentValue(value, for: id)
             try JSONEncoder().encode(operation).write(to: intent, options: [.atomic, .completeFileProtection])
         }
         running = true
         defer { running = false }
-        try await repository.importGarment(operation, image: PhotoProcessor.read(photo))
+        try await repository.importGarment(operation, photos: GarmentPhotos.read(photo))
         // The durable wardrobe owns the data now. A cleanup crash must not
         // resurrect a draft or enqueue another garment.
         let completed = directory.appendingPathComponent(id.uuidString).appendingPathExtension("completed")

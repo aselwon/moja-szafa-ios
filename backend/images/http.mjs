@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { MAX_BYTES } from './pipeline.mjs';
+import { MAX_BYTES, MAX_PAIR_BYTES, PAIR_CONTENT_TYPE } from './pipeline.mjs';
 
 async function body(request, limit) {
   if (request.headers['content-length'] && Number(request.headers['content-length']) > limit) {
@@ -34,7 +34,8 @@ export function imageHandler(pipeline, authenticate, { prefix = '/v1/images', pa
       url.pathname = '/v1/images/' + url.pathname.slice(prefix.length + 1);
       if (request.method === 'POST' && url.pathname === '/v1/images/uploads') {
         const input = JSON.parse((await body(request, 4096)).toString('utf8'));
-        const prepared = await pipeline.prepare(identity, input[parentField], input.operation_id);
+        if (parentField !== 'garment_id' && input.has_cleaned) throw new Error('image_access_denied');
+        const prepared = await pipeline.prepare(identity, input[parentField], input.operation_id, input.has_cleaned ?? false);
         const { upload_token, ...metadata } = prepared;
         return json(200, { ...metadata, upload_url: `${prefix}/uploads/${prepared.image_id}?token=${upload_token}` });
       }
@@ -42,9 +43,11 @@ export function imageHandler(pipeline, authenticate, { prefix = '/v1/images', pa
       if (request.method === 'PUT' && upload) {
         const token = url.searchParams.get('token');
         if (pipeline.verify(identity, token, 'upload') !== upload[1]) throw new Error('image_access_denied');
-        return json(200, await pipeline.upload(identity, token, await body(request, MAX_BYTES)));
+        const paired = request.headers['content-type'] === PAIR_CONTENT_TYPE;
+        if (paired && parentField !== 'garment_id') throw new Error('image_access_denied');
+        return json(200, await pipeline.upload(identity, token, await body(request, paired ? MAX_PAIR_BYTES : MAX_BYTES), paired));
       }
-      const image = /^\/v1\/images\/([a-f0-9-]{36})\/(original|thumbnail)(\/url)?$/.exec(url.pathname);
+      const image = /^\/v1\/images\/([a-f0-9-]{36})\/(original|thumbnail|cleaned)(\/url)?$/.exec(url.pathname);
       if (image && request.method === 'POST' && image[3]) {
         const token = await pipeline.downloadToken(identity, image[1], image[2]);
         return json(200, { url: `${prefix}/${image[1]}/${image[2]}?token=${token}`, expires_in: 60 });
