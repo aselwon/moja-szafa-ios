@@ -32,6 +32,9 @@ export class GatewayStore {
   async acknowledgeRetiredImage(id) {
     return this.transaction(client => client.query('SELECT gateway_private.acknowledge_retired_image($1::uuid)', [id]));
   }
+  async pruneExports() {
+    return this.transaction(client => client.query('SELECT gateway_private.prune_exports()'));
+  }
   async session(principal) { return this.transaction(client => this.bind(client, principal)); }
   async receiveSubscription(principal, event) {
     return this.transaction(async client => {

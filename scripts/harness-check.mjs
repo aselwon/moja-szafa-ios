@@ -44,6 +44,7 @@ await import('../backend/tests/ai-provider.test.mjs');
 
 await import('../backend/tests/exports.test.mjs');
 await import('../backend/tests/image-retention.test.mjs');
+await import('../backend/tests/export-retention.test.mjs');
 
 await import('../backend/tests/deletion.test.mjs');
 await import('../backend/tests/neon-erasure.test.mjs');
