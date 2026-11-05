@@ -10901,6 +10901,402 @@
           }
         }
       }
+    },
+    "reminders.title": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przypomnienia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminders"
+          }
+        }
+      }
+    },
+    "reminders.explanation": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Włącz przypomnienia lokalne, jeśli chcesz. Powiadomienia mają ogólną treść i nie pokazują nazw ubrań ani zestawów."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on local reminders if you want them. Notifications use generic text and never show garment or outfit names."
+          }
+        }
+      }
+    },
+    "reminders.notificationTitle": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przypomnienie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A gentle reminder"
+          }
+        }
+      }
+    },
+    "reminders.planBody": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź zaplanowane zestawy."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your planned outfits."
+          }
+        }
+      }
+    },
+    "reminders.wearBody": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz Zestawy i potwierdź ręcznie, co masz na sobie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Outfits and confirm manually what you wore."
+          }
+        }
+      }
+    },
+    "reminders.plans": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przypomnienia o zaplanowanych zestawach"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planned outfit reminders"
+          }
+        }
+      }
+    },
+    "reminders.planHour": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Godzina przypomnienia o planie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan reminder time"
+          }
+        }
+      }
+    },
+    "reminders.wear": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przypomnienia o zapisaniu noszenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear logging reminders"
+          }
+        }
+      }
+    },
+    "reminders.wearHour": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Godzina przypomnienia o noszeniu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear reminder time"
+          }
+        }
+      }
+    },
+    "reminders.quiet": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cisza nocna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hours"
+          }
+        }
+      }
+    },
+    "reminders.quietStart": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Początek ciszy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hours start"
+          }
+        }
+      }
+    },
+    "reminders.quietEnd": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koniec ciszy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hours end"
+          }
+        }
+      }
+    },
+    "reminders.invalidQuiet": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Godzina końca musi różnić się od godziny początku."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hours must have different start and end times."
+          }
+        }
+      }
+    },
+    "reminders.timezones": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przypomnienia o planach używają strefy zapisanej przy planie. Cisza nocna używa bieżącej strefy urządzenia. Po zmianie strefy czasowej otwórz aplikację ponownie, aby przeliczyć godziny ciszy. Zmiany planów zapisane lokalnie odświeżają przypomnienia; zmiany na innym urządzeniu pojawią się po ponownym otwarciu aplikacji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan reminders use the time zone saved with each plan. Quiet hours use the device’s current time zone. After changing time zones, reopen the app to update quiet hours. Locally saved plan changes refresh reminders; changes made on another device appear after you reopen the app."
+          }
+        }
+      }
+    },
+    "reminders.horizon": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikacja planuje przypomnienia na kolejne 14 dni, maksymalnie 60 powiadomień. Odświeża je przy otwarciu aplikacji i po lokalnych zmianach planów. Przypomnienie o noszeniu otwiera Zestawy, gdzie ręcznie potwierdzisz zapis."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app schedules reminders for the next 14 days, up to 60 notifications. It refreshes them when you open the app and after local plan changes. A wear reminder opens Outfits so you can confirm the log manually."
+          }
+        }
+      }
+    },
+    "reminders.save": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz ustawienia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save settings"
+          }
+        }
+      }
+    },
+    "reminders.refresh": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odśwież przypomnienia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh reminders"
+          }
+        }
+      }
+    },
+    "reminders.systemSettings": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ustawienia powiadomień urządzenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device notification settings"
+          }
+        }
+      }
+    },
+    "reminders.storage": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać ustawień przypomnień."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save reminder settings."
+          }
+        }
+      }
+    },
+    "reminders.denied": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Powiadomienia są wyłączone. Możesz je włączyć w ustawieniach urządzenia; pozostałe funkcje aplikacji nadal działają."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications are disabled. You can enable them in device settings; the rest of the app still works."
+          }
+        }
+      }
+    },
+    "reminders.failed": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odświeżyć przypomnień. Spróbuj ponownie później."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not refresh reminders. Please try again later."
+          }
+        }
+      }
+    },
+    "reminders.scheduled %lld": {
+      "comment": "T045: opcjonalne lokalne przypomnienia; bez nazw ubrań i zestawów.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaplanowane powiadomienia: %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheduled notifications: %lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

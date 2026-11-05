@@ -83,6 +83,7 @@ struct ProfileEditorView: View {
 }
 
 struct ProfileGateView: View {
+    @EnvironmentObject private var reminders: ReminderModel
     let dependencies: AppDependencies
     private let accountID: UUID
     @State private var model: ProfileModel
@@ -106,7 +107,7 @@ struct ProfileGateView: View {
             } else if !model.saved.onboardingCompleted {
                 NavigationStack { ProfileEditorView(model: model, onboarding: true) }
             } else {
-                AppRootView(dependencies: dependencies, accountID: accountID)
+                AppRootView(dependencies: dependencies, accountID: accountID, reminders: reminders)
                     .safeAreaInset(edge: .top) {
                         Button("profile.title") { showProfile = true }.padding(8)
                     }
@@ -115,6 +116,7 @@ struct ProfileGateView: View {
                             List {
                                 NavigationLink("profile.title") { ProfileEditorView(model: model) }
                                 NavigationLink("privacy.title") { AIPrivacyView(service: dependencies.aiConsent) }
+                                NavigationLink("reminders.title") { ReminderView(model: reminders) }
                                 NavigationLink("export.title") { DataExportView(service: dependencies.dataExports) }
                                 NavigationLink("deletion.title") {
                                     AccountDeletionView(service: dependencies.accountDeletion, accountID: accountID) {
