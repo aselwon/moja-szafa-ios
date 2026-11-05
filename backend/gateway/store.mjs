@@ -26,6 +26,9 @@ export class GatewayStore {
   async pruneTelemetry() {
     return this.transaction(client => client.query('SELECT app.telemetry_prune() AS removed'));
   }
+  async pruneExports() {
+    return this.transaction(client => client.query('SELECT gateway_private.prune_exports()'));
+  }
   async session(principal) { return this.transaction(client => this.bind(client, principal)); }
   async receiveSubscription(principal, event) {
     return this.transaction(async client => {
