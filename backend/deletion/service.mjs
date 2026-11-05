@@ -26,12 +26,12 @@ export class AccountDeletion {
   async tick() {
     const job = await this.store.call('claim', {});
     if (!job) return false;
-    const args = { id: job.id, fence: job.fence };
+    const args = { id: job.id, owner: job.owner, fence: job.fence };
     const controller = new AbortController();
     let timer;
     const step = async action => {
       controller.signal.throwIfAborted();
-      await action({ signal: controller.signal });
+      await action({ signal: controller.signal, job: job.id, fence: job.fence });
       controller.signal.throwIfAborted();
     };
     const cleanup = async () => {
@@ -50,8 +50,10 @@ export class AccountDeletion {
         }, this.timeoutMs);
       })]);
       if (!await this.store.call('finish', args)) throw new Error('lease_lost');
-    } catch {
-      await this.store.call('retry', args);
+    } catch (error) {
+      if (error.message === 'journal_replica_unavailable' && typeof this.store.deferReplica === 'function') {
+        await this.store.deferReplica(args);
+      } else await this.store.call('retry', args);
     } finally {
       clearTimeout(timer);
       controller.abort();

@@ -123,7 +123,7 @@ struct ProfileGateView: View {
                                 NavigationLink("widget.settingsTitle") { WidgetSettingsView(model: widget) }
                                 NavigationLink("export.title") { DataExportView(service: dependencies.dataExports) }
                                 NavigationLink("deletion.title") {
-                                    AccountDeletionView(service: dependencies.accountDeletion, accountID: accountID) {
+                                    AccountDeletionView(service: dependencies.accountDeletion, accountID: accountID, journalURL: dependencies.deletionJournalURL) {
                                         if let offline = dependencies.offline { try await offline.invalidateAccount() }
                                         guard let cleanup = dependencies.deletionCleanup else { throw AuthError.notConfigured }
                                         try await cleanup()

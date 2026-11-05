@@ -40,14 +40,17 @@ export class DataExports {
   async archive(owner, id) {
     if (this.active.has(owner) || this.active.size >= 2) throw new Error('export_unavailable');
     this.active.add(owner);
+    let release;
     try {
+      release = await this.storage.lockOwner?.(owner);
       const archive = await this.buildArchive(owner, id);
       const cleanup = archive.cleanup;
       archive.cleanup = async () => {
-        try { await cleanup(); } finally { this.active.delete(owner); }
+        try { await cleanup(); } finally { await release?.(); this.active.delete(owner); }
       };
       return archive;
     } catch (error) {
+      await release?.();
       this.active.delete(owner);
       throw error;
     }
@@ -56,7 +59,7 @@ export class DataExports {
     const row = await this.command('read', owner, id);
     await this.check(owner, id);
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
-    const directory = await mkdtemp(join(this.directory, 'export-'));
+    const directory = await mkdtemp(join(this.directory, `export-${owner}-`));
     const path = join(directory, 'moja-szafa.tar');
     const cleanup = () => rm(directory, { recursive: true, force: true });
     let file;
@@ -109,7 +112,7 @@ export class DataExports {
     await this.store.call('sweep', {});
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
     for (const name of await readdir(this.directory)) {
-      if (!/^export-[a-zA-Z0-9]+$/.test(name)) continue;
+      if (!/^export-(?:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}-)?[a-zA-Z0-9]+$/.test(name)) continue;
       const path = join(this.directory, name);
       if ((await stat(path)).mtimeMs + 15 * 60_000 <= this.clock()) await rm(path, { recursive: true, force: true });
     }

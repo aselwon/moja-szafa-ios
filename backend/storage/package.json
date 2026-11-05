@@ -1,0 +1,6 @@
+{
+  "name": "szafa-private-storage",
+  "private": true,
+  "type": "module",
+  "dependencies": { "fs-ext": "2.1.1" }
+}
