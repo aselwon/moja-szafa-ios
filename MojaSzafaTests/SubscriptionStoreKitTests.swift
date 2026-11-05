@@ -4,6 +4,20 @@ import StoreKitTest
 
 @MainActor
 final class SubscriptionStoreKitTests: XCTestCase {
+    // CI runs this fixture setup in its own test-host process before the suite.
+    // A fresh simulator can cache the sandbox purchase route at app launch,
+    // before a test creates SKTestSession. Relaunching after provisioning lets
+    // StoreKit select the local configuration before any purchase API is used.
+    // This performs no purchase and does not replace the real purchase test.
+    func testProvisionLocalStoreKitConfiguration() throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "TestProducts", withExtension: "storekit"))
+        let session = try SKTestSession(contentsOf: url)
+        session.resetToDefaultState()
+        session.clearTransactions()
+        session.disableDialogs = true
+        XCTAssertTrue(session.allTransactions().isEmpty)
+    }
+
     func testRealLocalStoreKitProductsPurchaseVerificationAndRestoreScan() async throws {
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "TestProducts", withExtension: "storekit"))
         let session = try SKTestSession(contentsOf: url)
