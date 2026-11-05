@@ -680,3 +680,81 @@ private actor SuspendedSyncRemote: OfflineRemote {
         pending = nil
     }
 }
+
+/// Measures the real SQLite/JSON persistence path, not network or full app launch.
+@MainActor
+final class OfflinePerformanceTests: XCTestCase {
+    func testPersistedThousandGarmentsFiveYearHistoryReopenBaseline() async throws {
+        let account = UUID(uuidString: "59000000-0000-4000-8000-000000000001")!
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = OfflineDatabase(url: directory.appendingPathComponent("benchmark.sqlite"))
+        let garments = (0..<1000).map { index in
+            SyncGarment(id: UUID(uuidString: String(format: "59000001-0000-4000-8000-%012x", index))!,
+                version: 1, deleted: false,
+                fields: APIv1.GarmentFields(name: "Synthetic garment \(index)", category: .top,
+                    priceGrosz: 10000 + Int64(index), availability: .available))
+        }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let start = calendar.date(from: DateComponents(year: 2021, month: 1, day: 1))!
+        let end = calendar.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        let days = calendar.dateComponents([.day], from: start, to: end).day!
+        XCTAssertEqual(days, 1826)
+        let formatter = DateFormatter()
+        formatter.calendar = calendar; formatter.timeZone = calendar.timeZone
+        formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.dateFormat = "yyyy-MM-dd"
+        let wears = (0..<days).map { index in
+            SyncWear(id: UUID(uuidString: String(format: "59000002-0000-4000-8000-%012x", index))!,
+                version: 1, deleted: false,
+                wornOn: formatter.string(from: calendar.date(byAdding: .day, value: index, to: start)!),
+                timezone: "UTC", garmentIDs: (0..<5).map { garments[(index * 5 + $0) % garments.count].id })
+        }
+        let remote = PerformanceSnapshotRemote(value: SyncSnapshot(accountID: account, garments: garments, wears: wears))
+        let initial = try OfflineStore(accountID: account, database: database, remote: remote)
+        try await initial.synchronize()
+        await remote.goOffline()
+        let storedBytes = try XCTUnwrap(database.read()).count
+        XCTAssertGreaterThan(storedBytes, 500_000)
+        let clock = ContinuousClock()
+        var milliseconds: [Double] = []
+        for index in 0..<105 {
+            let started = clock.now
+            let reopened = try OfflineStore(accountID: account, database: database, remote: remote)
+            let snapshot = try await reopened.statisticsSnapshot()
+            let duration = started.duration(to: clock.now).components
+            let elapsed = Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15
+            XCTAssertEqual(snapshot.garments.count, 1000)
+            XCTAssertEqual(snapshot.wears.count, 1826)
+            XCTAssertEqual(snapshot.wears.reduce(0) { $0 + $1.garmentIDs.count }, 9130)
+            XCTAssertTrue(snapshot.cached); XCTAssertFalse(snapshot.pendingChanges)
+            XCTAssertTrue(elapsed.isFinite && elapsed >= 0)
+            if index >= 5 { milliseconds.append(elapsed) }
+        }
+        let sorted = milliseconds.sorted()
+        let report: [String: Any] = ["schemaVersion": 1,
+            "scope": "Warm-filesystem SQLite reopen, JSON decode and cached statistics projection; not app launch or network",
+            "garments": 1000, "historyDays": 1826, "memberships": 9130,
+            "storedJSONBytes": storedBytes, "warmups": 5, "samplesMilliseconds": milliseconds,
+            "p50Milliseconds": sorted[49], "p95Milliseconds": sorted[94], "maxMilliseconds": sorted[99],
+            "os": ProcessInfo.processInfo.operatingSystemVersionString]
+        let data = try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys])
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = "T059-native-persistence-baseline.json"; attachment.lifetime = .keepAlways
+        add(attachment)
+        print("T059_NATIVE_PERFORMANCE " + String(decoding: data, as: UTF8.self))
+    }
+}
+
+private actor PerformanceSnapshotRemote: OfflineRemote {
+    let value: SyncSnapshot
+    private var offline = false
+    init(value: SyncSnapshot) { self.value = value }
+    func goOffline() { offline = true }
+    func snapshot() throws -> SyncSnapshot {
+        if offline { throw URLError(.notConnectedToInternet) }
+        return value
+    }
+    func save(_ operation: APIv1.SaveGarment) throws -> APIv1.GarmentDTO { throw APIClientError.invalidRequest }
+    func save(_ operation: SaveWear) throws -> SyncWear { throw APIClientError.invalidRequest }
+}

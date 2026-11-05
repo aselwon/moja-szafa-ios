@@ -61,9 +61,9 @@ export function imageHandler(pipeline, authenticate, { prefix = '/v1/images', pa
       }
       json(404, { code: 'not_found', message: 'Not found', request_id: requestID });
     } catch (error) {
-      const code = ['image_limit', 'image_rejected', 'image_access_denied'].includes(error.message)
+      const code = ['image_limit', 'image_rejected', 'image_access_denied', 'image_upload_expired'].includes(error.message)
         ? error.message : error instanceof SyntaxError ? 'invalid_request' : 'image_unavailable';
-      const status = { image_limit: 413, image_rejected: 422, image_access_denied: 403, invalid_request: 400, image_unavailable: 503 }[code];
+      const status = { image_upload_expired: 409, image_limit: 413, image_rejected: 422, image_access_denied: 403, invalid_request: 400, image_unavailable: 503 }[code];
       json(status, { code, message: 'Image request could not be completed', request_id: requestID });
     }
   };
