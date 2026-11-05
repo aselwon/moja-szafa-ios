@@ -115,7 +115,7 @@ struct AppDependencies: Sendable {
             if let products = SubscriptionConfiguration.configured() {
                 result.subscriptions = SubscriptionService(configuration: products, accountID: userID,
                     storefront: StoreKitStorefront(configuration: products, accountID: userID),
-                    receiver: UnconfiguredSubscriptionReceiver())
+                    receiver: client)
             }
             result.purchases = client
             result.weather = client

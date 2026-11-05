@@ -101,6 +101,7 @@ for database in "$fresh" "$upgrade"; do
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/telemetry.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/telemetry-gateway.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/operations.sql"
+    psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/apple-subscriptions.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/observability-report.sql"
     psql -X -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/weather-admission.sql"
     bash "$root/tests/ai-runtime-concurrency.sh" "$database"

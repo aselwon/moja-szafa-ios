@@ -2,7 +2,15 @@
   "name": "moja-szafa-gateway",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
-  "scripts": { "start": "node main.mjs", "test": "node --test ../tests/gateway.test.mjs" },
-  "dependencies": { "pg": "8.23.1" }
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node main.mjs",
+    "test": "node --test ../tests/gateway.test.mjs"
+  },
+  "dependencies": {
+    "@apple/app-store-server-library": "3.1.0",
+    "pg": "8.23.1"
+  }
 }

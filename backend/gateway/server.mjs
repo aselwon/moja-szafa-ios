@@ -7,6 +7,7 @@ import { imageHandler } from '../images/http.mjs';
 import { DataExports } from '../exports/service.mjs';
 import { exportHandler } from '../exports/http.mjs';
 import { weatherHandler } from '../weather/http.mjs';
+import { SubscriptionVerificationError } from './subscriptions/verification.mjs';
 
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 async function jsonBody(request, limit = 16384) {
@@ -31,7 +32,7 @@ function sessionDTO(principal) {
   return { userID: principal.owner, accessToken: principal.token, refreshToken: principal.token, expiresAt: principal.expiresAt };
 }
 
-export function createGateway({ auth, store, storage, signingKey, exportDirectory, forecast, metrics, now = () => Date.now() }) {
+export function createGateway({ auth, store, storage, signingKey, exportDirectory, forecast, metrics, subscriptions, now = () => Date.now() }) {
   const context = new AsyncLocalStorage();
   const authenticate = async header => {
     const principal = await auth.current(bearer(header));
@@ -52,6 +53,13 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
   const weather = forecast ? weatherHandler({ authenticate, forecast }) : null;
   // Bounded abuse protection complements managed OTP limits and durable per-email limits.
   const starts = new Map();
+  const subscriptionAttempts = new Map();
+  const admitSubscription = key => {
+    for (const [id, entry] of subscriptionAttempts) if (entry.until <= now()) subscriptionAttempts.delete(id);
+    const entry = subscriptionAttempts.get(key) ?? { count: 0, until: now() + 60000 };
+    if (entry.count >= 60 || (!subscriptionAttempts.has(key) && subscriptionAttempts.size >= 10000)) throw new GatewayError('rate_limited', 429);
+    entry.count++; subscriptionAttempts.set(key, entry);
+  };
   let active = 0;
   const server = createServer((request, response) => context.run({}, async () => {
     const requestID = randomUUID();
@@ -118,6 +126,40 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
         throw new GatewayError('authentication_not_configured', 503);
       }
       if (url.pathname === '/v1/weather' && weather) return await weather(request, response);
+      if (url.pathname === '/v1/subscriptions/apple-notifications' && request.method === 'POST') {
+        if (!subscriptions) throw new GatewayError('subscriptions_unavailable', 503);
+        admitSubscription(`webhook:${request.socket.remoteAddress}`);
+        const body = await jsonBody(request, 35000); fields(body, ['signedPayload']);
+        const event = await subscriptions.notification(body.signedPayload);
+        if (!event.test) await store.receiveSubscription(null, event);
+        // Apple retries unavailable storage; erased identities are intentionally
+        // acknowledged without recreating a profile or retaining the receipt.
+        return send(200, {});
+      }
+      if (url.pathname.startsWith('/v1/subscriptions/')) {
+        const owner = await authenticate(request.headers.authorization);
+        if (!subscriptions) throw new GatewayError('subscriptions_unavailable', 503);
+        const principal = context.getStore().principal;
+        if (request.method === 'GET' && url.pathname === '/v1/subscriptions/catalog') {
+          const catalog = subscriptions.catalog();
+          // Preflight also proves that the subscription schema and narrow role
+          // are available; environment variables alone must not enable charging.
+          await store.subscriptionStatus(principal, catalog.environment);
+          return send(200, catalog);
+        }
+        if (request.method === 'GET' && url.pathname === '/v1/subscriptions/status') {
+          return send(200, { entitlements: await store.subscriptionStatus(principal, subscriptions.catalog().environment) });
+        }
+        if (request.method === 'POST' && url.pathname === '/v1/subscriptions/transactions') {
+          admitSubscription(`account:${owner}`);
+          const body = await jsonBody(request, 35000); fields(body, ['signedTransaction']);
+          const event = await subscriptions.transaction(body.signedTransaction, owner);
+          const result = await store.receiveSubscription(principal, event);
+          if (result?.error) throw new GatewayError('account_unavailable', 401);
+          return send(200, result);
+        }
+        throw new GatewayError('not_found', 404);
+      }
       const rpc = /^\/rest\/v1\/rpc\/(api_v1_[a-z_]+)$/.exec(url.pathname);
       if (rpc && request.method === 'POST') {
         if (!store.operations.has(rpc[1])) throw new GatewayError('not_found', 404);
@@ -134,7 +176,7 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
     } catch (error) {
       if (response.headersSent) response.destroy();
       else {
-        const safe = error instanceof GatewayError;
+        const safe = error instanceof GatewayError || error instanceof SubscriptionVerificationError;
         send(safe ? error.status : 503, { error: { code: safe ? error.code : 'service_unavailable',
           message: 'Request could not be completed', request_id: requestID } });
       }
