@@ -32,6 +32,7 @@ jobs:
           node --test scripts/select-ios-simulator.test.mjs
           python3 -m unittest discover -s scripts -p 'test_clone_ios_simulator.py'
           python3 -m unittest discover -s scripts -p 'test_bounded_command.py'
+          python3 -m unittest discover -s scripts -p 'test_summarize_performance.py'
           node scripts/harness-check.mjs
 
   ios:
