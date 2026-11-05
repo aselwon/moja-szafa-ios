@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/gateway/package-lock.json
+      - name: Install operations panel dependencies
+        run: npm ci --prefix backend/operations --ignore-scripts --no-audit --no-fund
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -36,6 +38,7 @@ jobs:
           node --test scripts/select-ios-simulator.test.mjs
           python3 -m unittest discover -s scripts -p 'test_clone_ios_simulator.py'
           python3 -m unittest discover -s scripts -p 'test_bounded_command.py'
+          python3 -m unittest discover -s scripts -p 'test_summarize_performance.py'
           node scripts/harness-check.mjs
 
   ios:
@@ -276,12 +279,15 @@ jobs:
           node-version: 22
       - name: Install pinned gateway database driver
         run: npm ci --prefix backend/gateway --ignore-scripts --no-audit --no-fund
+      - name: Install operations panel dependencies
+        run: npm ci --prefix backend/operations --ignore-scripts --no-audit --no-fund
       - name: Test backend migrations when present
         shell: bash
         run: |
           if [[ -f backend/tests/run-tests.sh ]]; then
             bash backend/tests/run-tests.sh
             GATEWAY_PG_TESTS=1 node --test backend/gateway/postgres.test.mjs
+            OPS_PG_TESTS=1 node --test backend/operations/postgres.test.mjs
           else
             echo 'Testy migracji powstaną w T008 (backend/tests/run-tests.sh).'
           fi

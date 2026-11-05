@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moja Szafa · Operations</title><link rel="stylesheet" href="/panel.css"><script src="/panel.js" defer></script></head>
+<body><header><p class="eyebrow">MOJA SZAFA</p><h1>Operations</h1><p>Service health, workload and support. Private wardrobe photos are never available here.</p></header>
+<main><div class="toolbar"><button id="refresh" type="button">Refresh overview</button><span id="updated"></span></div>
+<p id="notice" role="status" aria-live="polite">Loading…</p>
+<section><h2>Service health</h2><div id="health" class="cards"></div></section>
+<section><h2>Work queues</h2><div id="queues"></div></section>
+<section><h2>AI usage and estimated cost</h2><div id="cost"></div><p>Call credits are usage limits, not a dollar spending cap. Unknown usage is not zero.</p></section>
+<section><h2>AI controls</h2><div id="policySummary"></div>
+<form id="policyForm" hidden>
+<label><input type="checkbox" id="aiEnabled"> Enable text AI</label>
+<label><input type="checkbox" id="imageEnabled"> Enable image AI</label>
+<label>Daily global call credits <input id="globalUnits" type="number" min="1" required></label>
+<label>Daily call credits per account <input id="userUnits" type="number" min="1" required></label>
+<p id="ceilings"></p><button type="submit">Review and save controls</button></form></section>
+<section id="supportSection" hidden><h2>Support requests</h2><p>Only deliberately submitted support text is shown. No impersonation or wardrobe access.</p>
+<button id="supportLoad" type="button">Load recent requests</button><div id="support"></div><div id="supportDetail"></div></section>
+<section id="auditSection" hidden><h2>Audit history</h2><button id="auditLoad" type="button">Load recent audit events</button><div id="audit"></div></section>
+</main><footer>Access requires recent multi-factor sign-in and an assigned operator role. Every accepted control change is recorded atomically.</footer></body></html>
