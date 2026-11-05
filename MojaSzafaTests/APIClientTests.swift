@@ -2,6 +2,58 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testImportedMetadataSurvivesDurableOperationEncoding() throws {
+        var fields = APIv1.GarmentFields(name: "Blue shirt", category: .top, priceGrosz: 4500, availability: .available)
+        fields.metadata = .init(colors: ["blue"], seasons: ["summer"], pattern: nil,
+                                formality: 2, brand: "Example", purchasedOn: "2026-01-01")
+        let original = APIv1.SaveGarment(operationID: UUID(), garmentID: UUID(), baseVersion: nil, garment: fields)
+        let encoded = try JSONEncoder().encode(original)
+        let restored = try JSONDecoder().decode(APIv1.SaveGarment.self, from: encoded)
+        XCTAssertEqual(restored.operationID, original.operationID)
+        XCTAssertEqual(restored.garment, original.garment)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        let garment = try XCTUnwrap(object["garment"] as? [String: Any])
+        let metadata = try XCTUnwrap(garment["metadata"] as? [String: Any])
+        XCTAssertTrue(metadata["pattern"] is NSNull)
+        XCTAssertEqual(metadata["purchased_on"] as? String, "2026-01-01")
+    }
+
+    func testWardrobeUploadUsesStableIdentityAndRejectsForeignURLOrAcknowledgement() async throws {
+        let garmentID = UUID(), imageID = UUID()
+        let bytes = Data([1, 2, 3])
+        for mode in ["success", "foreign-url", "wrong-ack"] {
+            let transport = ImportPhotoTransport(garmentID: garmentID, imageID: imageID, bytes: bytes, mode: mode)
+            do {
+                try await client(transport).uploadGarmentPhoto(garmentID: garmentID, imageID: imageID, data: bytes)
+                XCTAssertEqual(mode, "success")
+            } catch {
+                XCTAssertNotEqual(mode, "success")
+                XCTAssertEqual(error as? APIClientError, .invalidResponse)
+            }
+            let count = await transport.putCount
+            XCTAssertEqual(count, mode == "foreign-url" ? 0 : 1)
+        }
+    }
+    func testSubscriptionStatusPreservesServerStateAndRejectsForeignOrMalformedChains() async throws {
+        let configuration = try XCTUnwrap(SubscriptionConfiguration(monthlyID: "test.monthly", yearlyID: "test.yearly"))
+        let environment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String
+        let item: [String: Any] = ["productID": "test.monthly", "originalTransactionID": "7",
+            "environment": environment == "prod" ? "production" : "sandbox", "status": "revoked",
+            "expiresAt": "2070-01-01T00:00:00.123+00:00", "graceExpiresAt": NSNull()]
+        func body(_ items: [[String: Any]]) throws -> Data { try JSONSerialization.data(withJSONObject: ["entitlements": items]) }
+        let data = try body([item])
+        let values = try await client(SubscriptionStatusTransport(body: data)).entitlements(configuration: configuration)
+        XCTAssertEqual(values.count, 1); XCTAssertEqual(values[0].status, .revoked, "Future expiry must not override the server's revocation")
+        XCTAssertNil(values[0].graceExpiresAt)
+        for (key, value) in [("productID", "foreign.product"), ("originalTransactionID", "007"),
+                             ("environment", "Xcode"), ("status", "paid_unlimited"), ("expiresAt", "not-a-date"), ("graceExpiresAt", "not-a-date")] {
+            var wrong = item; wrong[key] = value
+            do { _ = try await client(FixedTransport(body: body([wrong]), status: 200)).entitlements(configuration: configuration); XCTFail("Invalid entitlement accepted") }
+            catch { XCTAssertEqual(error as? APIClientError, .invalidResponse) }
+        }
+        do { _ = try await client(FixedTransport(body: body([item, item]), status: 200)).entitlements(configuration: configuration); XCTFail("Duplicate chain accepted") }
+        catch { XCTAssertEqual(error as? APIClientError, .invalidResponse) }
+    }
     func testSubscriptionPreflightRequiresMatchingServerCatalogAndBuildEnvironment() async throws {
         let configuration = try XCTUnwrap(SubscriptionConfiguration(monthlyID: "test.monthly", yearlyID: "test.yearly"))
         let environment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String
@@ -161,6 +213,17 @@ final class APIClientTests: XCTestCase {
     }
 }
 
+private actor SubscriptionStatusTransport: APITransport {
+    let body: Data
+    init(body: Data) { self.body = body }
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        XCTAssertEqual(request.url?.path, "/v1/subscriptions/status")
+        XCTAssertEqual(request.httpMethod, "GET"); XCTAssertNil(request.httpBody); XCTAssertNil(request.url?.query)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-only-token")
+        return (body, response(request))
+    }
+}
+
 private actor SubscriptionReceiptTransport: APITransport {
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         XCTAssertEqual(request.url?.path, "/v1/subscriptions/transactions")
@@ -264,5 +327,35 @@ private actor JobStatusTransport: APITransport {
             "status": requests == 1 ? "running" : "succeeded", "attempts": 2, "error_code": NSNull()]],
             "next_cursor": NSNull()]
         return (try JSONSerialization.data(withJSONObject: ["data": page, "request_id": UUID().uuidString]), response(request))
+    }
+}
+
+private actor ImportPhotoTransport: APITransport {
+    let garmentID: UUID
+    let imageID: UUID
+    let bytes: Data
+    let mode: String
+    private(set) var putCount = 0
+    init(garmentID: UUID, imageID: UUID, bytes: Data, mode: String) {
+        self.garmentID = garmentID; self.imageID = imageID; self.bytes = bytes; self.mode = mode
+    }
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        XCTAssertEqual(request.url?.host, "example.invalid")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-only-token")
+        let body: [String: String]
+        if request.httpMethod == "POST" {
+            XCTAssertEqual(request.url?.path, "/v1/images/uploads")
+            let input = try JSONDecoder().decode([String: String].self, from: XCTUnwrap(request.httpBody))
+            XCTAssertEqual(input, ["garment_id": garmentID.uuidString.lowercased(), "operation_id": imageID.uuidString.lowercased()])
+            let path = "/v1/images/uploads/\(imageID.uuidString.lowercased())?token=test-upload"
+            body = ["image_id": imageID.uuidString, "upload_url": mode == "foreign-url" ? "https://foreign.invalid" + path : path]
+        } else {
+            putCount += 1
+            XCTAssertEqual(request.httpMethod, "PUT")
+            XCTAssertEqual(request.url?.path, "/v1/images/uploads/\(imageID.uuidString.lowercased())")
+            XCTAssertEqual(request.httpBody, bytes)
+            body = ["image_id": (mode == "wrong-ack" ? UUID() : imageID).uuidString]
+        }
+        return (try JSONEncoder().encode(body), try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200, httpVersion: nil, headerFields: nil)))
     }
 }

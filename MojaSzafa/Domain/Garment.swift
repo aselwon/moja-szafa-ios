@@ -114,6 +114,7 @@ extension GarmentDetail {
 }
 
 protocol WardrobeRepository: Sendable {
+    func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws
     func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail
     func statisticsSnapshot() async throws -> StatisticsSnapshot
     func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail
@@ -127,6 +128,7 @@ protocol WardrobeRepository: Sendable {
 }
 
 extension WardrobeRepository {
+    func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws { throw RepositoryError.backendNotConfigured }
     func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func statisticsSnapshot() async throws -> StatisticsSnapshot { throw RepositoryError.backendNotConfigured }
     func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }

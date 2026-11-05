@@ -143,6 +143,7 @@ struct DeleteGarment: Codable, Sendable {
 }
 
 protocol OfflineRemote: Sendable {
+    func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws
     func visibility(_ operation: WearVisibility) async throws -> SyncWear
     func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment
     func delete(_ operation: DeleteGarment) async throws
@@ -153,6 +154,7 @@ protocol OfflineRemote: Sendable {
 }
 
 extension OfflineRemote {
+    func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws { throw RepositoryError.backendNotConfigured }
     func visibility(_ operation: WearVisibility) async throws -> SyncWear { throw RepositoryError.backendNotConfigured }
     func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment { throw RepositoryError.backendNotConfigured }
     func delete(_ operation: DeleteGarment) async throws { throw RepositoryError.backendNotConfigured }
@@ -204,6 +206,7 @@ actor OfflineStore: WardrobeRepository {
         let id: UUID
         let garment: APIv1.SaveGarment?
         let wear: SaveWear?
+        var photoID: UUID? = nil
         var deletion: DeleteGarment? = nil
         var initialHistory: SaveInitialHistory? = nil
         var visibility: WearVisibility? = nil
@@ -299,6 +302,10 @@ actor OfflineStore: WardrobeRepository {
     }
     private func readImage(id: UUID, original: Bool) async throws -> Data {
         try requireActive()
+        if state.garments.contains(where: { !$0.deleted && $0.metadata?.imageID == id }),
+           FileManager.default.fileExists(atPath: importPhotoURL(id).path) {
+            return try PhotoProcessor.read(importPhotoURL(id))
+        }
         let data = try await remote.image(id: id, original: original)
         try requireActive()
         return data
@@ -337,6 +344,10 @@ actor OfflineStore: WardrobeRepository {
         next.outbox.insert(Pending(id: operation.operationID, garment: nil, wear: nil, deletion: operation), at: 0)
         scrubDeletedMembership(&next)
         try commit(next)
+        if let photoID = item.metadata?.imageID {
+            let file = importPhotoURL(photoID)
+            if FileManager.default.fileExists(atPath: file.path) { try FileManager.default.removeItem(at: file) }
+        }
     }
 
     // Never change bytes of a previously sent wear. Block its replay for explicit
@@ -398,6 +409,44 @@ actor OfflineStore: WardrobeRepository {
         try merge(snapshot)
     }
 
+    private var importPhotoDirectory: URL {
+        database.url.appendingPathExtension("images")
+    }
+    private func importPhotoURL(_ id: UUID) -> URL {
+        importPhotoDirectory.appendingPathComponent(id.uuidString).appendingPathExtension("image")
+    }
+
+    /// Accept the garment and its immutable photo into the account's durable
+    /// outbox before returning. Network availability never gates local creation.
+    func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws {
+        try requireActive()
+        try operation.validate()
+        guard operation.baseVersion == nil, !image.isEmpty, image.count <= PhotoProcessor.maxBytes else {
+            throw APIClientError.invalidRequest
+        }
+        if let existing = state.garments.first(where: { $0.id == operation.garmentID }) {
+            guard !existing.deleted, existing.metadata?.imageID == operation.operationID else { throw OfflineError.conflict }
+            return // Local commit succeeded before the import screen's cleanup/restart.
+        }
+        guard !state.outbox.contains(where: { $0.id == operation.operationID }) else { throw OfflineError.conflict }
+        try FileManager.default.createDirectory(at: importPhotoDirectory, withIntermediateDirectories: true,
+                                               attributes: [.posixPermissions: 0o700])
+        var directory = importPhotoDirectory
+        var values = URLResourceValues(); values.isExcludedFromBackup = true
+        try directory.setResourceValues(values)
+        let file = importPhotoURL(operation.operationID)
+        try image.write(to: file, options: [.atomic, .completeFileProtection])
+        let fields = operation.garment
+        var next = state
+        next.garments.append(SyncGarment(id: operation.garmentID, version: 0, deleted: false, fields: fields,
+            metadata: Garment(id: operation.garmentID, name: fields.name, category: fields.category,
+                availability: fields.availability, priceGrosz: fields.priceGrosz, imageID: operation.operationID,
+                brand: fields.metadata?.brand, colors: fields.metadata?.colors ?? [], seasons: fields.metadata?.seasons ?? [])))
+        next.outbox.append(Pending(id: operation.operationID, garment: operation, wear: nil, photoID: operation.operationID))
+        do { try commit(next) }
+        catch { try? FileManager.default.removeItem(at: file); throw error }
+    }
+
     @discardableResult
     func saveGarment(id: UUID = UUID(), fields: APIv1.GarmentFields) throws -> UUID {
         try requireActive()
@@ -408,12 +457,14 @@ actor OfflineStore: WardrobeRepository {
         let previous = state.garments.first { $0.id == id }
         guard previous?.deleted != true else { throw OfflineError.conflict }
         let base = queued != nil ? queued?.garment?.baseVersion : previous?.version
-        let operation = APIv1.SaveGarment(operationID: queued?.id ?? UUID(), garmentID: id, baseVersion: base, garment: fields)
+        var mergedFields = fields
+        if mergedFields.metadata == nil { mergedFields.metadata = queued?.garment?.garment.metadata }
+        let operation = APIv1.SaveGarment(operationID: queued?.id ?? UUID(), garmentID: id, baseVersion: base, garment: mergedFields)
         var next = state
         next.garments.removeAll { $0.id == id }
-        next.garments.append(SyncGarment(id: id, version: previous?.version ?? 0, deleted: false, fields: fields, metadata: previous?.metadata))
+        next.garments.append(SyncGarment(id: id, version: previous?.version ?? 0, deleted: false, fields: mergedFields, metadata: previous?.metadata))
         next.outbox.removeAll { $0.id == operation.operationID }
-        next.outbox.append(Pending(id: operation.operationID, garment: operation, wear: nil))
+        next.outbox.append(Pending(id: operation.operationID, garment: operation, wear: nil, photoID: queued?.photoID))
         try commit(next)
         return id
     }
@@ -544,6 +595,9 @@ actor OfflineStore: WardrobeRepository {
         var next = State(accountID: state.accountID)
         next.deleted = true
         try commit(next)
+        if FileManager.default.fileExists(atPath: importPhotoDirectory.path) {
+            try FileManager.default.removeItem(at: importPhotoDirectory)
+        }
     }
 
     /// Explicit conflict resolution. Retaining local fields creates a NEW intent
@@ -627,6 +681,12 @@ actor OfflineStore: WardrobeRepository {
                     } else if let operation = pending.garment {
                         let dto = try await remote.save(operation)
                         try requireActive()
+                        if state.garments.contains(where: { $0.id == dto.id && $0.deleted }) { continue }
+                        if let photoID = pending.photoID {
+                            let image = try PhotoProcessor.read(importPhotoURL(photoID))
+                            try await remote.uploadGarmentPhoto(garmentID: operation.garmentID, imageID: photoID, data: image)
+                            try requireActive()
+                        }
                         var next = state
                         if next.garments.contains(where: { $0.id == dto.id && $0.deleted }) { continue }
                         next.garments.removeAll { $0.id == dto.id }

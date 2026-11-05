@@ -28,8 +28,30 @@ actor StoreKitStorefront: SubscriptionStorefront {
                     || (expected == .year && subscription.subscriptionPeriod.unit == .year) else {
                 throw SubscriptionError.invalidProducts
             }
+            var introductoryOffer: SubscriptionIntroductoryOffer?
+            if let offer = subscription.introductoryOffer, await subscription.isEligibleForIntroOffer {
+                let mode: SubscriptionIntroductoryOffer.Mode
+                switch offer.paymentMode {
+                case .freeTrial: mode = .freeTrial
+                case .payAsYouGo: mode = .payAsYouGo
+                case .payUpFront: mode = .payUpFront
+                default: throw SubscriptionError.invalidProducts
+                }
+                let unit: SubscriptionIntroductoryOffer.Unit
+                switch offer.period.unit {
+                case .day: unit = .day
+                case .week: unit = .week
+                case .month: unit = .month
+                case .year: unit = .year
+                @unknown default: throw SubscriptionError.invalidProducts
+                }
+                introductoryOffer = SubscriptionIntroductoryOffer(mode: mode, displayPrice: offer.displayPrice,
+                    unit: unit, value: offer.period.value, periodCount: offer.periodCount)
+                guard introductoryOffer != nil else { throw SubscriptionError.invalidProducts }
+            }
             result.append(SubscriptionProduct(id: product.id, name: product.displayName,
-                displayPrice: product.displayPrice, period: expected, groupID: subscription.subscriptionGroupID))
+                displayPrice: product.displayPrice, period: expected, groupID: subscription.subscriptionGroupID,
+                introductoryOffer: introductoryOffer))
         }
         guard Set(result.map(\.groupID)).count == 1 else { throw SubscriptionError.invalidProducts }
         catalog = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })

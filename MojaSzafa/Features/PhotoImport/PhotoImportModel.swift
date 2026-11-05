@@ -66,7 +66,7 @@ final class PhotoImportModel: ObservableObject {
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             drafts = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-                .filter { $0.pathExtension == "jpg" }
+                .filter { $0.pathExtension == "jpg" && !FileManager.default.fileExists(atPath: $0.deletingPathExtension().appendingPathExtension("completed").path) }
                 .compactMap { url in
                     UUID(uuidString: url.deletingPathExtension().lastPathComponent).map {
                         Draft(id: $0, status: "import.ready", file: url,
@@ -116,7 +116,7 @@ final class PhotoImportModel: ObservableObject {
 
     /// Atomic replacement leaves the previous selection intact if storage fails.
     func acceptEdit(_ data: Data, for id: UUID) -> Bool {
-        guard !running, let index = drafts.firstIndex(where: { $0.id == id }),
+        guard !running, !hasPendingImport(id), let index = drafts.firstIndex(where: { $0.id == id }),
               let original = drafts[index].file else { return false }
         let destination = original.deletingPathExtension().appendingPathExtension("png")
         do {
@@ -162,8 +162,54 @@ final class PhotoImportModel: ObservableObject {
         try JSONEncoder().encode(value).write(to: url, options: [.atomic, .completeFileProtection])
     }
 
+    func commitGarmentValue(_ value: GarmentFormValue, for id: UUID,
+                            repository: any WardrobeRepository) async throws {
+        guard !running, let draft = drafts.first(where: { $0.id == id }), let file = draft.displayFile else {
+            throw PhotoImportError.invalidImage
+        }
+        var fields = APIv1.GarmentFields(name: value.name, category: value.category,
+                                        priceGrosz: value.priceGrosz, availability: .available)
+        fields.metadata = .init(colors: value.colors, seasons: value.seasons, pattern: value.pattern,
+                                formality: value.formality, brand: value.brand, purchasedOn: value.purchasedOn)
+        let intent = directory.appendingPathComponent(id.uuidString).appendingPathExtension("intent")
+        let photo = directory.appendingPathComponent(id.uuidString).appendingPathExtension("upload")
+        let operation: APIv1.SaveGarment
+        if FileManager.default.fileExists(atPath: intent.path) {
+            operation = try JSONDecoder().decode(APIv1.SaveGarment.self, from: Data(contentsOf: intent))
+            guard operation.garmentID == id, operation.garment == fields else { throw OfflineError.pendingChange }
+        } else {
+            operation = APIv1.SaveGarment(operationID: UUID(), garmentID: id, baseVersion: nil, garment: fields)
+            // Freeze the bytes before persisting the intent; subsequent retries cannot
+            // accidentally publish a newly edited image under an already-used ID.
+            try PhotoProcessor.read(file).write(to: photo, options: [.atomic, .completeFileProtection])
+            try saveGarmentValue(value, for: id)
+            try JSONEncoder().encode(operation).write(to: intent, options: [.atomic, .completeFileProtection])
+        }
+        running = true
+        defer { running = false }
+        try await repository.importGarment(operation, image: PhotoProcessor.read(photo))
+        // The durable wardrobe owns the data now. A cleanup crash must not
+        // resurrect a draft or enqueue another garment.
+        let completed = directory.appendingPathComponent(id.uuidString).appendingPathExtension("completed")
+        try Data().write(to: completed, options: [.atomic, .completeFileProtection])
+        var cleanupSucceeded = true
+        for suffix in ["jpg", "png", "recognition", "json", "upload", "intent"] {
+            let file = directory.appendingPathComponent(id.uuidString).appendingPathExtension(suffix)
+            if FileManager.default.fileExists(atPath: file.path) {
+                do { try FileManager.default.removeItem(at: file) }
+                catch { cleanupSucceeded = false }
+            }
+        }
+        if cleanupSucceeded { try? FileManager.default.removeItem(at: completed) }
+        drafts.removeAll { $0.id == id }
+    }
+
+    func hasPendingImport(_ id: UUID) -> Bool {
+        FileManager.default.fileExists(atPath: directory.appendingPathComponent(id.uuidString).appendingPathExtension("intent").path)
+    }
+
     func remove(_ id: UUID) {
-        guard !running, let draft = drafts.first(where: { $0.id == id }) else { return }
+        guard !running, !hasPendingImport(id), let draft = drafts.first(where: { $0.id == id }) else { return }
         do {
             let metadata = directory.appendingPathComponent(id.uuidString).appendingPathExtension("json")
             if FileManager.default.fileExists(atPath: metadata.path) { try FileManager.default.removeItem(at: metadata) }

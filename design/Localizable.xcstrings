@@ -5037,13 +5037,13 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zapisz dane w szkicu na tym urządzeniu. Szkic nie jest jeszcze ubraniem w szafie."
+            "value": "Sprawdź dane przed dodaniem ubrania i zdjęcia do swojej szafy."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save details in a draft on this device. The draft is not yet a wardrobe item."
+            "value": "Review the details before adding the garment and photo to your wardrobe."
           }
         }
       },
@@ -11657,6 +11657,436 @@
           }
         }
       }
+    },
+    "subscriptions.currentPlan": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bieżąca subskrypcja"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current subscription"
+          }
+        }
+      }
+    },
+    "subscriptions.statusUnavailable": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status subskrypcji jest chwilowo niedostępny."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscription status is temporarily unavailable."
+          }
+        }
+      }
+    },
+    "subscriptions.statusEmpty": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak subskrypcji potwierdzonej przez serwer."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No subscription confirmed by the server."
+          }
+        }
+      }
+    },
+    "subscriptions.status.active": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktywna"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        }
+      }
+    },
+    "subscriptions.status.grace_period": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktywna w okresie karencji płatności"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active during the billing grace period"
+          }
+        }
+      }
+    },
+    "subscriptions.status.billing_retry": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płatność wymaga sprawdzenia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment needs attention"
+          }
+        }
+      }
+    },
+    "subscriptions.status.expired": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wygasła"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        }
+      }
+    },
+    "subscriptions.status.revoked": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofnięta lub zwrócona"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoked or refunded"
+          }
+        }
+      }
+    },
+    "subscriptions.expires": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koniec okresu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Period ends"
+          }
+        }
+      }
+    },
+    "subscriptions.graceExpires": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koniec okresu karencji"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grace period ends"
+          }
+        }
+      }
+    },
+    "subscriptions.offer.freeTrial %@": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezpłatny okres próbny: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free trial: %@"
+          }
+        }
+      }
+    },
+    "subscriptions.offer.upfront %@ %@": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Płatność w ofercie początkowej: %@ za %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introductory payment: %@ for %@"
+          }
+        }
+      }
+    },
+    "subscriptions.offer.payAsYouGo %@ %@ %lld": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena początkowa: %@ co %@ przez %lld płatności"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introductory price: %@ every %@ for %lld payments"
+          }
+        }
+      }
+    },
+    "subscriptions.renewal.month %@": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena odnowienia po ewentualnej ofercie początkowej: %@ miesięcznie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renewal price after any introductory offer: %@ per month"
+          }
+        }
+      }
+    },
+    "subscriptions.renewal.year %@": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cena odnowienia po ewentualnej ofercie początkowej: %@ rocznie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renewal price after any introductory offer: %@ per year"
+          }
+        }
+      }
+    },
+    "subscriptions.renewalDisclosure": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subskrypcje odnawiają się automatycznie. Zarządzaj nimi lub anuluj je na koncie Apple. Usunięcie aplikacji lub konta nie anuluje płatności Apple."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscriptions renew automatically. Manage or cancel them in your Apple account. Deleting the app or your account does not cancel Apple billing."
+          }
+        }
+      }
+    },
+    "subscriptions.dataRetained": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utrata dostępu z subskrypcji nie usuwa szafy ani nie blokuje eksportu danych."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Losing subscription access does not delete your wardrobe or block data export."
+          }
+        }
+      }
+    },
+    "subscriptions.privacy": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polityka prywatności"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy"
+          }
+        }
+      }
+    },
+    "subscriptions.terms": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warunki korzystania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of use"
+          }
+        }
+      }
+    },
+    "subscriptions.manage": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zarządzaj subskrypcjami w Apple"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage subscriptions in Apple"
+          }
+        }
+      }
+    },
+    "subscriptions.close": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamknij"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "subscriptions.legalMissing": {
+      "comment": "T051: zlokalizowany tekst interfejsu subskrypcji.",
+      "extractionState": "manual",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowe zakupy są chwilowo niedostępne. Nadal możesz przywrócić istniejące subskrypcje lub nimi zarządzać."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New purchases are temporarily unavailable. You can still restore or manage existing subscriptions."
+          }
+        }
+      }
+    },
+    "import.pendingSave": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapis oczekuje. Ponów, aby dokończyć dodawanie; dane i zdjęcie są zachowane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This save is pending. Retry to finish adding this item; its details and photo are preserved."
+          }
+        }
+      },
+      "comment": "Import form: immutable pending save after a network failure; retry preserves garment identity."
+    },
+    "import.saveFailed": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się dokończyć zapisu. Rzecz została zachowana tutaj; ponów po połączeniu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not finish saving. Your item is kept here; retry when connected."
+          }
+        }
+      },
+      "comment": "Import form: saving failed, retained local draft can be retried."
     }
   },
   "version": "1.0"
