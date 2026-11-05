@@ -39,7 +39,7 @@ credentials and customer data belong in approved private systems, not this file.
 4. `backend/migrate.sh` applies selected pending migrations in one transaction,
    takes an advisory lock, records SHA-256 checksums, skips unchanged applied
    migrations, and rejects a changed historical checksum. The current snapshot
-   defaults to target `031`; an explicit lower target does not roll back newer
+   defaults to target `032`; an explicit lower target does not roll back newer
    applied versions. Run the reviewed command only from the approved operator
    context, using the normal protected libpq configuration (never a URL in the
    command line). No destructive down migration exists.
