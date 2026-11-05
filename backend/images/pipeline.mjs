@@ -86,6 +86,7 @@ export class ImagePipeline {
     if (![identity, garment, operation].every(uuid)) fail();
     const row = await this.store.call('prepare', { owner: identity, garment, id: operation, has_cleaned: hasCleaned });
     if (!row) fail();
+    if (row.expired === true) throw new Error('image_upload_expired');
     return { image_id: row.id, upload_token: this.sign(identity, row.id, 'upload'), expires_in: 60,
       max_bytes: hasCleaned ? MAX_PAIR_BYTES : MAX_BYTES, content_types: hasCleaned ? [PAIR_CONTENT_TYPE] : ['image/jpeg', 'image/png', 'image/webp'] };
   }
