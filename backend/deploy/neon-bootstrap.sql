@@ -10,6 +10,15 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='service_role') THEN CREATE ROLE service_role NOLOGIN; END IF;
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='szafa_gateway') THEN CREATE ROLE szafa_gateway NOLOGIN NOINHERIT; END IF;
 END $$;
+
+-- Reapply after migration 026. Only the gateway verifies Apple signatures;
+-- authenticated clients never receive either privileged function grant.
+DO $$ BEGIN
+ IF to_regprocedure('app.apple_subscription_receive(jsonb)') IS NOT NULL THEN
+  GRANT USAGE ON SCHEMA app TO szafa_gateway;
+  GRANT EXECUTE ON FUNCTION app.apple_subscription_receive(jsonb),app.apple_subscription_status(uuid,text) TO szafa_gateway;
+ END IF;
+END $$;
 GRANT authenticated TO szafa_gateway;
 CREATE SCHEMA IF NOT EXISTS auth;
 REVOKE ALL ON SCHEMA auth FROM PUBLIC;

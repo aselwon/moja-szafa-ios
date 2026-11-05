@@ -2,6 +2,39 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testSubscriptionPreflightRequiresMatchingServerCatalogAndBuildEnvironment() async throws {
+        let configuration = try XCTUnwrap(SubscriptionConfiguration(monthlyID: "test.monthly", yearlyID: "test.yearly"))
+        let environment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String
+        let catalog: [String: Any] = ["available": true, "bundleID": try XCTUnwrap(Bundle.main.bundleIdentifier),
+            "environment": environment == "prod" ? "production" : "sandbox", "monthlyProductID": "test.monthly", "yearlyProductID": "test.yearly"]
+        try await client(FixedTransport(body: JSONSerialization.data(withJSONObject: catalog), status: 200)).preparePurchase(configuration: configuration)
+        for (key, value) in [("available", false as Any), ("bundleID", "foreign.app" as Any),
+                             ("environment", "Xcode" as Any), ("monthlyProductID", "foreign.product" as Any)] {
+            var wrong = catalog; wrong[key] = value
+            do {
+                try await client(FixedTransport(body: JSONSerialization.data(withJSONObject: wrong), status: 200)).preparePurchase(configuration: configuration)
+                XCTFail("Mismatched subscription catalog accepted")
+            } catch { XCTAssertEqual(error as? SubscriptionError, .serverUnavailable) }
+        }
+    }
+    func testSubscriptionReceiptUsesAuthenticatedBodyAndExactServerAcknowledgement() async throws {
+        let transport = SubscriptionReceiptTransport()
+        let receipt = VerifiedStoreTransaction(id: 7, originalID: 7, productID: "test.monthly", accountToken: UUID(), signedRepresentation: "synthetic-signed-receipt")
+        let acknowledgement = try await client(transport).receive(receipt)
+        XCTAssertEqual(acknowledgement.transactionID, 7)
+        for id in ["8", "007", "-7", "18446744073709551616"] {
+            let body = try JSONSerialization.data(withJSONObject: ["transactionID": id])
+            do { _ = try await client(FixedTransport(body: body, status: 200)).receive(receipt); XCTFail("Wrong acknowledgement accepted") }
+            catch { XCTAssertEqual(error as? SubscriptionError, .invalidAcknowledgement) }
+        }
+    }
+    func testSubscriptionUnavailableBackendNeverAcknowledgesReceipt() async throws {
+        let receipt = VerifiedStoreTransaction(id: 7, originalID: 7, productID: "test.monthly", accountToken: UUID(), signedRepresentation: "synthetic-signed-receipt")
+        for status in [401, 403, 422, 503] {
+            do { _ = try await client(FixedTransport(body: Data(), status: status)).receive(receipt); XCTFail("Rejected receipt acknowledged") }
+            catch { XCTAssertEqual(error as? APIClientError, .http(status: status, requestID: nil)) }
+        }
+    }
     func testGarmentDeletionUsesCanonicalGatewayRPCPath() async throws {
         let operation = DeleteGarment(operationID: UUID(), garmentID: UUID())
         try await client(DeletionTransport(operation: operation)).delete(operation)
@@ -125,6 +158,18 @@ final class APIClientTests: XCTestCase {
     func testRejectsInsecureConfiguration() throws {
         XCTAssertThrowsError(try APIClient(baseURL: XCTUnwrap(URL(string: "http://example.invalid")),
             transport: FixedTransport(body: Data(), status: 200), accessToken: { "test" }))
+    }
+}
+
+private actor SubscriptionReceiptTransport: APITransport {
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        XCTAssertEqual(request.url?.path, "/v1/subscriptions/transactions")
+        XCTAssertNil(request.url?.query)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-only-token")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: String])
+        XCTAssertEqual(body, ["signedTransaction": "synthetic-signed-receipt"])
+        return (Data("{\"transactionID\":\"7\"}".utf8), response(request))
     }
 }
 

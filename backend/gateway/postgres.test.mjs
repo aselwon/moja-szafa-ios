@@ -64,6 +64,23 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   const own=await call('api_v1_list_garments',{limit:20,cursor:null});
   const foreign=await call('api_v1_list_garments',{limit:20,cursor:null},tokenB);
   assert(JSON.stringify(own.body).includes(garment)); assert(!JSON.stringify(foreign.body).includes(garment));
+  const signedAt = Date.now();
+  const verifiedSubscription = { source: 'transaction', eventID: randomUUID(), digest: 'a'.repeat(64),
+    eventType: 'TRANSACTION', eventSignedAt: signedAt, renewal: null,
+    transaction: { environment: 'sandbox', owner: a.owner, transactionID: '1001', originalTransactionID: '1001',
+      productID: 'test.monthly', purchasedAt: signedAt - 1000, expiresAt: signedAt + 3600000,
+      signedAt, revokedAt: null, upgraded: false } };
+  const subscription = await store.receiveSubscription(a, verifiedSubscription);
+  assert.equal(subscription.transactionID, '1001'); assert.equal(subscription.entitlement.status, 'active');
+  assert.equal((await store.receiveSubscription(a, verifiedSubscription)).duplicate, true);
+  assert.equal((await store.subscriptionStatus(a, 'sandbox')).length, 1);
+  assert.deepEqual(await store.subscriptionStatus(b, 'sandbox'), []);
+  await assert.rejects(store.receiveSubscription(b, verifiedSubscription), error => error.code === 'subscription_account_mismatch');
+  await assert.rejects(store.transaction(client => client.query('SELECT * FROM api_private.apple_subscription_transactions')), error => error.code === '42501');
+  await assert.rejects(store.transaction(async client => {
+    await store.bind(client, a); await client.query('SET LOCAL ROLE authenticated');
+    await client.query('SELECT app.apple_subscription_receive($1::jsonb)', [JSON.stringify(verifiedSubscription)]);
+  }), error => error.code === '42501');
   const forged=await call('api_v1_save_garment',{...payload,user_id:a.owner},tokenB);
   assert(forged.body.error); assert(!forged.body.data);
   assert.equal((await call('api_v1_not_allowed',{})).status,404);
