@@ -90,14 +90,32 @@ jobs:
           # Provision local StoreKit before launching the purchase-test host.
           # This step never buys a product; the subsequent suite must still
           # complete and verify the real local StoreKit purchase.
-          python3 scripts/bounded-command.py --timeout 90 -- xcodebuild test-without-building \
-            -project MojaSzafa.xcodeproj -scheme "$STOREKIT_SCHEME" \
-            -configuration "$BUILD_CONFIGURATION" -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            -only-testing:MojaSzafaTests/SubscriptionStoreKitTests/testProvisionLocalStoreKitConfiguration \
-            -resultBundlePath "$RUNNER_TEMP/$BUILD_CONFIGURATION-storekit-setup.xcresult" \
-            CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
+          provision_storekit() {
+            python3 scripts/bounded-command.py --timeout 90 -- xcodebuild test-without-building \
+              -project MojaSzafa.xcodeproj -scheme "$STOREKIT_SCHEME" \
+              -configuration "$BUILD_CONFIGURATION" -sdk iphonesimulator \
+              -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+              -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+              -only-testing:MojaSzafaTests/SubscriptionStoreKitTests/testProvisionLocalStoreKitConfiguration \
+              -resultBundlePath "$RUNNER_TEMP/$BUILD_CONFIGURATION-storekit-setup.xcresult" \
+              CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES
+          }
+          if ! provision_storekit 2>&1 | tee "$RUNNER_TEMP/storekit-setup.log"; then
+            # Fresh clones can stall before XCTest starts. Retry only that
+            # infrastructure failure, never a started/failed provisioning test.
+            if grep -q 'Test Case .*started\|Test case .*started\|Test Case .*failed\|Test case .*failed' "$RUNNER_TEMP/storekit-setup.log"; then
+              exit 1
+            fi
+            grep -q 'Application failed preflight checks\|failed to launch\|CI command timed out' "$RUNNER_TEMP/storekit-setup.log" || exit 1
+            if [[ -d "$RUNNER_TEMP/$BUILD_CONFIGURATION-storekit-setup.xcresult" ]]; then
+              mv "$RUNNER_TEMP/$BUILD_CONFIGURATION-storekit-setup.xcresult" "$RUNNER_TEMP/$BUILD_CONFIGURATION-storekit-setup.first-attempt.xcresult"
+            fi
+            echo "Provisioning host did not start; rebooting the owned simulator once"
+            xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
+            xcrun simctl boot "$SIMULATOR_ID"
+            xcrun simctl bootstatus "$SIMULATOR_ID" -b
+            provision_storekit
+          fi
           run_tests() {
             python3 scripts/bounded-command.py --timeout 300 -- xcodebuild test-without-building \
               -project MojaSzafa.xcodeproj -scheme "$STOREKIT_SCHEME" \
