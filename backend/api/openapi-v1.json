@@ -1371,6 +1371,10 @@
                 }
               }
             ]
+          },
+          "hasCleanedImage": {
+            "type": "boolean",
+            "description": "True when this image ID has both source JPEG and accepted transparent PNG variants."
           }
         },
         "required": [

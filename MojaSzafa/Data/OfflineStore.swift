@@ -74,7 +74,7 @@ struct SyncGarment: Codable, Sendable {
     var display: Garment {
         Garment(id: id, name: fields.name, category: fields.category,
                 availability: fields.availability, priceGrosz: fields.priceGrosz,
-                imageID: metadata?.imageID, brand: metadata?.brand,
+                imageID: metadata?.imageID, hasCleanedImage: metadata?.hasCleanedImage, brand: metadata?.brand,
                 colors: metadata?.colors ?? [], seasons: metadata?.seasons ?? [],
                 archived: fields.archived ?? metadata?.archived ?? false, initialWearHistory: metadata?.initialWearHistory)
     }
@@ -143,6 +143,8 @@ struct DeleteGarment: Codable, Sendable {
 }
 
 protocol OfflineRemote: Sendable {
+    func uploadGarmentPhotos(garmentID: UUID, imageID: UUID, photos: GarmentPhotos) async throws
+    func cleanedImage(id: UUID) async throws -> Data
     func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws
     func visibility(_ operation: WearVisibility) async throws -> SyncWear
     func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment
@@ -154,6 +156,11 @@ protocol OfflineRemote: Sendable {
 }
 
 extension OfflineRemote {
+    func uploadGarmentPhotos(garmentID: UUID, imageID: UUID, photos: GarmentPhotos) async throws {
+        guard photos.cleaned == nil else { throw RepositoryError.backendNotConfigured }
+        try await uploadGarmentPhoto(garmentID: garmentID, imageID: imageID, data: photos.original)
+    }
+    func cleanedImage(id: UUID) async throws -> Data { throw RepositoryError.backendNotConfigured }
     func uploadGarmentPhoto(garmentID: UUID, imageID: UUID, data: Data) async throws { throw RepositoryError.backendNotConfigured }
     func visibility(_ operation: WearVisibility) async throws -> SyncWear { throw RepositoryError.backendNotConfigured }
     func initialHistory(_ operation: SaveInitialHistory) async throws -> SyncGarment { throw RepositoryError.backendNotConfigured }
@@ -300,13 +307,23 @@ actor OfflineStore: WardrobeRepository {
     func original(imageID: UUID) async throws -> Data {
         try await readImage(id: imageID, original: true)
     }
-    private func readImage(id: UUID, original: Bool) async throws -> Data {
+    func cleaned(imageID: UUID) async throws -> Data {
+        try await readImage(id: imageID, original: false, cleaned: true)
+    }
+    private func readImage(id: UUID, original: Bool, cleaned: Bool = false) async throws -> Data {
         try requireActive()
         if state.garments.contains(where: { !$0.deleted && $0.metadata?.imageID == id }),
            FileManager.default.fileExists(atPath: importPhotoURL(id).path) {
-            return try PhotoProcessor.read(importPhotoURL(id))
+            let photos = try GarmentPhotos.read(importPhotoURL(id))
+            if cleaned {
+                guard let edit = photos.cleaned else { throw PhotoImportError.invalidImage }
+                return edit
+            }
+            return original ? photos.original : (photos.cleaned ?? photos.original)
         }
-        let data = try await remote.image(id: id, original: original)
+        let data: Data
+        if cleaned { data = try await remote.cleanedImage(id: id) }
+        else { data = try await remote.image(id: id, original: original) }
         try requireActive()
         return data
     }
@@ -419,9 +436,12 @@ actor OfflineStore: WardrobeRepository {
     /// Accept the garment and its immutable photo into the account's durable
     /// outbox before returning. Network availability never gates local creation.
     func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws {
+        try await importGarment(operation, photos: GarmentPhotos(original: image))
+    }
+    func importGarment(_ operation: APIv1.SaveGarment, photos: GarmentPhotos) async throws {
         try requireActive()
         try operation.validate()
-        guard operation.baseVersion == nil, !image.isEmpty, image.count <= PhotoProcessor.maxBytes else {
+        guard operation.baseVersion == nil else {
             throw APIClientError.invalidRequest
         }
         if let existing = state.garments.first(where: { $0.id == operation.garmentID }) {
@@ -435,12 +455,12 @@ actor OfflineStore: WardrobeRepository {
         var values = URLResourceValues(); values.isExcludedFromBackup = true
         try directory.setResourceValues(values)
         let file = importPhotoURL(operation.operationID)
-        try image.write(to: file, options: [.atomic, .completeFileProtection])
+        try photos.storedData.write(to: file, options: [.atomic, .completeFileProtection])
         let fields = operation.garment
         var next = state
         next.garments.append(SyncGarment(id: operation.garmentID, version: 0, deleted: false, fields: fields,
             metadata: Garment(id: operation.garmentID, name: fields.name, category: fields.category,
-                availability: fields.availability, priceGrosz: fields.priceGrosz, imageID: operation.operationID,
+                availability: fields.availability, priceGrosz: fields.priceGrosz, imageID: operation.operationID, hasCleanedImage: photos.cleaned != nil,
                 brand: fields.metadata?.brand, colors: fields.metadata?.colors ?? [], seasons: fields.metadata?.seasons ?? [])))
         next.outbox.append(Pending(id: operation.operationID, garment: operation, wear: nil, photoID: operation.operationID))
         do { try commit(next) }
@@ -683,8 +703,8 @@ actor OfflineStore: WardrobeRepository {
                         try requireActive()
                         if state.garments.contains(where: { $0.id == dto.id && $0.deleted }) { continue }
                         if let photoID = pending.photoID {
-                            let image = try PhotoProcessor.read(importPhotoURL(photoID))
-                            try await remote.uploadGarmentPhoto(garmentID: operation.garmentID, imageID: photoID, data: image)
+                            let photos = try GarmentPhotos.read(importPhotoURL(photoID))
+                            try await remote.uploadGarmentPhotos(garmentID: operation.garmentID, imageID: photoID, photos: photos)
                             try requireActive()
                         }
                         var next = state

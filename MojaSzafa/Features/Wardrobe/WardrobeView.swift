@@ -110,6 +110,7 @@ struct WardrobeThumbnail: View {
     let imageID: UUID?
     let repository: any WardrobeRepository
     var original = false
+    var cleaned = false
     @State private var image: UIImage?
     @State private var loading = false
 
@@ -121,14 +122,15 @@ struct WardrobeThumbnail: View {
         }
         .frame(height: 150)
         .frame(maxWidth: .infinity)
-        .task(id: "\(imageID?.uuidString ?? "none")-\(original)") {
+        .task(id: "\(imageID?.uuidString ?? "none")-\(original)-\(cleaned)") {
             image = nil
             guard let imageID else { return }
             loading = true
             defer { loading = false }
             do {
                 let bytes: Data
-                if original { bytes = try await repository.original(imageID: imageID) }
+                if cleaned { bytes = try await repository.cleaned(imageID: imageID) }
+                else if original { bytes = try await repository.original(imageID: imageID) }
                 else { bytes = try await repository.thumbnail(imageID: imageID) }
                 try Task.checkCancellation()
                 image = UIImage(data: bytes)
@@ -159,8 +161,9 @@ private struct GarmentDetailView: View {
             if let detail {
                 if detail.cached { Text("wardrobe.cached") }
                 Section {
-                    WardrobeThumbnail(imageID: detail.garment.imageID, repository: repository, original: showOriginal)
-                    if detail.garment.imageID != nil {
+                    WardrobeThumbnail(imageID: detail.garment.imageID, repository: repository, original: showOriginal || detail.garment.hasCleanedImage != true,
+                        cleaned: !showOriginal && detail.garment.hasCleanedImage == true)
+                    if detail.garment.imageID != nil && detail.garment.hasCleanedImage == true {
                         Toggle("wardrobe.original", isOn: $showOriginal)
                     }
                     Text(verbatim: detail.garment.name).font(.title2)

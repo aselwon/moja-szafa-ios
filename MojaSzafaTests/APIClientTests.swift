@@ -2,6 +2,24 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testPairedUploadAndCleanedFetchUseExplicitBoundedContracts() async throws {
+        let garmentID = UUID(), imageID = UUID()
+        let photos = try GarmentPhotos(original: Data([255,216,1]), cleaned: Data([137,80,78,71]))
+        let expected = Data([0,0,0,3,255,216,1,137,80,78,71])
+        XCTAssertEqual(photos.uploadData, expected)
+        let transport = ImportPhotoTransport(garmentID: garmentID, imageID: imageID, bytes: expected, mode: "paired")
+        try await client(transport).uploadGarmentPhotos(garmentID: garmentID, imageID: imageID, photos: photos)
+        let count = await transport.putCount; XCTAssertEqual(count, 1)
+        for mime in ["image/png", "image/jpeg"] {
+            do {
+                let bytes = try await client(CleanedPhotoTransport(id: imageID, mime: mime)).cleanedImage(id: imageID)
+                XCTAssertEqual(mime, "image/png"); XCTAssertEqual(bytes, Data([137,80,78,71]))
+            } catch {
+                XCTAssertEqual(mime, "image/jpeg"); XCTAssertEqual(error as? APIClientError, .invalidResponse)
+            }
+        }
+    }
+
     func testImportedMetadataSurvivesDurableOperationEncoding() throws {
         var fields = APIv1.GarmentFields(name: "Blue shirt", category: .top, priceGrosz: 4500, availability: .available)
         fields.metadata = .init(colors: ["blue"], seasons: ["summer"], pattern: nil,
@@ -345,8 +363,10 @@ private actor ImportPhotoTransport: APITransport {
         let body: [String: String]
         if request.httpMethod == "POST" {
             XCTAssertEqual(request.url?.path, "/v1/images/uploads")
-            let input = try JSONDecoder().decode([String: String].self, from: XCTUnwrap(request.httpBody))
-            XCTAssertEqual(input, ["garment_id": garmentID.uuidString.lowercased(), "operation_id": imageID.uuidString.lowercased()])
+            let input = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+            XCTAssertEqual(input["garment_id"] as? String, garmentID.uuidString.lowercased())
+            XCTAssertEqual(input["operation_id"] as? String, imageID.uuidString.lowercased())
+            XCTAssertEqual(input["has_cleaned"] as? Bool, mode == "paired" ? true : nil)
             let path = "/v1/images/uploads/\(imageID.uuidString.lowercased())?token=test-upload"
             body = ["image_id": imageID.uuidString, "upload_url": mode == "foreign-url" ? "https://foreign.invalid" + path : path]
         } else {
@@ -354,8 +374,29 @@ private actor ImportPhotoTransport: APITransport {
             XCTAssertEqual(request.httpMethod, "PUT")
             XCTAssertEqual(request.url?.path, "/v1/images/uploads/\(imageID.uuidString.lowercased())")
             XCTAssertEqual(request.httpBody, bytes)
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), mode == "paired" ? "application/vnd.szafa.image-pair" : "application/octet-stream")
             body = ["image_id": (mode == "wrong-ack" ? UUID() : imageID).uuidString]
         }
         return (try JSONEncoder().encode(body), try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200, httpVersion: nil, headerFields: nil)))
+    }
+}
+
+private struct CleanedPhotoTransport: APITransport {
+    let id: UUID
+    let mime: String
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        let path = "/v1/images/\(id.uuidString.lowercased())/cleaned"
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-only-token")
+        XCTAssertEqual(request.url?.host, "example.invalid")
+        let body: Data
+        if request.httpMethod == "POST" {
+            XCTAssertEqual(request.url?.path, path + "/url")
+            body = try JSONEncoder().encode(["url": path + "?token=fixture"])
+        } else {
+            XCTAssertEqual(request.url?.path, path)
+            body = Data([137,80,78,71])
+        }
+        return (body, try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200, httpVersion: nil,
+            headerFields: ["Content-Type": request.httpMethod == "POST" ? "application/json" : mime])))
     }
 }

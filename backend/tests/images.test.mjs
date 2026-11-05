@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
-import { ImagePipeline, privateFiles, decodeImage, MAX_BYTES } from '../images/pipeline.mjs';
+import { ImagePipeline, privateFiles, decodeImage, MAX_BYTES, splitImagePair, MAX_PAIR_BYTES, PAIR_CONTENT_TYPE } from '../images/pipeline.mjs';
 
 const owner = '00000000-0000-0000-0000-000000000001';
 const other = '00000000-0000-0000-0000-000000000002';
@@ -83,3 +83,56 @@ try {
   await assert.rejects(decodeImage(Buffer.from('not an image')), /image_rejected/);
 } finally { await rm(directory, { recursive: true, force: true }); }
 console.log('OK: signed image capabilities, identity/expiry/revocation, real decoder, private storage and replay');
+
+// Source and cleaned edit share one publication fence, never two competing uploads.
+const pairDirectory = await mkdtemp(join(tmpdir(), 'wardrobe-pair-'));
+try {
+  const storage = privateFiles(pairDirectory);
+  let ready = false, retired = false, publicationCount = 0, claimCount = 0;
+  const pairStore = { async call(action, data) {
+    if (action === 'sweep') { retired = true; return [{ id }]; }
+    if (action === 'cleaned') return true;
+    if (retired || data.owner !== owner) return null;
+    if (action === 'prepare') return data.has_cleaned ? { id } : null;
+    if (action === 'claim') { claimCount++; return { state: ready ? 'ready' : 'processing', fence: id, has_cleaned: true }; }
+    if (action === 'finish') {
+      for (const key of ['original.jpg', 'thumbnail.jpg', 'cleaned.png']) assert.ok((await storage.get(`${id}/${key}`)).length);
+      publicationCount++; ready = true; return true;
+    }
+    if (action === 'read') return ready;
+  } };
+  const service = new ImagePipeline({ store: pairStore, storage, signingKey: randomBytes(32) });
+  const fixture = await promisify(execFile)('python3', ['-c',
+    'from PIL import Image; import io,base64; b=io.BytesIO(); Image.new("RGBA",(64,48),(255,0,0,64)).save(b,"PNG"); print(base64.b64encode(b.getvalue()).decode())']);
+  const cleaned = Buffer.from(fixture.stdout.trim(), 'base64');
+  const source = Buffer.from((await decodeImage(cleaned)).original.data, 'base64');
+  const length = Buffer.alloc(4); length.writeUInt32BE(source.length);
+  const pair = Buffer.concat([length, source, cleaned]);
+  assert.deepEqual(splitImagePair(pair), [source, cleaned]);
+  for (const malformed of [Buffer.alloc(4), Buffer.from([255,255,255,255,1,1]), Buffer.alloc(MAX_PAIR_BYTES + 1)]) {
+    assert.throws(() => splitImagePair(malformed), /image_limit/);
+  }
+  const prepared = await service.prepare(owner, other, id, true);
+  await assert.rejects(service.upload(owner, prepared.upload_token, source), /access_denied/);
+  const request = Readable.from([pair]);
+  Object.assign(request, { method: 'PUT', url: `/v1/images/uploads/${id}?token=${prepared.upload_token}`,
+    headers: { authorization: 'owner-session', 'content-type': PAIR_CONTENT_TYPE } });
+  const response = { writeHead(status, headers) { this.status = status; this.headers = headers; }, end(bytes) { this.bytes = bytes; } };
+  await imageHandler(service, async header => header === 'owner-session' ? owner : null)(request, response);
+  assert.equal(response.status, 200);
+  assert.equal(JSON.parse(response.bytes).image_id, id);
+  const originalToken = await service.downloadToken(owner, id, 'original');
+  const editToken = await service.downloadToken(owner, id, 'cleaned');
+  const original = await service.download(owner, originalToken, 'original');
+  const edit = await service.download(owner, editToken, 'cleaned');
+  assert.equal(original.headers['Content-Type'], 'image/jpeg');
+  assert.equal(edit.headers['Content-Type'], 'image/png');
+  assert.deepEqual(edit.bytes.subarray(0,8), Buffer.from([137,80,78,71,13,10,26,10]));
+  await assert.rejects(service.download(other, editToken, 'cleaned'), /access_denied/);
+  await service.upload(owner, prepared.upload_token, pair, true);
+  assert.equal(publicationCount, 1, 'retry must not republish or replace either variant');
+  assert.equal(claimCount, 3);
+  await service.sweep();
+  for (const key of ['original.jpg','thumbnail.jpg','cleaned.png']) await assert.rejects(storage.get(`${id}/${key}`), /ENOENT/);
+  await assert.rejects(service.download(owner, editToken, 'cleaned'), /access_denied/);
+} finally { await rm(pairDirectory, { recursive: true, force: true }); }
