@@ -18,16 +18,17 @@ The generated Info.plist contains `AppEnvironment`. `MojaSzafa` runs/tests Debug
 `MojaSzafa-Staging` runs/tests Staging. Both schemes profile/archive Release.
 Staging inherits Debug optimization/testability; Release remains optimized.
 
-There is no provisioned backend or approved endpoint. `BACKEND_BASE_URL` is empty
-in all three configurations, and the existing live repository explicitly reports
-that the backend is not configured. The build phase validates the **resolved**
-environment, bundle ID, plist environment and signing policy and rejects any
-endpoint, including command-line and local xcconfig overrides. Release therefore
-cannot silently connect to staging or a demo service. This is a temporary
-fail-closed integration boundary, not a working production service. T007/T009
-must replace the endpoint lock with reviewed, explicit per-environment HTTPS
-allowlists and test rejection of cross-environment URLs before enabling the client.
-Do not add a staging fallback when production configuration is missing.
+Development and production intentionally have empty `BACKEND_BASE_URL` values.
+Staging has a configured public HTTPS gateway origin in `Staging.xcconfig` and
+`BackendEndpoints.json`; [T060](T060-staging-gateway.md) records its limited
+staging deployment and reachability checks. Those checks do not establish a
+successful signed-in client flow. The build phase validates the **resolved**
+environment, bundle ID, plist environment, signing policy and endpoint mapping,
+and rejects command-line or local xcconfig overrides. Production therefore cannot
+silently connect to staging or a demo service. Because production's endpoint is
+empty, `AppDependencies.live()` fails closed to the unconfigured repository. This
+is not a working production service. Do not add a staging fallback when production
+configuration is missing.
 
 ## Signing without repository credentials
 
@@ -67,20 +68,19 @@ no signing success, distribution readiness or Apple approval is claimed.
 
 ## CI and local verification
 
-`.github/workflows/ci.yml` has a mandatory repository validation job, followed by
-three independent build/test jobs on `macos-latest` with the runner's default
-Xcode and the first available iPhone simulator (selected dynamically, because
-runner images rotate Xcode and simulator versions). It fails if the project,
-toolchain or simulator is missing. There is no
-conditional success path for absent Xcode projects. Workflow permissions are
-read-only; no signing credentials, provisioning downloads or cloud calls are used.
+`.github/workflows/ci.yml` has a mandatory repository validation job on
+`ubuntu-latest`, followed by three independent build/test jobs on the repository's
+self-hosted `[macOS, ios]` runner. Each job uses that runner's installed default
+Xcode and dynamically selects an available iPhone simulator. Xcode is not pinned;
+the toolchain can change when the runner is updated. The workflow fails if the
+project, toolchain or simulator is missing. Workflow permissions are read-only;
+no signing credentials, provisioning downloads or cloud calls are used.
 
 Every configuration runs XCTest, including the actual app bundle's environment
 and identity check and the existing unconfigured-live-repository test. Release
 tests enable testability only through the CI command; a separate production build
 uses the ordinary Release settings. XCTest result bundles are retained for 14 days,
-including on failure when available. Xcode is intentionally not pinned:
-pinned versions disappear from runner images and break CI.
+including on failure when available.
 
 Run the offline check from the repository root:
 
@@ -107,9 +107,18 @@ Attach the actual CI run and `.xcresult` artifacts before claiming macOS success
 
 ## Evidence and remaining verification
 
-The offline harness passes in the Linux sandbox, including secret detection
-self-tests and environment guard rejection tests. No dependencies were installed.
-Xcode/Swift and an iOS simulator are unavailable here, and no GitHub CI execution
-or Apple signing operation has been performed. Actual compilation, XCTest,
-three-app installation and signed archive inspection require the macOS/owner
-steps above. No backend environment has been provisioned as part of T006.
+The latest recorded clean PR validation at this audit was PR #107 head
+`4feddae55de1df9f00668d0bc4f8e821c41c590f`. Its `validate`, `postgres`, and iOS
+Debug, Staging and Release checks all passed. The Release job reported Xcode
+27.2, build 27B52. See [the PR workflow run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42104388911).
+The main merge commit `9f4fe3897f9e038e61fbb648a885628f697a73f5` had a separate
+[push run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42108075786)
+queued at the time of that audit; recheck the latest main run before relying on it.
+The passing validation job includes the harness and secret-scan
+self-tests. The scanner does not inspect Git history or ignored local files and
+cannot prove the absence of every secret format.
+
+The signed iOS device archive and Apple provisioning remain unverified. Simulator
+CI uses `CODE_SIGNING_ALLOWED=NO`; the production team and profile are empty in
+the checked-in configuration. Staging is configured, but production has no
+backend endpoint and no production deployment is claimed.

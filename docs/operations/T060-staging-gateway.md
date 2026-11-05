@@ -6,10 +6,11 @@ and enabled. Runtime configuration is supplied by a root-owned, mode-0600
 environment file outside this repository; its contents are not part of this
 deployment record.
 
-The service uses a dedicated restricted staging database role and the app
-migration ledger contains versions 001–026. Migrations 027 and 028 are not
-deployed. AI remains disabled, with global and per-user limits unchanged at 10
-and 4. No provider call was made or enabled.
+The service uses a dedicated restricted staging database role. A read-only
+ledger verification at 2026-11-05 21:17:56 UTC found migration versions 001–032
+applied. This records the ledger state only; it does not claim a runtime code or
+service update. AI remains disabled, with global and per-user limits unchanged at
+10 and 4. No provider call was made or enabled.
 
 At the recorded verification time, the public origin was
 `https://varied-aging-fast-enough.trycloudflare.com`, a temporary Cloudflare
