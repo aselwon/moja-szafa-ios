@@ -44,6 +44,8 @@ CREATE TEMP TABLE recovery_garments(user_id uuid, garment_id uuid, PRIMARY KEY(u
 INSERT INTO recovery_accounts VALUES ('10000000-0000-0000-0000-000000000001');
 INSERT INTO recovery_garments VALUES
 ('10000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000002'),
+-- A deleted offline draft created after the backup must also remain fenced.
+('10000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000004'),
 -- Wrong owner must not delete the surviving garment.
 ('10000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000003');
 SQL

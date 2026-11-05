@@ -129,9 +129,19 @@ into temporary `recovery_accounts(user_id uuid PRIMARY KEY)` and
 tables in the same database transaction as
 [`replay-deletions.sql`](../../backend/recovery/replay-deletions.sql).
 Missing input tables fail SQL execution. The SQL marks matching upload ledgers
-retired **before** cascading deletes, deletes garments with both owner and entity
-ID checks, and deletes Auth identities with cascading domain deletion. Run as an
+retired **before** cascading deletes, invokes canonical garment deletion with both
+owner and entity ID checks, and deletes Auth identities with cascading domain deletion. Run as an
 authorized recovery administrator; this is not an exposed application RPC.
+
+For surviving accounts, replay preserves scrubbed garment UUID tombstones rather
+than physically deleting the identity row. It also fences journaled drafts absent
+from the snapshot, so a later offline create cannot resurrect them. The recovery
+transaction temporarily sets the same subject context used by the gateway, calls
+`app.api_v1_delete_garment`, checks success, and restores its prior subject setting.
+A journal entry cannot alter another owner's existing garment. Accounts absent
+from the snapshot need no garment row; deleted accounts are handled by the account
+replay. A missing or unavailable profile for a surviving identity causes replay to fail rather than
+silently claim successful deletion. Ingress must remain fenced throughout.
 
 The SQL is only the relational replay phase, not the complete erasure service.
 Before reopening, additionally:
@@ -145,10 +155,11 @@ Before reopening, additionally:
   retention. Review other restored caches/export/support artifacts. Never print
   these payloads. Retain operation suppression identifiers so retries cannot
   recreate erased data.
-- Reapply a durable deletion denylist/tombstones at the API/sync boundary, including
-  future restore and stale-device writes. Account deletion revokes identity; a
-  physical garment cascade alone does not prevent an old create request. This
-  integration is a **required open gate**, not provided by the recovery SQL.
+- Verify the replayed garment tombstones at the API/sync boundary, including
+  future restore and stale-device writes. The synthetic drill checks fresh stale
+  create intents against restored and post-backup garment IDs. Recovered cached
+  mutation responses and provider-managed identities/sessions still require the
+  separate reopening checks above; these are not proven by a UUID fence alone.
 - Repeat replay through a final watermark while ingress remains fenced. Verify
   other owners are unchanged and interrupted byte deletion resumes idempotently.
 
@@ -165,12 +176,19 @@ applies the real migrations, seeds three synthetic owners and opaque image byte
 fixtures, dumps the complete source database and copies the private test objects.
 It records independent post-backup account and garment deletions, restores into the
 empty second database, proves deleted rows initially reappear, replays deletion
-twice, verifies owner isolation and retained price, erases retired bytes twice,
+twice, verifies owner isolation, retained price and rejected stale garment creates,
+erases retired bytes twice,
 and checks SHA-256 of surviving original/thumbnail fixtures. These files are byte
 fixtures, not real JPEGs; decoder/HTTP authorization tests remain in the T011 suite.
 The trap removes only successfully created test databases and temporary artifacts.
 The test requires a disposable admin cluster and uses the existing test Auth roles.
 It makes no network service calls beyond the configured test PostgreSQL connection.
+
+A focused run on disposable PostgreSQL 15.19 completed with synthetic RPO
+0.364083 seconds and RTO 1.869139 seconds, two deletion-replay passes and two
+surviving synthetic object files. The fixture contains three synthetic owners,
+three snapshot garments and a post-snapshot deleted draft. These measurements
+cover only this small local fixture; they do not establish production RPO/RTO.
 
 The existing PostgreSQL CI entry point (`backend/tests/run-tests.sh`) runs this
 rehearsal automatically. It prints aggregate JSON timing and fails if the synthetic
