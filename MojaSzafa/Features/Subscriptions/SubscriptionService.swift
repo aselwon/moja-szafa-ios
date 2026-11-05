@@ -9,6 +9,7 @@ actor SubscriptionService {
     private let accountID: UUID
     private let storefront: any SubscriptionStorefront
     private let receiver: any SubscriptionTransactionReceiver
+    nonisolated let legalLinks: SubscriptionLegalLinks?
     private var active = true
     private var busy = false
     private var starting = false
@@ -17,9 +18,11 @@ actor SubscriptionService {
     private(set) var lastDeliveryFailed = false
 
     init(configuration: SubscriptionConfiguration, accountID: UUID,
-         storefront: any SubscriptionStorefront, receiver: any SubscriptionTransactionReceiver) {
+         storefront: any SubscriptionStorefront, receiver: any SubscriptionTransactionReceiver,
+         legalLinks: SubscriptionLegalLinks? = .configured()) {
         self.configuration = configuration; self.accountID = accountID
         self.storefront = storefront; self.receiver = receiver
+        self.legalLinks = legalLinks
     }
 
     func products() async throws -> [SubscriptionProduct] {
@@ -54,6 +57,7 @@ actor SubscriptionService {
 
     func purchase(productID: String) async throws -> PurchaseStatus {
         try requireReady()
+        guard legalLinks != nil else { throw SubscriptionError.unavailable }
         guard !busy else { throw SubscriptionError.busy }
         guard configuration.productIDs.contains(productID) else { throw SubscriptionError.invalidProducts }
         busy = true; defer { busy = false }
@@ -69,6 +73,13 @@ actor SubscriptionService {
             do { try await deliver(transaction); return .accepted }
             catch { lastDeliveryFailed = true; throw error }
         }
+    }
+
+    func entitlements() async throws -> [SubscriptionEntitlement] {
+        try requireReady()
+        let values = try await receiver.entitlements(configuration: configuration)
+        try requireReady()
+        return values
     }
 
     /// Explicit user intent only. AppStore.sync may prompt for Apple credentials.

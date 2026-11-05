@@ -2,6 +2,26 @@ import XCTest
 @testable import MojaSzafa
 
 final class APIClientTests: XCTestCase {
+    func testSubscriptionStatusPreservesServerStateAndRejectsForeignOrMalformedChains() async throws {
+        let configuration = try XCTUnwrap(SubscriptionConfiguration(monthlyID: "test.monthly", yearlyID: "test.yearly"))
+        let environment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String
+        let item: [String: Any] = ["productID": "test.monthly", "originalTransactionID": "7",
+            "environment": environment == "prod" ? "production" : "sandbox", "status": "revoked",
+            "expiresAt": "2070-01-01T00:00:00.123+00:00", "graceExpiresAt": NSNull()]
+        func body(_ items: [[String: Any]]) throws -> Data { try JSONSerialization.data(withJSONObject: ["entitlements": items]) }
+        let data = try body([item])
+        let values = try await client(SubscriptionStatusTransport(body: data)).entitlements(configuration: configuration)
+        XCTAssertEqual(values.count, 1); XCTAssertEqual(values[0].status, .revoked, "Future expiry must not override the server's revocation")
+        XCTAssertNil(values[0].graceExpiresAt)
+        for (key, value) in [("productID", "foreign.product"), ("originalTransactionID", "007"),
+                             ("environment", "Xcode"), ("status", "paid_unlimited"), ("expiresAt", "not-a-date"), ("graceExpiresAt", "not-a-date")] {
+            var wrong = item; wrong[key] = value
+            do { _ = try await client(FixedTransport(body: body([wrong]), status: 200)).entitlements(configuration: configuration); XCTFail("Invalid entitlement accepted") }
+            catch { XCTAssertEqual(error as? APIClientError, .invalidResponse) }
+        }
+        do { _ = try await client(FixedTransport(body: body([item, item]), status: 200)).entitlements(configuration: configuration); XCTFail("Duplicate chain accepted") }
+        catch { XCTAssertEqual(error as? APIClientError, .invalidResponse) }
+    }
     func testSubscriptionPreflightRequiresMatchingServerCatalogAndBuildEnvironment() async throws {
         let configuration = try XCTUnwrap(SubscriptionConfiguration(monthlyID: "test.monthly", yearlyID: "test.yearly"))
         let environment = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String
@@ -158,6 +178,17 @@ final class APIClientTests: XCTestCase {
     func testRejectsInsecureConfiguration() throws {
         XCTAssertThrowsError(try APIClient(baseURL: XCTUnwrap(URL(string: "http://example.invalid")),
             transport: FixedTransport(body: Data(), status: 200), accessToken: { "test" }))
+    }
+}
+
+private actor SubscriptionStatusTransport: APITransport {
+    let body: Data
+    init(body: Data) { self.body = body }
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        XCTAssertEqual(request.url?.path, "/v1/subscriptions/status")
+        XCTAssertEqual(request.httpMethod, "GET"); XCTAssertNil(request.httpBody); XCTAssertNil(request.url?.query)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-only-token")
+        return (body, response(request))
     }
 }
 
