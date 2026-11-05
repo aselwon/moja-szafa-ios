@@ -1371,6 +1371,17 @@
                 }
               }
             ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "formMetadata": {
+            "$ref": "#/components/schemas/GarmentMetadata"
+          },
+          "hasCleanedImage": {
+            "type": "boolean",
+            "description": "True when this image ID has both source JPEG and accepted transparent PNG variants."
           }
         },
         "required": [

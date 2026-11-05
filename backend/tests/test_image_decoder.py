@@ -41,6 +41,26 @@ class DecoderTests(unittest.TestCase):
                 self.assertFalse(decoded.getexif())
                 self.assertNotIn('icc_profile', decoded.info)
 
+    def test_cleaned_png_preserves_alpha_but_removes_metadata(self):
+        image = Image.new('RGBA', (64, 48), (255, 0, 0, 0))
+        image.putpixel((1, 1), (0, 255, 0, 128))
+        source = io.BytesIO()
+        from PIL.PngImagePlugin import PngInfo
+        info = PngInfo()
+        info.add_text('private', 'fixture metadata')
+        image.save(source, 'PNG', pnginfo=info)
+        result = module.normalize(source.getvalue(), cleaned=True)['cleaned']
+        data = base64.b64decode(result['data'])
+        self.assertNotIn(b'fixture metadata', data)
+        with Image.open(io.BytesIO(data)) as decoded:
+            self.assertEqual(decoded.format, 'PNG')
+            self.assertEqual(decoded.getpixel((0, 0))[3], 0)
+            self.assertEqual(decoded.getpixel((1, 1)), (0, 255, 0, 128))
+        jpeg = io.BytesIO()
+        image.convert('RGB').save(jpeg, 'JPEG')
+        with self.assertRaises(ValueError):
+            module.normalize(jpeg.getvalue(), cleaned=True)
+
     def test_reject_invalid_truncated_oversized_and_animated(self):
         image = Image.new('RGB', (50, 50))
         source = io.BytesIO()

@@ -8,11 +8,14 @@ struct Garment: Identifiable, Equatable, Codable, Sendable {
     var availability: APIv1.Availability = .available
     var priceGrosz: Int64? = nil
     var imageID: UUID? = nil
+    var hasCleanedImage: Bool? = nil
     var brand: String? = nil
     var colors: [String] = []
     var seasons: [String] = []
     var archived: Bool = false
     var initialWearHistory: InitialWearHistory? = nil
+    var formMetadata: APIv1.GarmentMetadata? = nil
+    var version: Int64? = nil
 }
 
 struct WardrobeQuery: Equatable, Encodable, Sendable {
@@ -113,8 +116,42 @@ extension GarmentDetail {
     var costPerWear: CostPerWear { CostPerWear(priceGrosz: garment.priceGrosz, wornOn: wornOn, initialHistory: garment.initialWearHistory) }
 }
 
+/// Immutable source + accepted edit, owned as one durable import payload.
+struct GarmentPhotos: Equatable, Sendable {
+    let original: Data
+    let cleaned: Data?
+    private static let marker = Data([83, 90, 80, 49]) // SZP1; cannot be a supported image header.
+    init(original: Data, cleaned: Data? = nil) throws {
+        guard !original.isEmpty, original.count <= PhotoProcessor.maxBytes,
+              cleaned.map({ !$0.isEmpty && $0.count <= PhotoProcessor.maxBytes }) ?? true else {
+            throw PhotoImportError.invalidImage
+        }
+        self.original = original; self.cleaned = cleaned
+    }
+    var uploadData: Data {
+        guard let cleaned else { return original }
+        let n = UInt32(original.count)
+        var result = Data([UInt8((n >> 24) & 255), UInt8((n >> 16) & 255), UInt8((n >> 8) & 255), UInt8(n & 255)])
+        result.append(original); result.append(cleaned); return result
+    }
+    var storedData: Data { cleaned == nil ? original : Self.marker + uploadData }
+    static func read(_ url: URL) throws -> Self {
+        let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+        guard size > 0, size <= 2 * PhotoProcessor.maxBytes + 8 else { throw PhotoImportError.invalidImage }
+        let data = try Data(contentsOf: url)
+        guard data.starts(with: marker) else { return try Self(original: data) }
+        guard data.count > 8 else { throw PhotoImportError.invalidImage }
+        let n = data[4..<8].reduce(0) { ($0 << 8) | Int($1) }
+        guard n > 0, n <= PhotoProcessor.maxBytes, 8 + n < data.count else { throw PhotoImportError.invalidImage }
+        return try Self(original: data.subdata(in: 8..<(8+n)), cleaned: data.subdata(in: (8+n)..<data.count))
+    }
+}
+
 protocol WardrobeRepository: Sendable {
+    func editGarment(id: UUID, expectedVersion: Int64, value: GarmentFormValue) async throws -> GarmentDetail
     func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws
+    func importGarment(_ operation: APIv1.SaveGarment, photos: GarmentPhotos) async throws
+    func cleaned(imageID: UUID) async throws -> Data
     func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail
     func statisticsSnapshot() async throws -> StatisticsSnapshot
     func setInitialHistory(id: UUID, history: InitialWearHistory?, confirmOverlap: Bool) async throws -> GarmentDetail
@@ -128,6 +165,12 @@ protocol WardrobeRepository: Sendable {
 }
 
 extension WardrobeRepository {
+    func importGarment(_ operation: APIv1.SaveGarment, photos: GarmentPhotos) async throws {
+        guard photos.cleaned == nil else { throw RepositoryError.backendNotConfigured }
+        try await importGarment(operation, image: photos.original)
+    }
+    func cleaned(imageID: UUID) async throws -> Data { throw RepositoryError.backendNotConfigured }
+    func editGarment(id: UUID, expectedVersion: Int64, value: GarmentFormValue) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws { throw RepositoryError.backendNotConfigured }
     func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func statisticsSnapshot() async throws -> StatisticsSnapshot { throw RepositoryError.backendNotConfigured }

@@ -489,6 +489,7 @@ actor APIWardrobeRepository: WardrobeRepository {
 
     func thumbnail(imageID: UUID) async throws -> Data { try await client.wardrobeThumbnail(imageID: imageID) }
     func original(imageID: UUID) async throws -> Data { try await client.wardrobeImage(imageID: imageID, original: true) }
+    func cleaned(imageID: UUID) async throws -> Data { try await client.cleanedImage(id: imageID) }
 
     func garments() async throws -> [Garment] {
         var result: [Garment] = []
@@ -521,8 +522,8 @@ extension APIClient {
         try await wardrobeImage(imageID: imageID, original: false)
     }
 
-    func wardrobeImage(imageID: UUID, original: Bool, purchase: Bool = false) async throws -> Data {
-        let variant = original ? "original" : "thumbnail"
+    func wardrobeImage(imageID: UUID, original: Bool, purchase: Bool = false, cleaned: Bool = false) async throws -> Data {
+        let variant = cleaned ? "cleaned" : (original ? "original" : "thumbnail")
         let path = "/v1/\(purchase ? "purchase-images" : "images")/\(imageID.uuidString.lowercased())/\(variant)"
         let token = try await accessToken()
         guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
@@ -544,7 +545,7 @@ extension APIClient {
               let url = URL(string: link.url, relativeTo: origin)?.absoluteURL else { throw APIClientError.invalidResponse }
         let (bytes, imageResponse) = try await transport.send(request(url, method: "GET"))
         if imageResponse.statusCode == 401 { await unauthorized(token) }
-        guard imageResponse.statusCode == 200, imageResponse.mimeType == "image/jpeg", bytes.count <= (original ? 12 * 1_048_576 : 1_048_576)
+        guard imageResponse.statusCode == 200, imageResponse.mimeType == (cleaned ? "image/png" : "image/jpeg"), bytes.count <= ((original || cleaned) ? 12 * 1_048_576 : 1_048_576)
         else { throw APIClientError.invalidResponse }
         try Task.checkCancellation()
         return bytes
@@ -563,8 +564,14 @@ extension APIClient {
         try await uploadPhoto(parentID: garmentID, imageID: imageID, data: data, purchase: false)
     }
 
-    private func uploadPhoto(parentID: UUID, imageID: UUID, data: Data, purchase: Bool) async throws {
-        guard !data.isEmpty, data.count <= 12 * 1_048_576 else { throw APIClientError.invalidRequest }
+    func cleanedImage(id: UUID) async throws -> Data {
+        try await wardrobeImage(imageID: id, original: false, cleaned: true)
+    }
+    func uploadGarmentPhotos(garmentID: UUID, imageID: UUID, photos: GarmentPhotos) async throws {
+        try await uploadPhoto(parentID: garmentID, imageID: imageID, data: photos.uploadData, purchase: false, hasCleaned: photos.cleaned != nil)
+    }
+    private func uploadPhoto(parentID: UUID, imageID: UUID, data: Data, purchase: Bool, hasCleaned: Bool = false) async throws {
+        guard !data.isEmpty, data.count <= (hasCleaned ? 24 * 1_048_576 + 4 : 12 * 1_048_576), !purchase || !hasCleaned else { throw APIClientError.invalidRequest }
         let prefix = purchase ? "/v1/purchase-images/uploads" : "/v1/images/uploads"
         let token = try await accessToken()
         guard !token.isEmpty, !token.contains("\r"), !token.contains("\n") else { throw APIClientError.invalidConfiguration }
@@ -580,14 +587,16 @@ extension APIClient {
             guard response.statusCode == 200 else { throw APIClientError.http(status: response.statusCode, requestID: nil) }
             try Task.checkCancellation(); return result
         }
-        let body = try JSONEncoder().encode([purchase ? "candidate_id" : "garment_id":parentID.uuidString.lowercased(), "operation_id":imageID.uuidString.lowercased()])
+        var payload: [String: Any] = [purchase ? "candidate_id" : "garment_id": parentID.uuidString.lowercased(), "operation_id": imageID.uuidString.lowercased()]
+        if hasCleaned { payload["has_cleaned"] = true }
+        let body = try JSONSerialization.data(withJSONObject: payload)
         let prepared = try await send(origin.appendingPathComponent(prefix), method: "POST", body: body, type: "application/json")
         struct Upload: Decodable { let image_id: UUID; let upload_url: String }
         let upload = try JSONDecoder().decode(Upload.self, from: prepared)
         guard upload.image_id == imageID, let components = URLComponents(string: upload.upload_url), components.scheme == nil, components.host == nil,
               components.path == "\(prefix)/\(imageID.uuidString.lowercased())", components.fragment == nil,
               let url = URL(string: upload.upload_url, relativeTo: origin)?.absoluteURL else { throw APIClientError.invalidResponse }
-        let completed = try await send(url, method: "PUT", body: data, type: "application/octet-stream")
+        let completed = try await send(url, method: "PUT", body: data, type: hasCleaned ? "application/vnd.szafa.image-pair" : "application/octet-stream")
         struct Acknowledgement: Decodable { let image_id: UUID }
         guard try JSONDecoder().decode(Acknowledgement.self, from: completed).image_id == imageID else {
             throw APIClientError.invalidResponse
