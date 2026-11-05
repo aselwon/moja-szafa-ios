@@ -6,8 +6,8 @@ PRODUCT_BUNDLE_IDENTIFIER = pl.mojaszafa.app.staging
 INFOPLIST_KEY_CFBundleDisplayName = Moja Szafa Staging
 INFOPLIST_KEY_AppEnvironment = $(APP_ENVIRONMENT)
 INFOPLIST_FILE = Configuration/MojaSzafa-Info.plist
-// T007/T009 must configure and validate real endpoints before enabling networking.
-BACKEND_BASE_URL =
+// Staging preview origin; rotate the manifest and this value together if the tunnel restarts.
+BACKEND_BASE_URL = https:/$()/varied-aging-fast-enough.trycloudflare.com
 INFOPLIST_KEY_BackendBaseURL = $(BACKEND_BASE_URL)
 CODE_SIGN_STYLE = Automatic
 CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Development
