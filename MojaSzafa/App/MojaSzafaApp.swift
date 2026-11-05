@@ -46,41 +46,47 @@ private struct DemoRootView: View {
     @State private var repository = DemoWardrobe.make()
 
     var body: some View {
-        TabView {
-            NavigationStack {
-                WardrobeView(repository: repository, accountID: DemoMode.accountID, allowsPhotoImport: false)
-            }.tabItem { Label("tab.wardrobe", systemImage: "tshirt") }
-            NavigationStack {
-                OutfitsView(repository: repository, wardrobe: repository)
-            }.tabItem { Label("tab.outfits", systemImage: "square.stack") }
-            NavigationStack {
-                List {
-                    Section("Co możesz sprawdzić") {
-                        Text("Przeglądaj ubrania, szukaj i filtruj kolekcję.")
-                        Text("Otwórz szczegóły ubrania i zmień jego dostępność.")
-                        Text("Edytuj przykładowe zestawy lub utwórz własny.")
-                    }
-                    Section("To jest lokalny podgląd") {
-                        Text("Ubrania i ilustracje są przykładowe. Zmiany w kolekcji i zestawach pozostają tylko w pamięci aplikacji.")
-                        Text("Ten tryb nie loguje do konta, nie łączy się z serwerem i nie uruchamia AI. Nie potwierdza gotowości tych usług.")
-                    }
-                }.navigationTitle("O podglądzie")
-            }.tabItem { Label("O podglądzie", systemImage: "info.circle") }
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            HStack(spacing: 8) {
-                Image(systemName: "sparkles.rectangle.stack")
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("PODGLĄD DEMO").font(.caption.bold())
-                    Text("Dane przykładowe · bez połączenia z serwerem").font(.caption2)
-                }
-                Spacer(minLength: 0)
+        VStack(spacing: 0) {
+            demoBanner
+            TabView {
+                NavigationStack {
+                    WardrobeView(repository: repository, accountID: DemoMode.accountID, allowsPhotoImport: false)
+                }.tabItem { Label("tab.wardrobe", systemImage: "tshirt") }
+                NavigationStack {
+                    OutfitsView(repository: repository, wardrobe: repository)
+                }.tabItem { Label("tab.outfits", systemImage: "square.stack") }
+                NavigationStack {
+                    List {
+                        Section("Co możesz sprawdzić") {
+                            Text("Przeglądaj ubrania, szukaj i filtruj kolekcję.")
+                            Text("Otwórz szczegóły ubrania i zmień jego dostępność.")
+                            Text("Edytuj przykładowe zestawy lub utwórz własny.")
+                        }
+                        Section("To jest lokalny podgląd") {
+                            Text("Ubrania i ilustracje są przykładowe. Zmiany w kolekcji i zestawach pozostają tylko w pamięci aplikacji.")
+                            Text("Ten tryb nie loguje do konta, nie łączy się z serwerem i nie uruchamia AI. Nie potwierdza gotowości tych usług.")
+                        }
+                    }.navigationTitle("O podglądzie")
+                }.tabItem { Label("O podglądzie", systemImage: "info.circle") }
             }
-            .padding(.horizontal, 16).padding(.vertical, 10)
-            .foregroundStyle(Color("primaryText"))
-            .background(Color("accent").opacity(0.13))
-            .accessibilityElement(children: .combine)
         }
+    }
+
+    // Reserve real layout space so large text cannot cover navigation or filters.
+    private var demoBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "sparkles.rectangle.stack")
+            VStack(alignment: .leading, spacing: 2) {
+                Text("PODGLĄD DEMO").font(.caption.bold())
+                Text("Dane przykładowe · bez połączenia z serwerem").font(.caption2)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 10)
+        .foregroundStyle(Color("primaryText"))
+        .background(Color("accent").opacity(0.13))
+        .accessibilityElement(children: .combine)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
