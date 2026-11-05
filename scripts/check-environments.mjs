@@ -4,6 +4,8 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 const project = await read('MojaSzafa.xcodeproj/project.pbxproj');
+const endpoints = JSON.parse(await read('Configuration/BackendEndpoints.json'));
+await promisify(execFile)('python3', ['-B', 'scripts/test_backend_endpoint.py']);
 assert(project.includes('buildPhases = (000000000000000000000046,'), 'Environment guard must run before compilation');
 for (const [configuration, environment, suffix, file, reference] of [
   ['Debug', 'dev', '.dev', 'Dev', '43'],
@@ -14,10 +16,12 @@ for (const [configuration, environment, suffix, file, reference] of [
   const settings = Object.fromEntries([...config.matchAll(/^(\w+)[ \t]*=[ \t]*(.*?)[ \t]*$/gm)].map(m => [m[1], m[2]]));
   assert.equal(settings.APP_ENVIRONMENT, environment);
   assert.equal(settings.PRODUCT_BUNDLE_IDENTIFIER, `pl.mojaszafa.app${suffix}`);
-  assert.equal(settings.BACKEND_BASE_URL, '');
+  // xcconfig escapes the double slash so it is not parsed as a comment.
+  const endpoint = settings.BACKEND_BASE_URL.replace('https:/$()/','https://');
+  assert.equal(endpoint, endpoints[environment]);
   assert(project.includes(`baseConfigurationReference = ${'0'.repeat(22)}${reference}; name = ${configuration};`));
   const env = { ...settings, CONFIGURATION: configuration, CODE_SIGNING_ALLOWED: 'NO',
-    INFOPLIST_KEY_AppEnvironment: environment, INFOPLIST_KEY_BackendBaseURL: '' };
+    BACKEND_BASE_URL: endpoint, INFOPLIST_KEY_AppEnvironment: environment, INFOPLIST_KEY_BackendBaseURL: endpoint };
   const run = async overrides => {
     try {
       await promisify(execFile)('/bin/bash', ['scripts/validate-build-environment.sh'], { env: { ...env, ...overrides } });
