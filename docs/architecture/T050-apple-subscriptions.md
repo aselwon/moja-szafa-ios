@@ -84,15 +84,17 @@ account deletion removes the owner-scoped rows through their foreign keys.
 ## AI and validation boundaries
 
 Subscription status does not change AI policy, admission, or quotas. AI remains
-disabled by default; the existing policy defaults remain 10 units per user and
-100 globally per day, with outfit generation reserving its existing two-call
-budget. No Plus-specific quota or paid AI allowance is introduced.
+disabled in the deployed test runtime, with its global limit at 10 units and
+per-user limit at 4. The database schema defaults are 10 units per user and
+100 globally per day; outfit generation continues to reserve its existing
+two-call budget. No Plus-specific quota or paid AI allowance is introduced.
 
 The full SQL migration, concurrency and recovery suite passed on disposable
 PostgreSQL 15.19. Focused lifecycle, deduplication, owner/environment isolation,
 export, billing-retry and refund-reversal cases passed, as did one actual
 least-privilege `GatewayStore` PostgreSQL integration test. The Node verifier
-and HTTP suite uses synthetic transactions and Apple certificate fixtures.
-Native purchase wiring, live Apple merchant validation and App Store
+suite uses synthetic transactions and an ephemeral test certificate chain;
+the runtime verifier pins Apple's root CA and rejects that test chain. Native
+purchase wiring, live Apple merchant validation and App Store
 notification delivery remain pending. No production product IDs, prices,
 merchant records or live transactions have been validated.

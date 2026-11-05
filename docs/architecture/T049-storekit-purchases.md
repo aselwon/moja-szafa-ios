@@ -1,0 +1,62 @@
+# T049: native StoreKit purchase mechanics
+
+The native adapter loads a monthly and yearly auto-renewable subscription from
+one StoreKit group. It rejects missing products, wrong periods and mixed groups.
+Names and displayed prices come from StoreKit. No production product identifier,
+price, trial or entitlement limit is invented by this implementation.
+
+`SubscriptionConfiguration` reads optional `StoreKitMonthlyProductID` and
+`StoreKitYearlyProductID` bundle values. Both remain absent by default. The Profile
+purchase screen therefore reports that purchases are unavailable. Even with IDs
+supplied, the app performs an asynchronous backend-receiver preflight before it
+starts a purchase or calls restore. An unconfigured receiver prevents both, so
+the app cannot charge for an entitlement the backend cannot honor. T050 supplies the authoritative receiver; T051 supplies the full paywall,
+legal disclosures and entitlement-aware placement after the offer is configured.
+
+The StoreKit adapter handles verified results, pending purchases and cancellation.
+It attaches the authenticated app account UUID through `appAccountToken` and
+rejects receipts belonging to another account. Signed receipts stay in memory;
+they are never logged, put in URLs or stored in an application-owned journal.
+StoreKit itself retains unfinished transactions for redelivery.
+
+The service starts a transaction-update listener, retries unfinished transactions,
+and offers explicit `AppStore.sync()` restore. It finishes a transaction only
+after the server acknowledges the same transaction ID. An interrupted server
+request leaves the transaction unfinished. Logout/account deletion stops the
+listener and fences in-flight acknowledgements. Identical in-flight receipts are
+coalesced; a later refund/revocation receipt with the same transaction ID is not
+permanently suppressed. No local `isPlus` value or device clock grants AI access.
+
+## Local verification
+
+`MojaSzafaTests/TestProducts.storekit` contains two clearly synthetic test-only
+products and sample prices. The dedicated `MojaSzafaStoreKit` test scheme injects
+this fixture through its test launch action only. The normal `MojaSzafa` scheme
+and production configuration do not inject or reference the fixture. It is not an
+approved offer and is not uploaded to App Store Connect. Apple supports local StoreKit
+configuration before App Store Connect setup:
+[StoreKit testing setup](https://developer.apple.com/documentation/Xcode/setting-up-storekit-testing-in-xcode).
+
+`SubscriptionTests` covers missing configuration, mixed groups, pending/cancelled
+purchases, account separation, server acknowledgement, failed-network redelivery,
+and logout fencing. `SubscriptionStoreKitTests` loads the real local StoreKit
+session, requests localized products, purchases through the actual adapter,
+checks SDK verification/account binding/current and unfinished transactions, and
+finishes the transaction. It does not contact a live App Store merchant account.
+
+The initial iOS 26.5 runtime fails StoreKit configuration mutation with
+`SKInternalErrorDomain Code=3`, including under ad-hoc simulator signing. This is
+a [documented Apple runtime issue](https://developer.apple.com/forums/thread/826971).
+Use a compatible runtime for this integration test; do not turn that failure into
+a skipped/passed purchase test. The actual StoreKit integration test passed 1/1 on the iOS 27.2 simulator using
+the dedicated scheme. The focused subscription and authentication suites passed
+23/23 on the same runtime. This verifies local fixture behavior only.
+
+## Remaining external acceptance
+
+Live monthly/yearly products in one App Store Connect group, approved prices and
+trial terms, publisher account agreements, physical-device sandbox purchases and
+server notification registration still need the publisher's Apple account and
+offer decisions. Local fixture transactions are not proof of those external steps.
+The unconfigured receiver intentionally remains unavailable until T050's server
+verification is wired; client-side verification alone never unlocks Plus.
