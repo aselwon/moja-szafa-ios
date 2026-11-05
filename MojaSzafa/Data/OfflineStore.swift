@@ -72,11 +72,13 @@ struct SyncGarment: Codable, Sendable {
     var metadata: Garment? = nil
 
     var display: Garment {
-        Garment(id: id, name: fields.name, category: fields.category,
+        let form = fields.metadata ?? metadata?.formMetadata
+        return Garment(id: id, name: fields.name, category: fields.category,
                 availability: fields.availability, priceGrosz: fields.priceGrosz,
-                imageID: metadata?.imageID, hasCleanedImage: metadata?.hasCleanedImage, brand: metadata?.brand,
-                colors: metadata?.colors ?? [], seasons: metadata?.seasons ?? [],
-                archived: fields.archived ?? metadata?.archived ?? false, initialWearHistory: metadata?.initialWearHistory)
+                imageID: metadata?.imageID, hasCleanedImage: metadata?.hasCleanedImage, brand: form.map { $0.brand } ?? metadata?.brand,
+                colors: form?.colors ?? metadata?.colors ?? [], seasons: form?.seasons ?? metadata?.seasons ?? [],
+                archived: fields.archived ?? metadata?.archived ?? false, initialWearHistory: metadata?.initialWearHistory,
+                formMetadata: form, version: version)
     }
 }
 
@@ -465,6 +467,21 @@ actor OfflineStore: WardrobeRepository {
         next.outbox.append(Pending(id: operation.operationID, garment: operation, wear: nil, photoID: operation.operationID))
         do { try commit(next) }
         catch { try? FileManager.default.removeItem(at: file); throw error }
+    }
+
+    func editGarment(id: UUID, expectedVersion: Int64, value: GarmentFormValue) async throws -> GarmentDetail {
+        try requireActive()
+        guard let current = state.garments.first(where: { $0.id == id }), !current.deleted,
+              current.version == expectedVersion else { throw OfflineError.conflict }
+        guard current.display.formMetadata != nil else { throw OfflineError.invalidState }
+        let checked = try GarmentFormInput(value: value).validated()
+        var fields = APIv1.GarmentFields(name: checked.name, category: checked.category,
+            priceGrosz: checked.priceGrosz, availability: current.fields.availability,
+            archived: current.display.archived)
+        fields.metadata = .init(colors: checked.colors, seasons: checked.seasons, pattern: checked.pattern,
+            formality: checked.formality, brand: checked.brand, purchasedOn: checked.purchasedOn)
+        try saveGarment(id: id, fields: fields)
+        return try await detail(id: id)
     }
 
     @discardableResult

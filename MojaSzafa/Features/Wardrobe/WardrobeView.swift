@@ -152,6 +152,7 @@ private struct GarmentDetailView: View {
     @State private var conflict = false
     @State private var confirmDeletion = false
     @State private var editInitialHistory = false
+    @State private var editAttributes = false
     @State private var initialHistoryConflict = false
     @Environment(\.dismiss) private var dismiss
 
@@ -167,6 +168,8 @@ private struct GarmentDetailView: View {
                         Toggle("wardrobe.original", isOn: $showOriginal)
                     }
                     Text(verbatim: detail.garment.name).font(.title2)
+                    Button("garment.editDetails") { editAttributes = true }
+                        .disabled(saving || detail.garment.editableValue == nil || detail.garment.version == nil)
                     Text(LocalizedStringKey("garment.category." + detail.garment.category.rawValue))
                     Text(LocalizedStringKey("wardrobe." + detail.garment.availability.rawValue))
                     if let brand = detail.garment.brand { LabeledContent("garment.brand", value: brand) }
@@ -229,6 +232,13 @@ private struct GarmentDetailView: View {
             } else { ProgressView("common.loading") }
         }
         .navigationTitle("garment.details")
+        .sheet(isPresented: $editAttributes, onDismiss: { retry += 1 }) {
+            if let garment = detail?.garment, let value = garment.editableValue, let version = garment.version {
+                GarmentFormView(value: value, editingExisting: true) { edited in
+                    detail = try await repository.editGarment(id: id, expectedVersion: version, value: edited)
+                }
+            }
+        }
         .sheet(isPresented: $editInitialHistory) {
             if let detail {
                 NavigationStack {

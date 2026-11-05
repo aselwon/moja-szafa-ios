@@ -14,6 +14,8 @@ struct Garment: Identifiable, Equatable, Codable, Sendable {
     var seasons: [String] = []
     var archived: Bool = false
     var initialWearHistory: InitialWearHistory? = nil
+    var formMetadata: APIv1.GarmentMetadata? = nil
+    var version: Int64? = nil
 }
 
 struct WardrobeQuery: Equatable, Encodable, Sendable {
@@ -146,6 +148,7 @@ struct GarmentPhotos: Equatable, Sendable {
 }
 
 protocol WardrobeRepository: Sendable {
+    func editGarment(id: UUID, expectedVersion: Int64, value: GarmentFormValue) async throws -> GarmentDetail
     func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws
     func importGarment(_ operation: APIv1.SaveGarment, photos: GarmentPhotos) async throws
     func cleaned(imageID: UUID) async throws -> Data
@@ -167,6 +170,7 @@ extension WardrobeRepository {
         try await importGarment(operation, image: photos.original)
     }
     func cleaned(imageID: UUID) async throws -> Data { throw RepositoryError.backendNotConfigured }
+    func editGarment(id: UUID, expectedVersion: Int64, value: GarmentFormValue) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func importGarment(_ operation: APIv1.SaveGarment, image: Data) async throws { throw RepositoryError.backendNotConfigured }
     func setArchived(id: UUID, archived: Bool) async throws -> GarmentDetail { throw RepositoryError.backendNotConfigured }
     func statisticsSnapshot() async throws -> StatisticsSnapshot { throw RepositoryError.backendNotConfigured }

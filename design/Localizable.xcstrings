@@ -5181,13 +5181,13 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zapisz szkic"
+            "value": "Zapisz ubranie"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save draft"
+            "value": "Save garment"
           }
         }
       },
@@ -12087,6 +12087,40 @@
         }
       },
       "comment": "Import form: saving failed, retained local draft can be retried."
+    },
+    "garment.editDetails": {
+      "comment": "Open the complete metadata editor for an existing wardrobe item.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj dane ubrania"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit garment details"
+          }
+        }
+      }
+    },
+    "garment.editExplanation": {
+      "comment": "Existing garment editor: saving preserves the item identity and wear history.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmień dane ubrania. Jego zdjęcie i historia noszenia pozostaną zachowane."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update this garment. Its photo and wear history will be preserved."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
