@@ -22,9 +22,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: backend/gateway/package-lock.json
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install pinned gateway dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefix backend/gateway
       - name: Provision image decoder for tests
         run: python3 -m pip install -r backend/images/requirements.txt
       - name: Validate repository, environment guards and secrets

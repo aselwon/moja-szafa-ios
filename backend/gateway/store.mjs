@@ -27,6 +27,23 @@ export class GatewayStore {
     return this.transaction(client => client.query('SELECT app.telemetry_prune() AS removed'));
   }
   async session(principal) { return this.transaction(client => this.bind(client, principal)); }
+  async receiveSubscription(principal, event) {
+    return this.transaction(async client => {
+      if (principal) {
+        await this.bind(client, principal);
+        if (event.transaction.owner !== principal.owner.toLowerCase()) throw new GatewayError('subscription_account_mismatch', 403);
+      }
+      const result = await client.query('SELECT app.apple_subscription_receive($1::jsonb) AS response', [JSON.stringify(event)]);
+      return result.rows[0].response;
+    });
+  }
+  async subscriptionStatus(principal, environment) {
+    return this.transaction(async client => {
+      await this.bind(client, principal);
+      const result = await client.query('SELECT app.apple_subscription_status($1::uuid,$2::text) AS response', [principal.owner, environment]);
+      return result.rows[0].response;
+    });
+  }
   async rpc(principal, operation, request) {
     if (!this.operations.has(operation)) throw new GatewayError('not_found', 404);
     return this.transaction(async client => {
