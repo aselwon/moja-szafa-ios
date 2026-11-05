@@ -129,6 +129,18 @@ BEGIN
   RETURN true;
 END $$;
 
+-- Fixed maintenance operations cannot read or retire arbitrary live images.
+CREATE OR REPLACE FUNCTION gateway_private.retired_images() RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+  RETURN app.images_command('{"action":"sweep"}'::jsonb);
+END $$;
+CREATE OR REPLACE FUNCTION gateway_private.acknowledge_retired_image(image_id uuid) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+  PERFORM app.images_command(jsonb_build_object('action','cleaned','id',image_id));
+END $$;
+
 CREATE OR REPLACE FUNCTION gateway_private.resource_command(kind text, action text, payload jsonb) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
 DECLARE owner_id uuid := auth.uid(); result jsonb;
@@ -151,6 +163,7 @@ BEGIN
 END $$;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA gateway_private FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION gateway_private.start_email_challenge(text),
+  gateway_private.retired_images(), gateway_private.acknowledge_retired_image(uuid),
   gateway_private.email_challenge_attempt(uuid), gateway_private.consume_email_challenge(uuid),
   gateway_private.bind_session(uuid,uuid), gateway_private.resource_command(text,text,jsonb) TO szafa_gateway;
 GRANT EXECUTE ON FUNCTION gateway_private.approve_identity_erasure(uuid,uuid,uuid) TO service_role;
