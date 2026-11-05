@@ -7,6 +7,14 @@ struct WelcomeView: View {
         NavigationStack {
             List {
                 Section {
+                    Text("welcome.title")
+                        .font(.largeTitle.bold())
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityAddTraits(.isHeader)
+                }
+                .listRowBackground(Color.clear)
+                Section {
                     Label("welcome.wardrobe", systemImage: "tshirt")
                     Label("welcome.outfits", systemImage: "square.stack")
                     Label("welcome.history", systemImage: "calendar")
@@ -21,7 +29,6 @@ struct WelcomeView: View {
                     Button("onboarding.skip", action: continueAction)
                 }
             }
-            .navigationTitle("welcome.title")
         }
     }
 }

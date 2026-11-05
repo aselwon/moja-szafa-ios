@@ -151,6 +151,23 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.deepEqual(reset.body.data?.excludedCategories,[]);
   assert.equal((await call('api_v1_personalization',{...prefs,operationID:randomUUID()})).body.error?.code,'version_conflict');
 
+  const expiredExport = randomUUID(), liveExport = randomUUID();
+  await store.command(a,'exports','prepare',{id:expiredExport});
+  await store.command(b,'exports','prepare',{id:liveExport});
+  await ownerPool.query("UPDATE api_private.data_exports SET expires_at=now()-interval '1 second' WHERE id=$1",[expiredExport]);
+  const liveBefore = (await ownerPool.query('SELECT snapshot FROM api_private.data_exports WHERE id=$1',[liveExport])).rows[0].snapshot;
+  await store.pruneExports();
+  assert.equal((await ownerPool.query('SELECT snapshot FROM api_private.data_exports WHERE id=$1',[expiredExport])).rows[0].snapshot,null);
+  assert.deepEqual((await ownerPool.query('SELECT snapshot FROM api_private.data_exports WHERE id=$1',[liveExport])).rows[0].snapshot,liveBefore);
+  assert.equal(await store.command(a,'exports','prepare',{id:expiredExport}),null,'cleanup retains expiry tombstones against replay');
+  await assert.rejects(store.command(a,'exports','sweep',{}),/Unsupported operation/);
+  await assert.rejects(store.transaction(client=>client.query('SELECT * FROM api_private.data_exports')),error=>error.code==='42501');
+  await assert.rejects(store.transaction(client=>client.query("SELECT app.exports_command('{\"action\":\"read\"}')")),error=>error.code==='42501');
+  await assert.rejects(store.transaction(async client=>{
+    await client.query('SET LOCAL ROLE authenticated');
+    await client.query('SELECT gateway_private.prune_exports()');
+  }),error=>error.code==='42501');
+
   const image = await store.command(a,'images','prepare',{garment,id:randomUUID()});
   assert(image?.id);
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,
