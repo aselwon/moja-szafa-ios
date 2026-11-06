@@ -4,7 +4,7 @@
 set -euo pipefail
 umask 077
 root=$(cd "$(dirname "$0")/.." && pwd)
-for tool in psql createdb dropdb pg_dump pg_restore python3; do
+for tool in psql createdb dropdb pg_dump pg_restore python3 age age-keygen; do
     command -v "$tool" >/dev/null || { echo "Required recovery tool missing: $tool" >&2; exit 1; }
 done
 prefix="wardrobe_t055_${$}_${RANDOM}"
@@ -35,8 +35,32 @@ for n in range(1, 4):
     for variant in ('original', 'thumbnail'):
         (folder / f'{variant}.jpg').write_bytes(f'synthetic-byte-fixture-{n}-{variant}'.encode())
 PY
-pg_dump --format=custom --file="$artifacts/database.dump" "$source_db"
-cp -R "$artifacts/objects" "$artifacts/object-backup"
+# Exercise the same encrypted paired-artifact tool operators use. The synthetic
+# source has no concurrent writers; a real capture must explicitly fence them.
+age-keygen -o "$artifacts/identity" 2>/dev/null
+age-keygen -y "$artifacts/identity" > "$artifacts/recipients"
+printf '[paired_fixture]\ndbname=%s\n' "$source_db" > "$artifacts/pg_service.conf"
+# A database/photo mismatch must not be published as a complete recovery set.
+missing_photo="$artifacts/objects/30000000-0000-0000-0000-000000000001/original.jpg"
+mv "$missing_photo" "$artifacts/held-original.jpg"
+if PGSERVICEFILE="$artifacts/pg_service.conf" python3 "$root/recovery/paired-backup.py" capture \
+    --service paired_fixture --objects "$artifacts/objects" \
+    --recipients "$artifacts/recipients" --output "$artifacts/incomplete.age" \
+    --writers-stopped > "$artifacts/incomplete.log" 2>&1; then
+    echo 'Expected capture to reject a missing ready photo' >&2; exit 1
+fi
+grep -q 'A ready database photo is missing or empty' "$artifacts/incomplete.log"
+[[ ! -e "$artifacts/incomplete.age" ]] || { echo 'Incomplete archive was published' >&2; exit 1; }
+mv "$artifacts/held-original.jpg" "$missing_photo"
+PGSERVICEFILE="$artifacts/pg_service.conf" python3 "$root/recovery/paired-backup.py" capture \
+    --service paired_fixture --objects "$artifacts/objects" \
+    --recipients "$artifacts/recipients" --output "$artifacts/backup.age" \
+    --writers-stopped > "$artifacts/capture.json"
+archive_hash=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha256"])' "$artifacts/capture.json")
+python3 "$root/recovery/paired-backup.py" unpack --archive "$artifacts/backup.age" \
+    --identity "$artifacts/identity" --sha256 "$archive_hash" \
+    --output "$artifacts/verified" > "$artifacts/verification.json"
+cp -R "$artifacts/verified/objects" "$artifacts/object-backup"
 # Independent deletion evidence created AFTER the snapshot, not restored from it.
 cat > "$artifacts/deletions.sql" <<'SQL'
 CREATE TEMP TABLE recovery_accounts(user_id uuid PRIMARY KEY);
@@ -59,7 +83,7 @@ createdb "$restore_db"
 restore_created=true
 # Newer pg_restore clients emit settings (e.g. transaction_timeout) unknown to
 # older servers; drop them so the drill works across client/server versions.
-pg_restore --file=- "$artifacts/database.dump" \
+pg_restore --file=- "$artifacts/verified/database.dump" \
     | sed '/^SET transaction_timeout = /d' \
     | psql -X -q -v ON_ERROR_STOP=1 --single-transaction -d "$restore_db" >/dev/null
 cp -R "$artifacts/object-backup" "$artifacts/restored-objects"

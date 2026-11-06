@@ -1,17 +1,21 @@
 # T055 — Backup and isolated recovery
 
-Status: repository procedure and synthetic rehearsal implemented; **operational
-acceptance remains unverified**. No backup service, schedule, cloud resource,
+Status: paired encrypted artifact tooling and isolated rehearsal implemented;
+**operational acceptance remains unverified**. No backup service, schedule,
 production restore or measured production RPO/RTO was created in this task.
-ADR-001 is still conditional. The sandbox has no PostgreSQL client/server,
-network, storage account or authorized recovery environment. Do not treat a
-successful harness check or a small CI rehearsal as evidence of production SLA.
+Do not treat a successful harness check or a small CI rehearsal as evidence of
+production SLA. A separate read-only capture of the real empty staging database
+was restored locally on 2026-11-06: 32 migrations, zero profiles and zero images.
+That rehearsal omitted ownership/ACL restoration and removed its temporary dump;
+it is neither a retained operational backup nor a paired photo/Auth recovery.
 
 Sources: [SPEC §§5, 7–8](../../SPEC.md), [backend ADR](../architecture/ADR-001-backend.md),
 [image implementation](../architecture/T011-private-images.md),
-[backend schema](../../backend/README.md). No provider documentation was fetched;
-the owner must verify backup/PITR, Auth export, storage versioning and retention
-capabilities for the selected provider/plan before executing this procedure.
+[backend schema](../../backend/README.md), [age CLI](https://github.com/FiloSottile/age),
+[Neon backup capabilities](https://neon.com/docs/guides/backup-restore).
+The observed Neon project remains on its free plan, with a six-hour history
+setting and no snapshot schedule. Scheduled Neon snapshots require a paid plan
+(Agent plan by request); this implementation does not enable them or change billing.
 
 ## Responsibilities and prerequisites
 
@@ -66,6 +70,10 @@ it is not a production backup scheduler or cloud connector.
 
 ## Recovery sequence and release gates
 
+For the implemented manual capture and unpack commands, see the
+[paired backup operator guide](../../backend/recovery/README.md). The caller must
+fence writers; the tool does not change live service state or enable a scheduler.
+
 1. Declare incident and record UTC `incident_at` immediately (RTO includes triage,
    provisioning, download and verification). Freeze source ingress and isolate the
    destination as above. Preserve the source; never run `--clean` against it.
@@ -109,8 +117,9 @@ it is not a production backup scheduler or cloud connector.
 
 `app.deletion_jobs` and `api_private.image_uploads` survive ordinary account
 cascades, but **both can roll back with a database restore**. They are not an
-independent journal. T017's full deletion service and a separately durable journal
-are not present here; production reopening is blocked until they are integrated.
+independent journal. Recovery must use T017's separately durable deletion journal
+and verify its availability and continuity in the actual deployment; restoring
+these tables is not a replacement for that check.
 
 The required journal contains an operation UUID, monotonic sequence, request and
 completion times, scope (account/garment/object), opaque owner/entity/upload IDs,
@@ -175,7 +184,7 @@ Before reopening, additionally:
 
 ## Executable synthetic rehearsal
 
-On a dedicated PostgreSQL 15+ test cluster with client tools and Python 3:
+On a dedicated PostgreSQL 15+ test cluster with client tools, Python 3 and age:
 
 ```sh
 bash backend/tests/recovery-drill.sh
@@ -183,7 +192,9 @@ bash backend/tests/recovery-drill.sh
 
 No database name is accepted. The script creates two unique disposable databases,
 applies the real migrations, seeds three synthetic owners and opaque image byte
-fixtures, dumps the complete source database and copies the private test objects.
+fixtures, and captures the database and objects through the operator tool using
+an ephemeral age key. It decrypts/verifies the paired archive before restoring
+the database and photo fixtures.
 It records independent post-backup account and garment deletions, restores into the
 empty second database, proves deleted rows initially reappear, replays deletion
 twice, verifies owner isolation, retained price and rejected stale garment creates,
@@ -223,10 +234,10 @@ operational evidence for each real drill:
 | Integrity, RLS, deletion, stale-device and session checks | Attach aggregate results and restricted evidence references; no customer records in report |
 | Failures and destruction of test copies | Record errors, remediation/retest and cleanup confirmation |
 
-AC1 **needs verification**: database backup and photo strategy plus an executable
-isolated synthetic drill are supplied. Run PostgreSQL CI, then execute the full
-paired backup/restore in the authorized isolated provider environment and attach
-evidence. No real backup or restore has been performed here.
+AC1 **needs verification**: database backup and photo strategy, encrypted paired
+artifact tooling and an executable isolated synthetic drill are supplied. The
+real empty staging database was separately restored locally; full paired recovery
+with provider identity, photo bytes and original privileges remains unverified.
 
 AC2 **needs verification**: relational deletion replay and synthetic timing checks
 are supplied. Complete the independent journal and suppression integrations, prove
