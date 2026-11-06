@@ -145,6 +145,84 @@ final class PhotoLayoutAccessibilityTests: XCTestCase {
 
 final class FeatureLayoutAccessibilityTests: XCTestCase {
     @MainActor
+    func testPolishPriceErrorWithKeyboard() { checkPriceError(language: "pl") }
+
+    @MainActor
+    func testEnglishPriceErrorWithKeyboard() { checkPriceError(language: "en") }
+
+    @MainActor
+    private func checkPriceError(language: String) {
+        continueAfterFailure = false
+        let pl = language == "pl"
+        let app = XCUIApplication()
+        app.launchArguments = ["--feature-layout-test", "-AppleLanguages", "(\(language))",
+                               "-AppleLocale", pl ? "pl_PL" : "en_US"]
+        app.launch()
+        defer { app.terminate() }
+        let fixture = app.buttons["layout.garment"]
+        XCTAssertTrue(fixture.waitForExistence(timeout: 10))
+        fixture.tap()
+        let name = app.textFields[pl ? "Nazwa" : "Name"].firstMatch
+        reveal(name, app: app)
+        XCTAssertEqual((name.value as? String)?.count, 200)
+        let price = app.textFields[pl ? "Cena zakupu (PLN)" : "Purchase price (PLN)"].firstMatch
+        reveal(price, app: app)
+        price.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+        price.typeText("123") // The fixture already has two decimal places.
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertEqual(price.value as? String, "123.45123")
+        XCTAssertLessThanOrEqual(price.frame.maxY, app.keyboards.firstMatch.frame.minY,
+                                 "The focused price must be above the keyboard")
+        capture(app, "garment-price-keyboard-\(language)")
+        let save = app.buttons[pl ? "Zapisz ubranie" : "Save garment"].firstMatch
+        revealAboveKeyboard(save, app: app, whole: true)
+        print("T003_KEYBOARD_AT_SAVE \(language) \(app.keyboards.firstMatch.exists)")
+        capture(app, "garment-save-keyboard-\(language)")
+        save.tap()
+        let error = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@",
+            pl ? "Podaj nieujemną kwotę PLN" : "Enter a nonnegative PLN amount")).firstMatch
+        XCTAssertTrue(error.waitForExistence(timeout: 5))
+        revealAboveKeyboard(error, app: app, whole: false)
+        capture(app, "garment-price-error-\(language)")
+        revealAboveKeyboard(save, app: app, whole: true)
+        XCTAssertTrue(save.isEnabled)
+        capture(app, "garment-error-save-\(language)")
+        XCTAssertFalse(app.staticTexts["layout.garmentSaved"].exists,
+                       "Invalid money must not invoke the save callback")
+        let cancel = app.buttons[pl ? "Anuluj" : "Cancel"].firstMatch
+        XCTAssertTrue(cancel.isHittable)
+        cancel.tap()
+        XCTAssertTrue(fixture.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["layout.garmentSaved"].exists)
+    }
+
+    @MainActor
+    private func revealAboveKeyboard(_ element: XCUIElement, app: XCUIApplication, whole: Bool) {
+        for _ in 0..<35 {
+            let keyboard = app.keyboards.firstMatch
+            let bottom = keyboard.exists ? keyboard.frame.minY - 8 : app.frame.maxY - 24
+            let top = app.frame.minY + app.frame.height * 0.22
+            let viewport = CGRect(x: app.frame.minX, y: top, width: app.frame.width, height: bottom - top)
+            if element.exists && element.isHittable {
+                let visible = viewport.intersection(element.frame)
+                if whole ? viewport.contains(element.frame) : visible.height >= min(element.frame.height, 88) { return }
+            }
+            // Starting a gesture in the keyboard only types/moves focus; it does
+            // not scroll the form. Keep both endpoints in visible form content.
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let lower = origin.withOffset(CGVector(dx: app.frame.width / 2, dy: bottom - 24))
+            let upper = origin.withOffset(CGVector(dx: app.frame.width / 2, dy: max(top + 24, bottom - 210)))
+            if element.exists && element.frame.maxY < top {
+                upper.press(forDuration: 0.05, thenDragTo: lower)
+            } else {
+                lower.press(forDuration: 0.05, thenDragTo: upper)
+            }
+        }
+        capture(app, "unreachable-keyboard-action")
+        XCTFail("The form control must be reachable above any visible keyboard")
+    }
+
+    @MainActor
     func testPolishFormActions() { checkForms(language: "pl") }
 
     @MainActor
