@@ -48,7 +48,7 @@ struct ProfilePreferencesFields: View {
     private func choices(_ title: String, options: [String], selection: Binding<Set<String>>) -> some View {
         Section {
             ForEach(options, id: \.self) { option in
-                Toggle(LocalizedStringKey("\(title).\(option)"), isOn: Binding(
+                Toggle(LocalizedStringKey(title + "." + option), isOn: Binding(
                     get: { selection.wrappedValue.contains(option) },
                     set: { selected in
                         if selected { selection.wrappedValue.insert(option) }

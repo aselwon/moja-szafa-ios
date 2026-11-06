@@ -1,5 +1,80 @@
 import XCTest
 
+#if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
+final class FeatureLayoutAccessibilityTests: XCTestCase {
+    @MainActor
+    func testPolishFormActions() { checkForms(language: "pl") }
+
+    @MainActor
+    func testEnglishFormActions() { checkForms(language: "en") }
+
+    @MainActor
+    private func checkForms(language: String) {
+        continueAfterFailure = false
+        let pl = language == "pl"
+        let app = XCUIApplication()
+        app.launchArguments = ["--feature-layout-test", "-AppleLanguages", "(\(language))",
+                               "-AppleLocale", pl ? "pl_PL" : "en_US"]
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.buttons["layout.profile"].waitForExistence(timeout: 10))
+        app.buttons["layout.profile"].tap()
+        let style = app.switches[pl ? "Codzienny" : "Casual"].firstMatch
+        reveal(style, app: app)
+        capture(app, "profile-localized-\(language)")
+        style.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: style)
+        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
+        let saveProfile = app.buttons[pl ? "Zapisz" : "Save"].firstMatch
+        reveal(saveProfile, app: app)
+        capture(app, "profile-save-\(language)")
+        saveProfile.tap()
+        XCTAssertTrue(app.staticTexts["layout.profileSaved"].waitForExistence(timeout: 5))
+
+        app.buttons["layout.consent"].tap()
+        let allow = app.buttons[pl ? "Zgadzam się na przesłanie danych do AI" : "I consent to sending data to AI"].firstMatch
+        reveal(allow, app: app)
+        capture(app, "consent-allow-\(language)")
+        allow.tap()
+        let revoke = app.buttons[pl ? "Cofnij zgodę" : "Revoke consent"].firstMatch
+        reveal(revoke, app: app)
+        XCTAssertTrue(revoke.isEnabled)
+        capture(app, "consent-revoke-\(language)")
+        revoke.tap()
+        reveal(allow, app: app)
+        XCTAssertTrue(allow.isEnabled)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["layout.garment"].waitForExistence(timeout: 5))
+        app.buttons["layout.garment"].tap()
+        let black = app.switches[pl ? "Czarny" : "Black"].firstMatch
+        reveal(black, app: app)
+        capture(app, "garment-localized-\(language)")
+        let saveGarment = app.buttons[pl ? "Zapisz ubranie" : "Save garment"].firstMatch
+        reveal(saveGarment, app: app)
+        capture(app, "garment-save-\(language)")
+        saveGarment.tap()
+        XCTAssertTrue(app.staticTexts["layout.garmentSaved"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    private func reveal(_ element: XCUIElement, app: XCUIApplication) {
+        for _ in 0..<60 {
+            if element.exists && element.isHittable { return }
+            app.swipeUp()
+        }
+        capture(app, "unreachable-action")
+        XCTAssertTrue(element.exists && element.isHittable, "The form action must be reachable by scrolling")
+    }
+
+    @MainActor
+    private func capture(_ app: XCUIApplication, _ name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name; attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+}
+#endif
+
 #if WARDROBE_BENCHMARK && targetEnvironment(simulator)
 final class WardrobeLaunchBenchmarkTests: XCTestCase {
     @MainActor

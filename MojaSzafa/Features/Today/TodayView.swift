@@ -40,7 +40,7 @@ struct TodayView: View {
                 }.disabled(model.generating || model.loading || model.busy || model.saves.pending != nil)
                 if model.generating { ProgressView("generation.progress") }
                 if let status = model.generationStatus, status == .queued || status == .running {
-                    Text(LocalizedStringKey("generation.\(status.rawValue)"))
+                    Text(LocalizedStringKey("generation." + status.rawValue))
                 }
                 if let key = model.generationError { Text(LocalizedStringKey(key)) }
                 Button("privacy.title") { showPrivacy = true }
@@ -61,7 +61,7 @@ struct TodayView: View {
                     if !suggestion.missing.isEmpty {
                         Text("suggestions.incomplete").font(.headline)
                         ForEach(suggestion.missing, id: \.self) { category in
-                            Text(LocalizedStringKey("garment.category.\(category.rawValue)"))
+                            Text(LocalizedStringKey("garment.category." + category.rawValue))
                         }
                     }
                     ForEach(suggestion.outfit.garments) { garment in
