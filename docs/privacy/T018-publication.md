@@ -1,10 +1,10 @@
 # T018 — Policies and support publication dossier
 
-Version 0.1, 2026-11-03. **Internal draft; publication and release blocked.**
+Version 0.2. **Internal draft; publication and release blocked.**
 This is preparation for T018 only, not evidence of published policies, legal
-approval or an operational support channel. No deployment, account changes or
-external requests were made. Network access and deployment are prohibited in
-this task. No controller identity, contact address or public URL was supplied.
+approval or an operational support channel. Repository implementation details
+below are not legal conclusions or proof of a configured service. No publisher
+identity, controller contact, or approved public policy/support URL is supplied.
 
 ## Review package
 
@@ -21,21 +21,25 @@ placeholder tokens is **not** proof of release readiness.
 
 ## Implementation-to-disclosure traceability
 
-Repository mechanisms are not evidence of a configured production service.
-`MojaSzafa/App/AppDependencies.swift` still leaves `live()` unconfigured.
+`AppDependencies.live()` reads the backend URL from the application bundle and
+returns an unconfigured repository when configuration is empty or invalid. This
+documents the code boundary only.
 
 | Flow | Repository evidence | Disclosure boundary |
 | --- | --- | --- |
-| Apple/email identity, session | `docs/architecture/T013-authentication.md`, `MojaSzafa/Data/SessionStore.swift` | Real identity gateway, email delivery and device verification remain required; no automatic email-based account merge |
+| App identity and sessions | `docs/architecture/T013-authentication.md`, `MojaSzafa/Data/SessionStore.swift` | Native email OTP and Apple sign-in integration code exist. Code does not establish a delivery provider, publisher configuration or verified release-device flow; no automatic email-based account merge |
 | Profile/preferences | `docs/architecture/T014-onboarding-profile.md` | Device-local preferences are not automatically server-synchronized or included in export |
 | Photo import/editing | `docs/verification/T019-photo-import.md`, `docs/verification/T020-photo-editing.md` | Separate local drafts; system picker/camera; crop and segmentation do not imply AI transmission |
-| Private images | `docs/architecture/T011-private-images.md`, `backend/images/pipeline.mjs` | Normalized uploads, original/derived variants, owner checks, 60-second signed capability implementation; deployed storage/access still unverified |
+| Private images | `docs/architecture/T011-private-images.md`, `backend/images/pipeline.mjs` | The implementation has owner-bound upload/download capabilities, normalized image variants and a private-storage adapter. The repository does not establish provider legal roles or terms |
 | Offline data | `docs/architecture/T012-offline-sync.md` | Local database/outbox and operation IDs; unsynced changes are not in server exports |
-| AI | `T015-ai-consent.md`, `docs/architecture/T027-ai-provider.md` | Exact recipient/scope/version before consent; withdrawal cancels queued work, cannot recall already dispatched requests; no approved provider |
-| Export | `docs/architecture/T016-data-export.md` | Authenticated 15-minute access; synchronized snapshot and ready garment photos; no claim of a public download link or complete device backup |
-| Deletion | `docs/architecture/T017-account-deletion.md` | Acceptance blocks access; durable cleanup follows; deployment adapters and backup retention remain open |
+| AI | `T015-ai-consent.md`, `docs/architecture/T027-ai-provider.md` | A configurable server adapter enforces an approved recipient/scope and consent before dispatch; withdrawal cancels queued work but cannot recall an already dispatched request. Provider choices/contracts require approval; no production AI acceptance is claimed |
+| Export | `docs/architecture/T016-data-export.md` | The authenticated server export builds a synchronized snapshot with eligible garment photos. This implementation does not promise a public download link or complete device backup |
+| Deletion | `docs/architecture/T017-account-deletion.md` | The implementation blocks access after accepted deletion and performs durable cleanup. Backup retention and restore behavior require separate operational and owner review |
 | Support | `backend/migrations/001_foundation.sql`, `backend/migrations/009_exports.sql` | `support_requests` schema/export coverage is not an inbox, staffed helpdesk or message-delivery implementation |
-| Subscriptions, weather, widget, notifications, analytics | SPEC §2–8 | Product requirements, not proof of operating integrations; add actual data flows before enabling them |
+| StoreKit purchases | `docs/architecture/T049-storekit-purchases.md` | Native StoreKit code and the server entitlement ledger exist; product IDs are absent by default, so an offer must be configured before purchases are available |
+| Weather/location | `docs/verification/T042-weather.md`, `backend/weather/met.mjs` | Optional city/approximate-location forecasting is implemented with MET Norway; provider terms, purpose and final disclosure require review |
+| Widget and local reminders | `docs/architecture/T045-local-reminders.md`, `docs/architecture/T046-widget-and-wear-shortcut.md` | Local notifications and a privacy-limited App Group widget payload are implemented; the documented design does not require a third-party push provider |
+| Diagnostics and analytics | `docs/operations/T053-observability.md` | Consent-gated, bounded first-party telemetry uses the application gateway/database; no third-party analytics provider is selected here |
 
 Paths in this table are repository-relative except T015 in this directory.
 

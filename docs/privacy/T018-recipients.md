@@ -1,30 +1,34 @@
 # Recipients and subprocessors / Odbiorcy i podwykonawcy
 
-Version 0.1, 2026-11-03. **Internal draft; no contracted provider list verified.**
+Version 0.2. **Internal draft; no contracted provider list verified.**
 A provider may act as a processor, separate controller or have different roles
 for different activities. Do not describe every recipient as a subprocessor.
-The controller must approve legal roles and actual entities before publication.
+The rows below separate repository implementation facts from unresolved contract
+and legal-role decisions. The controller must approve actual entities before
+publication.
 
 ## Inventory for owner review
 
 | Recipient/service | Actual evidence and status | Data/purpose to verify | Missing evidence |
 | --- | --- | --- | --- |
-| Backend/auth/private storage/worker | Supabase is a conditional proposal in ADR-001; repository SQL/adapters do not prove a deployed project | Account identifiers/email, wardrobe records/photos, consent, queued jobs, exports and deletion state for service delivery | Contracted entity, DPA, actual region, function/log/backup locations, retention, subprocessors and transfer safeguards |
-| Apple authentication | Apple sign-in client/gateway contracts; no device/production verification | Linked subject, identity proof and permitted account information, private relay; login and grant revocation | Actual publisher configuration and applicable Apple role/terms, transfer/retention disclosures |
-| Apple purchases | Product requirement; not evidence of activated StoreKit integration | Transactions/entitlement status when implemented; do not claim the app receives card details | Verified integration, actual fields, roles, retention and approved purchase terms |
-| External AI | Generic server adapter with no default vendor/model; dispatch blocked without approved recipient and consent | Normalized image for analysis; selected metadata/context for suggestions; operational usage metadata | Legal entity, models, endpoints, DPA, processing locations, training prohibition, actual retention/deletion, onward recipients and transfer safeguards |
-| Transactional email | Email auth contract; no approved SMTP operator | Destination email and authentication/delivery messages | Real sender/provider, roles, metadata retention, relay delivery and subprocessors |
-| Support/mail/helpdesk | Schema exists; no channel provisioned | Contact details, reports and minimal diagnostics | Provider/entity, staffed owner, access controls, retention including attachments/backups |
-| Website hosting/DNS/CDN | No policy site or host provisioned | Page requests and any access/security logs; no analytics assumed | Public host/entity, actual logs/cookies/assets, locations and retention |
-| Weather/location | Future feature | Selected city or optional location if enabled | Provider, transmitted precision, purpose, consent/permission behavior and retention |
-| Monitoring/analytics | Safe telemetry contracts; no verified external service | Necessary error/usage identifiers and metrics; no raw private inputs in logs | Vendor or self-hosted choice, real payloads, opt-in behavior where applicable and retention |
+| Backend, identity and private images | The repository backend targets Neon/Postgres rather than the earlier Supabase proposal in ADR-001. It includes a gateway and a private-image storage adapter. This describes implementation scope, not provider legal roles or contracts. | Account identifiers/email, wardrobe records/photos, consent, queued jobs, exports and deletion state for service delivery | Contracted legal entities and roles, DPA, actual regions, gateway/log/backup locations, retention, subprocessors and transfer safeguards |
+| Email authentication and delivery | Native email OTP and managed-auth integration code exist; this repository does not establish the outbound email operator or sender terms. | Destination email and authentication/delivery metadata | Selected delivery provider/sender, legal role, sender configuration, retention, relay behavior and subprocessors |
+| Apple authentication | Native Apple sign-in code and gateway contracts exist; code alone does not establish publisher configuration or a verified device flow | Linked subject, identity proof and permitted account information, including a private-relay address if used | Actual publisher configuration, applicable Apple role/terms, transfer and retention disclosures, and release verification |
+| Apple purchases | Native StoreKit mechanics and a server entitlement ledger are implemented. Product IDs are absent by default, so purchases require publisher offer configuration. | Verified transaction and entitlement status when configured; the app does not receive card details | App Store Connect products/group, prices/trial, publisher agreements, notification registration, actual fields/roles/retention and approved purchase terms |
+| External AI | The server has a configurable AI adapter and consent/recipient checks. Provider/model choices and contracts still require approval; this repository does not establish production acceptance. Image analysis is a separate capability and does not follow from text-AI support. | If approved and enabled: selected wardrobe metadata/context for text suggestions; normalized image only for an approved image operation; limited usage metadata | Provider legal entity/role, model and endpoint, DPA, processing locations, training and retention terms, deletion behavior, onward recipients and transfer safeguards |
+| Weather/location | Optional forecast is implemented through the authenticated gateway and MET Norway Locationforecast. The client supports explicit city selection or user-triggered approximate location. | Location input and forecast context | Provider terms/role, processing locations, retention, attribution/license and location-purpose review |
+| Support/mail/helpdesk | The `support_requests` schema and export do not provide message delivery or a helpdesk implementation | Contact details, reports and minimal diagnostics | Provider/entity, staffed owner, access controls, retention including attachments/backups |
+| Website hosting/DNS/CDN | The repository has no policy/support-site publishing integration | Page requests and any access/security logs; no analytics assumed | Public host/entity, actual logs/cookies/assets, locations and retention |
+| Monitoring/analytics | Consent-gated, bounded first-party diagnostics/analytics are implemented; no separate third-party analytics provider is selected in this dossier | Allowlisted diagnostic outcomes, timings and aggregate activation counts; no photos, garment names, email addresses, tokens or raw request bodies | Confirm release configuration, file/log handling, retention and any future provider before publication |
 
 Sources: [ADR-001](../architecture/ADR-001-backend.md),
 [T013](../architecture/T013-authentication.md), [T015](T015-ai-consent.md),
 [T016](../architecture/T016-data-export.md),
 [T017](../architecture/T017-account-deletion.md),
-[T027](../architecture/T027-ai-provider.md), SPEC §5–8.
-No current provider terms or legal requirements were retrieved in this offline task.
+[T027](../architecture/T027-ai-provider.md),
+[T042](../verification/T042-weather.md),
+[T049](../architecture/T049-storekit-purchases.md), SPEC §5–8. Provider terms,
+legal roles and applicable requirements still need authorized review.
 
 ## PL — public introduction for review
 
