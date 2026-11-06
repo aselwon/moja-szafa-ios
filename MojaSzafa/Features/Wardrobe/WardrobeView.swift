@@ -8,6 +8,7 @@ struct WardrobeView: View {
     private let consent: (any AIConsentService)?
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.scenePhase) private var scenePhase
+    @State private var wasBackgrounded = false
 
     init(repository: any WardrobeRepository, accountID: UUID, allowsPhotoImport: Bool = true, recognition: (any PhotoRecognitionService)? = nil, consent: (any AIConsentService)? = nil) {
         self.recognition = recognition
@@ -74,14 +75,16 @@ struct WardrobeView: View {
         .navigationTitle("tab.wardrobe")
         .searchable(text: $model.query.search, prompt: "wardrobe.search")
         .task(id: model.query) {
-            do { try await Task.sleep(for: .milliseconds(250)) } catch { return }
-            await model.reload()
+            await model.loadQuery()
         }
         .refreshable { await model.reload() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await model.reload() } }
+            if phase == .background { wasBackgrounded = true }
+            if phase == .active && wasBackgrounded {
+                wasBackgrounded = false
+                Task { await model.reload() }
+            }
         }
-        .onAppear { Task { await model.load() } }
     }
 
     private var controls: some View {

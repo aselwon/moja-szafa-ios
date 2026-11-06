@@ -73,6 +73,70 @@ final class WardrobeTests: XCTestCase {
         XCTAssertEqual(model.items.map(\.name), ["new"])
     }
 
+    func testOverlappingInitialLoadsShareOneRequestButReturningRefreshes() async {
+        let repository = DelayedBrowseFixture()
+        let model = WardrobeModel(repository: repository)
+        let first = Task { await model.loadQuery() }
+        await repository.waitForRequest()
+        await model.load()
+        let initialCount = await repository.requests
+        XCTAssertEqual(initialCount, 1)
+        await repository.finishOldRequest()
+        await first.value
+        let returning = Task { await model.loadQuery() }
+        await repository.waitForRequest(count: 2)
+        let returningCount = await repository.requests
+        XCTAssertEqual(returningCount, 2, "Returning from editing must refresh the first page")
+        await repository.finishOldRequest()
+        await returning.value
+    }
+
+    func testReturnSupersedesCancelledLoadEvenWhenRepositoryIgnoresCancellation() async {
+        let repository = DelayedBrowseFixture()
+        let model = WardrobeModel(repository: repository)
+        let leaving = Task { await model.loadQuery() }
+        await repository.waitForRequest()
+        leaving.cancel()
+        let returning = Task { await model.loadQuery() }
+        await repository.waitForRequest(count: 2)
+        await repository.finishOldRequest()
+        await leaving.value
+        XCTAssertEqual(model.state, .loading, "Cancelled old completion must not reset the new request")
+        await repository.finishOldRequest()
+        await returning.value
+        XCTAssertEqual(model.items.map(\.name), ["old"])
+        if case .loaded = model.state {} else { XCTFail("The returning view must finish loading") }
+    }
+
+    func testChangedQuerySupersedesAnUnfinishedInitialLoad() async {
+        let repository = DelayedBrowseFixture()
+        let model = WardrobeModel(repository: repository)
+        let first = Task { await model.loadQuery() }
+        await repository.waitForRequest()
+        model.query.search = "new"
+        await model.loadQuery()
+        await repository.finishOldRequest()
+        await first.value
+        let requests = await repository.requests
+        XCTAssertEqual(requests, 2)
+        XCTAssertEqual(model.items.map(\.name), ["new"])
+    }
+
+    func testCancelledSearchDoesNotFetchAnIntermediatePage() async {
+        let repository = BrowseFixture()
+        let model = WardrobeModel(repository: repository)
+        await model.loadQuery()
+        model.query.search = "Item 9"
+        let superseded = Task { await model.loadQuery() }
+        superseded.cancel()
+        await superseded.value
+        model.query.search = "Item 999"
+        await model.loadQuery()
+        let offsets = await repository.offsets
+        XCTAssertEqual(offsets, [0, 0])
+        XCTAssertEqual(model.items.map(\.name), ["Item 999"])
+    }
+
     func testReadModelDecodesNullablePriceAndImageWithoutOriginalURLs() throws {
         let data = Data(#"{"items":[{"id":"00000000-0000-0000-0000-000000000001","name":"Shirt","category":"top","availability":"available","priceGrosz":null,"imageID":"00000000-0000-0000-0000-000000000002","brand":null,"colors":["blue"],"seasons":["winter"],"archived":false}],"nextOffset":null,"cached":false}"#.utf8)
         let page = try JSONDecoder().decode(WardrobePage.self, from: data)
@@ -211,24 +275,28 @@ private actor BrowseTransport: APITransport {
 }
 
 private actor DelayedBrowseFixture: WardrobeRepository {
-    private var pending: CheckedContinuation<WardrobePage, Never>?
+    private(set) var requests = 0
+    private var pending: [Int: CheckedContinuation<WardrobePage, Never>] = [:]
     private var started: CheckedContinuation<Void, Never>?
+    private var waitingForCount = 1
     func garments() async throws -> [Garment] { [] }
     func page(query: WardrobeQuery, offset: Int, limit: Int) async throws -> WardrobePage {
+        requests += 1
         if query.search == "new" {
             return WardrobePage(items: [Garment(id: UUID(), name: "new")], nextOffset: nil)
         }
         return await withCheckedContinuation {
-            pending = $0
-            started?.resume(); started = nil
+            pending[requests] = $0
+            if requests >= waitingForCount { started?.resume(); started = nil }
         }
     }
-    func waitForRequest() async {
-        if pending != nil { return }
+    func waitForRequest(count: Int = 1) async {
+        if requests >= count { return }
+        waitingForCount = count
         await withCheckedContinuation { started = $0 }
     }
     func finishOldRequest() {
-        pending?.resume(returning: WardrobePage(items: [Garment(id: UUID(), name: "old")], nextOffset: nil))
-        pending = nil
+        guard let number = pending.keys.min() else { return }
+        pending.removeValue(forKey: number)?.resume(returning: WardrobePage(items: [Garment(id: UUID(), name: "old")], nextOffset: nil))
     }
 }
