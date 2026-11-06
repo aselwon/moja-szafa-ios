@@ -84,6 +84,65 @@ final class AppNavigationLayoutTests: XCTestCase {
     }
 }
 
+final class PhotoLayoutAccessibilityTests: XCTestCase {
+    @MainActor func testPolishPhotoActions() { checkPhotos(language: "pl") }
+    @MainActor func testEnglishPhotoActions() { checkPhotos(language: "en") }
+
+    @MainActor private func checkPhotos(language: String) {
+        continueAfterFailure = false
+        let pl = language == "pl"
+        let app = XCUIApplication()
+        app.launchArguments = ["--photo-layout-test", "-AppleLanguages", "(\(language))",
+                               "-AppleLocale", pl ? "pl_PL" : "en_US"]
+        app.launch()
+        defer { app.terminate() }
+        let photoImport = app.buttons["layout.photoImport"]
+        XCTAssertTrue(photoImport.waitForExistence(timeout: 10))
+        photoImport.tap()
+        let editor = app.buttons[pl ? "Edytuj zdjęcie" : "Edit photo"].firstMatch
+        reveal(editor, app: app)
+        editor.tap()
+        let preview = app.buttons[pl ? "Podgląd z tłem" : "Preview with background"].firstMatch
+        reveal(preview, app: app)
+        capture(app, "photo-crop-\(language)")
+        preview.tap()
+        let accept = app.buttons[pl ? "Akceptuj zdjęcie" : "Accept photo"].firstMatch
+        reveal(accept, app: app)
+        XCTAssertTrue(accept.isEnabled)
+        capture(app, "photo-accept-\(language)")
+        accept.tap()
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        XCTAssertFalse(accept.exists, "Accept must return to the import draft")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let export = app.buttons["layout.photoExport"]
+        XCTAssertTrue(export.waitForExistence(timeout: 5))
+        export.tap()
+        let share = app.buttons[pl ? "Udostępnij…" : "Share…"].firstMatch
+        reveal(share, app: app)
+        XCTAssertTrue(share.isEnabled)
+        capture(app, "photo-share-\(language)")
+        // Do not dispatch an activity or send anything to another application.
+        app.buttons[pl ? "Anuluj" : "Cancel"].firstMatch.tap()
+        XCTAssertTrue(export.waitForExistence(timeout: 5))
+    }
+
+    @MainActor private func reveal(_ element: XCUIElement, app: XCUIApplication) {
+        for _ in 0..<35 {
+            if element.exists && element.isHittable && app.frame.insetBy(dx: 0, dy: 24).contains(element.frame) { return }
+            app.swipeUp()
+        }
+        capture(app, "unreachable-photo-action")
+        XCTAssertTrue(element.exists && element.isHittable && app.frame.insetBy(dx: 0, dy: 24).contains(element.frame),
+                      "The complete photo action must remain visible and reachable by scrolling")
+    }
+
+    @MainActor private func capture(_ app: XCUIApplication, _ name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name; attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+}
+
 final class FeatureLayoutAccessibilityTests: XCTestCase {
     @MainActor
     func testPolishFormActions() { checkForms(language: "pl") }

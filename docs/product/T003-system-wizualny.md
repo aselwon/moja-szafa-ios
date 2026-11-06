@@ -1,9 +1,13 @@
 # T003 — System wizualny i lokalizacja
 
-Wersja 1.0. Projekt dla natywnego SwiftUI zgodny z [T002](T002-projekt-przeplywow.md)
-i jego [macierzą stanów](T002-stany-i-odbior.md). Zakres T003 obejmuje system
-projektowy i zasoby do integracji; nie tworzy projektu aplikacji z T005.
-Nie wykonano renderowania ani testów urządzeniowych w środowisku Linux.
+Wersja 1.0. System wizualny dla natywnego SwiftUI, zgodny z
+[T002](T002-projekt-przeplywow.md) i jego [macierzą stanów](T002-stany-i-odbior.md).
+Tokeny i katalog PL/EN są zintegrowane z projektem aplikacji. Wybrane ekrany
+przeszły udokumentowane testy layoutu AX5 na symulatorze: [ekrany główne](../quality/T003-core-layout.md),
+[formularze i etykiety lokalizowane](../quality/T003-feature-form-layout.md) oraz
+[nawigacja](../quality/T003-app-navigation-layout.md). Przebieg prób edycji i eksportu
+zdjęć opisuje [osobny raport](../quality/T003-photo-actions.md). Są to wyniki ograniczonych
+scenariuszy testowych, nie pełny odbiór dostępności ani test fizycznego urządzenia.
 
 ## Źródła i tokeny
 
@@ -11,8 +15,8 @@ Nie wykonano renderowania ani testów urządzeniowych w środowisku Linux.
 Kolory sRGB mają osobne wartości light/dark; bez przezroczystości dla tekstu.
 Neutralne tła eksponują prawdziwe zdjęcia. Zielony accent wyróżnia akcję,
 nie oznacza automatycznie sukcesu. Motyw domyślnie podąża za systemem.
-W T005 odwzorować tokeny na named colors w Asset Catalog (Any/Dark),
-bez ręcznego ustawiania jednego motywu na poziomie aplikacji.
+Tokeny są odwzorowane na named colors w Asset Catalog (Any/Dark).
+Nie ustawiaj ręcznie jednego motywu na poziomie aplikacji.
 
 | Rola | Zastosowanie |
 | --- | --- |
@@ -97,7 +101,7 @@ klawiatury nie może być jedynym sposobem odzyskania przycisku.
 
 ## PL/EN i formatowanie
 
-[Localizable.xcstrings](../../design/Localizable.xcstrings) to rzeczywisty String
+[Localizable.xcstrings](../../design/Localizable.xcstrings) to zintegrowany String
 Catalog 1.0, źródłowy język `pl`, ręcznie utrzymywane stabilne klucze i kompletne
 odpowiedniki `en`. Obejmuje wspólne komponenty i bazowe teksty wszystkich F01–F20.
 Nie jest ukończonym copy wszystkich przyszłych funkcji: nowe teksty dodawać
@@ -105,9 +109,10 @@ w ich zadaniach w obu językach. Szczegółowe słowniki kategorii, regulaminy,
 odblokowane ceny/limity i treści zgody konkretnego odbiorcy wymagają finalnych
 danych; nie zastępować ich przykładowymi obietnicami w produkcji.
 
-T005: dodać katalog do resources targetu aplikacji, ustawić PL/EN jako lokalizacje,
-polski development language i sprawdzić kompilację katalogu przez Xcode.
-Nie kopiować obok drugiego Localizable.strings. SwiftUI korzysta z kluczy,
+Katalog jest dodany do zasobów aplikacji; PL/EN mają ręcznie utrzymywane wpisy.
+Walidacja zasobów i testy formularzy potwierdzają pokrycie sprawdzonych kluczy,
+ale nie stanowią odbioru wszystkich ekranów. Nie kopiować obok drugiego
+Localizable.strings. SwiftUI korzysta z kluczy,
 np. `Text("tab.wardrobe")`; nazwy ubrań przez `Text(verbatim:)`.
 Teksty spoza SwiftUI korzystają z tej samej tabeli i wybranego locale.
 Systemowy język domyślny, PL/EN w ustawieniach zgodnie z T002; wybór musi objąć
@@ -128,14 +133,16 @@ Nie wpisywać formatu daty i separatorów liczbowych w tłumaczeniu.
 
 ## Odbiór i granice dowodów
 
-`node scripts/harness-check.mjs` sprawdza także schemat tokenów, kontrast,
+`node scripts/harness-check.mjs` sprawdza schemat tokenów, kontrast,
 kompletność PL/EN, plural i zgodność argumentów. To kontrola zasobów, nie
-kompilacja xcstrings ani dowód poprawnego layoutu. CI macOS uruchamia ją tym samym
-wejściem; istniejący warunkowy build iOS pozostaje bez zmian.
+kompilacja xcstrings ani dowód poprawnego layoutu. Zadanie CI `validate`
+uruchamia tę kontrolę; osobne zadania macOS budują i testują aplikację.
 
-Po integracji w T005 uruchomić macOS CI oraz poniższą macierz na symulatorze
-najmniejszego wspieranego iPhone’a i urządzeniu z D08. Zachować model, iOS,
-wersję buildu, locale, rozmiar tekstu, zrzuty i wynik każdej próby.
+Udokumentowane próby AX5 obejmują wybrane ekrany główne, formularze i trasy
+nawigacji w PL/EN oraz light/dark na iOS 27.2 Simulator. Pełna macierz poniżej
+nadal opisuje wymagania pozostające do odbioru; nie należy traktować jej jako
+wykonanej na podstawie tych ograniczonych testów. Zachowuj model, iOS, wersję
+buildu, locale, rozmiar tekstu, zrzuty i wynik każdej nowej próby.
 
 | Próba | Oczekiwany wynik / dowód |
 | --- | --- |
@@ -146,6 +153,9 @@ wersję buildu, locale, rozmiar tekstu, zrzuty i wynik każdej próby.
 | PL/EN plural dla podanych liczb; zmiana języka | Poprawna odmiana, bez surowych kluczy/placeholderów; PLN nie zmienia się w walutę subskrypcji |
 | Loading/empty/error/offline i długi opis z T002 | Retry/powrót dostępne, draft zachowany, brak fałszywego sukcesu; sprawdzić w obu motywach |
 
-Stan: definicje i zasoby dostarczone; rzeczywisty brak zasłaniania akcji pozostaje
-do weryfikacji na buildzie. Brak projektu Xcode, macOS, urządzeń i decyzji D08
-uniemożliwia uczciwe zaliczenie tej próby w T003 w obecnym sandboxie.
+Stan: definicje i zasoby są zintegrowane. Udokumentowane testy potwierdzają
+dostępność wybranych akcji w konkretnych scenariuszach AX5; nie potwierdzają
+pełnej macierzy ekranów, orientacji i stanów. Pozostają między innymi VoiceOver,
+fizyczne urządzenie, najmniejszy wspierany ekran, formularz z klawiaturą i błędem,
+Increase Contrast, Bold Text oraz Reduce Motion w pełnej macierzy dostępności
+T057. Wyniki T003 nie zastępują tego osobnego odbioru.
