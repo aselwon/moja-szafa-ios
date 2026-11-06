@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import { imageHandler } from '../images/http.mjs';
 import { randomBytes } from 'node:crypto';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, readdir } from 'node:fs/promises';
+import { createServer, request as httpRequest } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -43,7 +44,53 @@ try {
   await assert.rejects(service.upload(owner, prepared.upload_token + '.extra', input), /access_denied/);
   await assert.rejects(service.upload(owner, prepared.upload_token, Buffer.alloc(MAX_BYTES + 1)), /image_limit/);
   await assert.rejects(service.downloadToken(owner, id), /access_denied/);
-  await service.upload(owner, prepared.upload_token, input);
+  // A real TCP disconnect before the complete body must not consume the upload
+  // operation or publish partial files. Retry the same capability after reconnect.
+  const received = Promise.withResolvers();
+  const handled = Promise.withResolvers();
+  let firstRequest = true;
+  const handler = imageHandler(service, async header => header === 'owner-session' ? owner : null);
+  const server = createServer((request, response) => {
+    const interrupted = firstRequest;
+    firstRequest = false;
+    if (interrupted) request.once('data', received.resolve);
+    const work = handler(request, response);
+    if (interrupted) work.then(handled.resolve, handled.reject);
+    else work.catch(error => response.destroy(error));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const deadline = async promise => {
+    let timer;
+    try {
+      return await Promise.race([promise, new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('interrupted upload did not settle')), 5000);
+      })]);
+    } finally { clearTimeout(timer); }
+  };
+  try {
+    const url = `http://127.0.0.1:${server.address().port}/v1/images/uploads/${id}?token=${prepared.upload_token}`;
+    const partial = httpRequest(url, { method: 'PUT', headers: {
+      authorization: 'owner-session', 'content-length': input.length,
+      'content-type': 'application/octet-stream'
+    } });
+    partial.on('error', () => {}); // Deliberate connection reset.
+    partial.write(input.subarray(0, Math.floor(input.length / 2)));
+    await deadline(received.promise);
+    partial.destroy();
+    await deadline(handled.promise);
+    assert.equal(state, 'pending', 'partial transport must not claim the operation');
+    assert.equal(decodeCount, 0, 'partial bytes must not reach the decoder');
+    assert.deepEqual(await readdir(directory), [], 'partial bytes must not enter private storage');
+    const retry = await fetch(url, { method: 'PUT', headers: {
+      authorization: 'owner-session', 'content-type': 'application/octet-stream'
+    }, body: input, signal: AbortSignal.timeout(5000) });
+    assert.equal(retry.status, 200);
+    assert.equal((await retry.json()).image_id, id);
+    assert.equal(state, 'ready');
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
   await service.upload(owner, prepared.upload_token, input);
   assert.equal(decodeCount, 1, 'post-commit replay does not decode or overwrite');
   async function http(method, url, authorization, payload = '') {
