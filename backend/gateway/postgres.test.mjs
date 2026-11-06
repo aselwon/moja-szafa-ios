@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { once } from 'node:events';
 import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
@@ -8,6 +10,8 @@ import { GatewayStore } from './store.mjs';
 import { loadRPCOperations } from './contracts.mjs';
 import { createGateway } from './server.mjs';
 import { GatewayError } from './managed-auth.mjs';
+import { startImageRetention } from './image-retention.mjs';
+import { privateFiles } from '../images/pipeline.mjs';
 
 test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revocation and deletion guards', async t => {
   // This suite creates/drops only its own uniquely named synthetic database.
@@ -151,6 +155,23 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   assert.deepEqual(reset.body.data?.excludedCategories,[]);
   assert.equal((await call('api_v1_personalization',{...prefs,operationID:randomUUID()})).body.error?.code,'version_conflict');
 
+  const expiredExport = randomUUID(), liveExport = randomUUID();
+  await store.command(a,'exports','prepare',{id:expiredExport});
+  await store.command(b,'exports','prepare',{id:liveExport});
+  await ownerPool.query("UPDATE api_private.data_exports SET expires_at=now()-interval '1 second' WHERE id=$1",[expiredExport]);
+  const liveBefore = (await ownerPool.query('SELECT snapshot FROM api_private.data_exports WHERE id=$1',[liveExport])).rows[0].snapshot;
+  await store.pruneExports();
+  assert.equal((await ownerPool.query('SELECT snapshot FROM api_private.data_exports WHERE id=$1',[expiredExport])).rows[0].snapshot,null);
+  assert.deepEqual((await ownerPool.query('SELECT snapshot FROM api_private.data_exports WHERE id=$1',[liveExport])).rows[0].snapshot,liveBefore);
+  assert.equal(await store.command(a,'exports','prepare',{id:expiredExport}),null,'cleanup retains expiry tombstones against replay');
+  await assert.rejects(store.command(a,'exports','sweep',{}),/Unsupported operation/);
+  await assert.rejects(store.transaction(client=>client.query('SELECT * FROM api_private.data_exports')),error=>error.code==='42501');
+  await assert.rejects(store.transaction(client=>client.query("SELECT app.exports_command('{\"action\":\"read\"}')")),error=>error.code==='42501');
+  await assert.rejects(store.transaction(async client=>{
+    await client.query('SET LOCAL ROLE authenticated');
+    await client.query('SELECT gateway_private.prune_exports()');
+  }),error=>error.code==='42501');
+
   const image = await store.command(a,'images','prepare',{garment,id:randomUUID()});
   assert(image?.id);
   assert.equal(await store.command(b,'images','prepare',{owner:a.owner,garment,id:randomUUID()}),null,
@@ -173,6 +194,36 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   const deleted = await call('api_v1_delete_garment',{operationID:randomUUID(),garmentID:garment});
   assert.equal(deleted.status,200);
   assert.equal(deleted.body.data,true,'native camelCase delete payload reaches the canonical gateway route and SQL');
+  // Exercise the deployed scheduler composition against real PostgreSQL and disk.
+  const retainedGarment=randomUUID(), retainedImage=randomUUID();
+  const retainedSave=await call('api_v1_save_garment',{operation_id:randomUUID(),garment_id:retainedGarment,base_version:null,
+    garment:{name:'Retained shirt',category:'top',price_grosz:null,availability:'available'}},tokenB);
+  assert(retainedSave.body.data,JSON.stringify(retainedSave.body));
+  await store.command(b,'images','prepare',{garment:retainedGarment,id:retainedImage,has_cleaned:true});
+  const retainedClaim=await store.command(b,'images','claim',{id:retainedImage});
+  await store.command(b,'images','finish',{id:retainedImage,fence:retainedClaim.fence});
+  const imageDirectory=await mkdtemp(join(tmpdir(),'szafa-retention-pg-'));
+  t.after(()=>rm(imageDirectory,{recursive:true,force:true}));
+  const imageStorage=privateFiles(imageDirectory);
+  for(const id of [image.id,recognitionImage,retainedImage]) {
+    for(const variant of ['original.jpg','thumbnail.jpg','cleaned.png']) await imageStorage.put(`${id}/${variant}`,Buffer.from('synthetic-image-bytes'));
+  }
+  await store.acknowledgeRetiredImage(retainedImage);
+  assert.equal(await store.command(b,'images','read',{id:retainedImage,variant:'cleaned'}),true,'acknowledgement cannot delete a live image');
+  let retentionErrors=0;
+  const retention=startImageRetention({store,directory:imageDirectory,onError:()=>retentionErrors++});
+  t.after(()=>retention.stop());
+  await retention.ready; await retention.stop();
+  assert.equal(retentionErrors,0);
+  for(const id of [image.id,recognitionImage]) for(const variant of ['original.jpg','thumbnail.jpg','cleaned.png']) {
+    await assert.rejects(imageStorage.get(`${id}/${variant}`),error=>error.code==='ENOENT');
+  }
+  for(const variant of ['original.jpg','thumbnail.jpg','cleaned.png']) assert.equal((await imageStorage.get(`${retainedImage}/${variant}`)).toString(),'synthetic-image-bytes');
+  assert.equal((await ownerPool.query('SELECT state FROM api_private.image_uploads WHERE id=$1',[image.id])).rows[0].state,'retired');
+  await assert.rejects(store.transaction(client=>client.query("SELECT app.images_command('{\"action\":\"sweep\"}')")),error=>error.code==='42501');
+  await assert.rejects(store.transaction(async client=>{
+    await client.query('SET LOCAL ROLE authenticated'); await client.query('SELECT gateway_private.retired_images()');
+  }),error=>error.code==='42501');
   await assert.rejects(runtime.query('SELECT * FROM neon_auth.session'),/permission denied/);
   await assert.rejects(runtime.query('SELECT * FROM auth.users'),/permission denied/);
   assert.equal((await runtime.query("SELECT nullif(current_setting('request.jwt.claim.sub',true),'') AS owner")).rows[0].owner,null,'identity does not leak through pool');
