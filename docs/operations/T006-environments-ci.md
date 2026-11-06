@@ -107,16 +107,18 @@ Attach the actual CI run and `.xcresult` artifacts before claiming macOS success
 
 ## Evidence and remaining verification
 
-The latest recorded clean PR validation at this audit was PR #107 head
-`4feddae55de1df9f00668d0bc4f8e821c41c590f`. Its `validate`, `postgres`, and iOS
-Debug, Staging and Release checks all passed. The Release job reported Xcode
-27.2, build 27B52. See [the PR workflow run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42104388911).
-The main merge commit `9f4fe3897f9e038e61fbb648a885628f697a73f5` had a separate
-[push run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42108075786)
-queued at the time of that audit; recheck the latest main run before relying on it.
-The passing validation job includes the harness and secret-scan
-self-tests. The scanner does not inspect Git history or ignored local files and
-cannot prove the absence of every secret format.
+The latest recorded clean PR validation is PR #117 head
+`b63b3f678b736cdd74051952f9bffa554a38e56c`, based on main
+`173708b0ef6eb6b79459e53d8c9e2d9033b58024`. Its `validate`, `postgres`, and iOS
+Debug, Staging and Release checks all passed. See [the PR workflow run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42137751461).
+PR #117 merged as `c9ea0b778db33d9d0e8021b902b42f94c40abcc2`; its separate main
+[push run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42139347361)
+was still running at the time of this update: `validate`, `postgres`, iOS
+Debug and Staging had passed, while iOS Release was in progress. Recheck that run
+before treating the latest main push as validated. The passing validation job
+includes the harness and secret-scan self-tests. The scanner does not inspect Git
+history or ignored local files and cannot prove the absence of every secret
+format.
 
 The signed iOS device archive and Apple provisioning remain unverified. Simulator
 CI uses `CODE_SIGNING_ALLOWED=NO`; the production team and profile are empty in
