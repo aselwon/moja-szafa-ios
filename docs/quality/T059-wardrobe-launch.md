@@ -13,7 +13,7 @@ The test records two different measurements:
 - `XCTApplicationLaunchMetric(waitUntilResponsive: true)` records the operating
   system's launch-to-responsive metric in the result bundle. It does not by
   itself establish that asynchronously loaded wardrobe data is visible.
-- `T059-wardrobe-launch.json` records process launch through first-page
+- `T059-wardrobe-launch-2026-11-06.json` records process launch through first-page
   readiness as observed by XCTest. This includes test-driver launch and
   accessibility-query overhead, plus the fixture integrity check. Its p95 is
   the nearest-rank 19th sorted sample out of 20, after three explicit warm-ups
