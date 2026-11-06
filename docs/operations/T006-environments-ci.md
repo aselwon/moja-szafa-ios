@@ -113,12 +113,10 @@ The latest recorded clean PR validation is PR #117 head
 Debug, Staging and Release checks all passed. See [the PR workflow run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42137751461).
 PR #117 merged as `c9ea0b778db33d9d0e8021b902b42f94c40abcc2`; its separate main
 [push run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42139347361)
-was still running at the time of this update: `validate`, `postgres`, iOS
-Debug and Staging had passed, while iOS Release was in progress. Recheck that run
-before treating the latest main push as validated. The passing validation job
-includes the harness and secret-scan self-tests. The scanner does not inspect Git
-history or ignored local files and cannot prove the absence of every secret
-format.
+completed successfully for that merge commit, with `validate`, `postgres`, and
+iOS Debug, Staging and Release all passing. The passing validation job includes
+the harness and secret-scan self-tests. The scanner does not inspect Git history
+or ignored local files and cannot prove the absence of every secret format.
 
 The signed iOS device archive and Apple provisioning remain unverified. Simulator
 CI uses `CODE_SIGNING_ALLOWED=NO`; the production team and profile are empty in
