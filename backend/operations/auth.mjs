@@ -5,6 +5,8 @@ export class OperatorError extends Error {
 }
 
 export function operatorConfiguration(env) {
+  const tokenType = env.OPS_TOKEN_TYPE ?? 'access_token';
+  if (!['access_token', 'oidc_id_token'].includes(tokenType)) throw new Error('operator_configuration_invalid');
   const names = ['OPS_ISSUER', 'OPS_AUDIENCE', 'OPS_JWKS_URL', 'OPS_PUBLIC_ORIGIN'];
   if (names.every(name => !env[name])) return null;
   if (names.some(name => typeof env[name] !== 'string' || !env[name])) throw new Error('operator_configuration_invalid');
@@ -17,7 +19,7 @@ export function operatorConfiguration(env) {
       !env.OPS_AUDIENCE.trim() || env.OPS_ISSUER.length > 512) {
     throw new Error('operator_configuration_invalid');
   }
-  return Object.freeze({ issuer: env.OPS_ISSUER, audience: env.OPS_AUDIENCE, jwksURL: jwks, origin: origin.origin });
+  return Object.freeze({ issuer: env.OPS_ISSUER, audience: env.OPS_AUDIENCE, jwksURL: jwks, origin: origin.origin, tokenType });
 }
 
 export class OperatorAuth {
@@ -33,14 +35,21 @@ export class OperatorAuth {
     }
     try {
       const now = Math.floor(this.now() / 1000);
+      // OIDC mode is for a dedicated confidential proxy client. The proxy must
+      // validate state/nonce/PKCE and replace caller-supplied Authorization.
+      // The request cannot select a token profile or fall back between profiles.
+      const idToken = this.configuration.tokenType === 'oidc_id_token';
       const { payload } = await jwtVerify(token, this.keys, {
-        algorithms: ['RS256', 'ES256'], typ: 'at+jwt',
+        algorithms: ['RS256', 'ES256'], typ: idToken ? 'JWT' : 'at+jwt',
         issuer: this.configuration.issuer, audience: this.configuration.audience,
-        requiredClaims: ['exp', 'iat', 'sub', 'jti', 'amr', 'auth_time'],
+        requiredClaims: ['exp', 'iat', 'sub', 'amr', 'auth_time', idToken ? 'nonce' : 'jti'],
         maxTokenAge: '15 minutes', clockTolerance: 5, currentDate: new Date(this.now()),
       });
       if (typeof payload.sub !== 'string' || payload.sub.length < 1 || payload.sub.length > 256 ||
-          typeof payload.jti !== 'string' || payload.jti.length < 1 || payload.jti.length > 256 ||
+          (!idToken && (typeof payload.jti !== 'string' || payload.jti.length < 1 || payload.jti.length > 256)) ||
+          (idToken && (typeof payload.nonce !== 'string' || payload.nonce.length < 1 || payload.nonce.length > 512 ||
+            (payload.azp !== undefined && payload.azp !== this.configuration.audience) ||
+            (Array.isArray(payload.aud) && payload.aud.length > 1 && payload.azp !== this.configuration.audience))) ||
           !Number.isSafeInteger(payload.auth_time) || payload.auth_time > now + 5 || now - payload.auth_time > 900 ||
           !Number.isSafeInteger(payload.iat) || !Number.isSafeInteger(payload.exp) || payload.exp <= payload.iat || payload.exp - payload.iat > 900 ||
           !Array.isArray(payload.amr) || payload.amr.length > 16 || !payload.amr.every(value => typeof value === 'string') ||
