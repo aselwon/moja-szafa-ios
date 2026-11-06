@@ -31,12 +31,16 @@ struct AuthenticationView: View {
                             .disabled(model.busy)
                     }
                 }
+                #if !PERSONAL_DEVICE
                 Section { appleButton }
+                #endif
             } else {
                 Section {
                     Text("auth.signedIn")
+                    #if !PERSONAL_DEVICE
                     if linkConfirmed { appleButton }
                     else { Button("auth.link") { confirmLink = true }.disabled(model.busy) }
+                    #endif
                     Button("auth.logout", role: .destructive) {
                         Task { await model.logout(); linkConfirmed = false }
                     }.disabled(model.busy)
