@@ -23,7 +23,7 @@ relaunch. Reopening the editor starts from the original; crop controls and tempo
 previews are not persisted. Removing a draft removes both files. These remain local
 drafts; this task does not implement garment creation or upload handoff.
 
-## Sandbox verification
+## Verification scope
 
 - `export PATH=/home/harness/.local/bin:$PATH && node scripts/harness-check.mjs`
   passes. This covers repository structure, localization, secrets and existing
@@ -32,7 +32,34 @@ drafts; this task does not implement garment creation or upload handoff.
   invalid bounds, segmentation failure with usable fallback, preview invalidation,
   successful result selection, transparency-preserving storage, cancellation,
   original preservation, replacement, restart, deletion and storage failure.
-- Linux has no Xcode/UIKit/Vision runtime. Those XCTest cases have not run here.
+- The original Linux-only implementation record has been superseded by native
+  simulator runs: see [the image-pair verification](T020-original-and-cleaned-images.md).
+  Those runs exercise persistence, editing and fallback behavior; their injected
+  segmenters do not establish actual Vision output quality.
+- `PhotoImportTests.testRealVisionRemovesBackgroundFromShirt` is an opt-in
+  iOS integration probe enabled with `VISION_SMOKE_TESTING`. It imports
+  the attributed public CC0 fixture through the production normalizer, calls the
+  real `PhotoEditorProcessor.removeBackground`, checks preserved dimensions and
+  substantial transparent/opaque pixel regions, and attaches both images for
+  visual inspection. Ordinary CI does not enable this probe. A compiled probe
+  alone is not a successful Vision result; record the actual run outcome below.
+
+### Real Vision probe — 2026-11-06
+
+The Release probe compiled and executed on the dedicated iOS 27.2 simulator.
+It failed at runtime: `CVPixelBufferCreate` returned `-6680`, followed by Vision
+error 9, `Could not create inference context`. One test executed and failed;
+this is not a successful segmentation result and must not be reported as a pass.
+
+For diagnosis, the exact production normalizer and `removeBackground`/PNG
+encoder bodies were also executed with native macOS Vision on the same MacBook
+Pro (M1 Max). That invocation succeeded and produced a 167,536-byte PNG. Visual
+inspection showed the complete shirt retained with the surrounding background
+removed, with a slight light fringe around parts of the silhouette. No source
+photo or output was sent to an external service. This demonstrates actual model
+execution on macOS only; it does not prove iPhone runtime support or quality on
+cluttered photographs. The failed iOS probe remains strict so a later supported
+device run can establish that evidence without silently substituting a mask.
 
 ## Required verification on Apple platforms
 
@@ -53,5 +80,5 @@ drafts; this task does not implement garment creation or upload handoff.
    must announce labels and values; all preview, retry, accept and cancel actions
    must remain reachable. Capture screenshots from that real build for review.
 
-Both acceptance criteria are implemented, but Apple-platform runtime and visual
-verification remain pending; no device or remote CI success is claimed.
+The physical-device and broader visual checks above remain separate from the
+executed simulator evidence. No physical-device result is claimed.

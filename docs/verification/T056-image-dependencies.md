@@ -19,8 +19,17 @@ lookup, not a claim that the library or application is vulnerability-free.
 The temporary audit tool environment's older pip findings are separate from the
 application dependency result.
 
-The VPS system interpreter reported Pillow 10.2.0, but inspection of the actual
-gateway process showed its private interpreter uses 12.3.0. Runtime remediation
-must target that service interpreter; changing system Python would not fix it.
-Deployment of the new environment and post-restart checks remain separate evidence.
-This document does not mark the broader T056 security acceptance complete.
+Historical VPS observations reported system Pillow 10.2.0 and gateway-private
+Pillow 12.3.0 before the remediation deployment. A fresh read-only inspection on
+2026-11-06 of the active staging gateway process found Python 3.12.3 with Pillow
+13.0.0 in the service's private environment. This supersedes the earlier 12.3.0
+runtime finding; the system interpreter is not the image decoder runtime.
+
+Fresh audits on 2026-11-06 of the existing gateway, storage and operations npm
+lockfiles, and `backend/images/requirements.txt`, reported zero known
+vulnerabilities. These are point-in-time advisory results; they do not establish
+that the application or dependencies are vulnerability-free.
+
+The dependency remediation and these scans do not mark broader T056 security
+acceptance complete. See the [T056 security matrix](T056-security-matrix.md)
+for the current runtime observation, test matrix and its coverage limits.

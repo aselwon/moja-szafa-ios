@@ -6,6 +6,43 @@ import UIKit
 
 @MainActor
 final class PhotoImportTests: XCTestCase {
+#if VISION_SMOKE_TESTING
+    /// Opt-in integration probe: invokes Apple's real foreground model, without a stub.
+    func testRealVisionRemovesBackgroundFromShirt() async throws {
+        let url = try XCTUnwrap(Bundle(for: PhotoImportTests.self)
+            .url(forResource: "white-tshirt", withExtension: "jpg"))
+        let original = try Data(contentsOf: url)
+        let normalized = try await PhotoProcessor().normalize(original)
+        let result = try await PhotoEditorProcessor().removeBackground(normalized)
+        for (name, data) in [("vision-input", normalized), ("vision-output", result)] {
+            let attachment = XCTAttachment(data: data, uniformTypeIdentifier: name == "vision-input"
+                ? UTType.jpeg.identifier : UTType.png.identifier)
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+        let inputSource = try XCTUnwrap(CGImageSourceCreateWithData(normalized as CFData, nil))
+        let input = try XCTUnwrap(CGImageSourceCreateImageAtIndex(inputSource, 0, nil))
+        let outputSource = try XCTUnwrap(CGImageSourceCreateWithData(result as CFData, nil))
+        let output = try XCTUnwrap(CGImageSourceCreateImageAtIndex(outputSource, 0, nil))
+        XCTAssertEqual(output.width, input.width)
+        XCTAssertEqual(output.height, input.height)
+        var rgba = [UInt8](repeating: 0, count: output.width * output.height * 4)
+        try rgba.withUnsafeMutableBytes { bytes in
+            let context = try XCTUnwrap(CGContext(data: bytes.baseAddress,
+                width: output.width, height: output.height, bitsPerComponent: 8,
+                bytesPerRow: output.width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue))
+            context.draw(output, in: CGRect(x: 0, y: 0, width: output.width, height: output.height))
+        }
+        let alpha = stride(from: 3, to: rgba.count, by: 4).map { rgba[$0] }
+        XCTAssertGreaterThan(alpha.filter { $0 < 16 }.count, alpha.count / 10,
+            "The actual model must remove a meaningful amount of background")
+        XCTAssertGreaterThan(alpha.filter { $0 > 240 }.count, alpha.count / 10,
+            "The actual model must retain a meaningful foreground")
+    }
+#endif
+
     func testRecognitionLostAdmissionResponseResumesSameIntentAfterRestart() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
