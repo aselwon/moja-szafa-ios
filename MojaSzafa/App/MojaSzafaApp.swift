@@ -18,7 +18,7 @@ struct MojaSzafaApp: App {
         }
         if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) { return }
         #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
-        if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") || ProcessInfo.processInfo.arguments.contains("--feature-layout-test") || ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") || ProcessInfo.processInfo.arguments.contains("--profile-navigation-layout-test") { return }
+        if ProcessInfo.processInfo.arguments.contains("--recognition-layout-test") || ProcessInfo.processInfo.arguments.contains("--photo-layout-test") || ProcessInfo.processInfo.arguments.contains("--feature-layout-test") || ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") || ProcessInfo.processInfo.arguments.contains("--profile-navigation-layout-test") { return }
         #endif
         #endif
         DataExportClient.clearPreviousDownloads()
@@ -36,7 +36,9 @@ struct MojaSzafaApp: App {
                 #else
                 #if DEBUG
                 #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
-                if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") {
+                if ProcessInfo.processInfo.arguments.contains("--recognition-layout-test") {
+                    PhotoLayoutVerificationRoot(withRecognition: true)
+                } else if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") {
                     PhotoLayoutVerificationRoot()
                 } else if ProcessInfo.processInfo.arguments.contains("--profile-navigation-layout-test") {
                     AppNavigationLayoutVerificationRoot(reminders: reminders, widget: widget, profileGate: true)
@@ -74,13 +76,16 @@ struct MojaSzafaApp: App {
 #if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
 @MainActor
 private struct PhotoLayoutVerificationRoot: View {
+    private let withRecognition: Bool
+    private let recognition = LayoutRecognitionService()
     private let repository = DemoWardrobe.make()
     @StateObject private var model: PhotoImportModel
     @State private var outfit: Outfit?
     @State private var exporting = false
     @State private var failed = false
 
-    init() {
+    init(withRecognition: Bool = false) {
+        self.withRecognition = withRecognition
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("layout-photos-" + UUID().uuidString, isDirectory: true)
         _model = StateObject(wrappedValue: PhotoImportModel(directory: directory))
@@ -91,7 +96,7 @@ private struct PhotoLayoutVerificationRoot: View {
             List {
                 Text("Local image fixtures — no server, library or AI")
                 if outfit != nil {
-                    NavigationLink("Photo import fixture") { PhotoImportView(model: model) }
+                    NavigationLink("Photo import fixture") { PhotoImportView(model: model, recognition: withRecognition ? recognition : nil, consent: withRecognition ? recognition : nil) }
                         .accessibilityIdentifier("layout.photoImport")
                     Button("Outfit export fixture") { exporting = true }
                         .accessibilityIdentifier("layout.photoExport")
@@ -118,6 +123,31 @@ private struct PhotoLayoutVerificationRoot: View {
             } catch { failed = true }
         }
     }
+}
+
+private actor LayoutRecognitionService: PhotoRecognitionService, AIConsentService {
+    private var granted = false
+    private let job = UUID()
+    private let disclosure = AIDisclosure(policy_version: "layout-photo-test", recipient: "Local test fixture",
+        data_description: "Synthetic image only; no network", purpose_description: "Verify consent and result presentation")
+    func consent() async throws -> AIConsentSnapshot { .init(disclosure: disclosure, granted: granted) }
+    func choose(_ choice: AIConsentChoice) async throws -> AIConsentSnapshot {
+        granted = choice.granted
+        return .init(disclosure: disclosure, granted: granted)
+    }
+    func uploadRecognitionPhoto(draftID: UUID, imageID: UUID, data: Data) async throws { }
+    func enqueueRecognition(draftID: UUID, imageID: UUID, operationID: UUID) async throws -> PhotoRecognitionStatus {
+        guard granted else { throw APIv1.Failure(code: "consent_required", message: "Test consent needed", requestID: UUID()) }
+        return .init(job_id: job, draft_id: draftID, image_id: imageID, status: "queued", error_code: nil, result: nil)
+    }
+    func recognitionResult(draftID: UUID, imageID: UUID, jobID: UUID) async throws -> PhotoRecognitionStatus {
+        let metadata: [String: Any] = ["category": "top", "colors": ["white"], "pattern": "plain",
+            "seasons": ["summer"], "formality": 2, "confidence": 0.95, "multiple_items": false]
+        let data = try JSONSerialization.data(withJSONObject: ["schema_version": "garment-recognition-v1", "state": "draft", "metadata": metadata])
+        return .init(job_id: job, draft_id: draftID, image_id: imageID, status: "succeeded", error_code: nil,
+                     result: try JSONDecoder().decode(RecognitionJSON.self, from: data))
+    }
+    func discardRecognition(draftID: UUID) async throws { }
 }
 
 @MainActor
