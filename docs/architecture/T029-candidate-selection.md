@@ -3,7 +3,8 @@
 The outfit executor now applies `selectCandidates` before authorization and provider
 transmission. The trusted T027 runtime must return the current wardrobe as metadata
 only: `id`, `user_id`, `availability`, `archived` (explicit boolean), `category`, and
-optional `colors`, `pattern`, `seasons`, `formality` using the recognition vocabulary.
+optional `colors`, `seasons`, `formality` using the recognition vocabulary, plus
+the garment's stored `pattern`.
 The owner comes from the leased job's `user_id`, never a client-supplied input field.
 Missing ownership/status excludes a row; malformed eligible metadata or duplicate
 IDs fail closed. The runtime should query owner-scoped records and must not load
@@ -14,6 +15,14 @@ Input also contains `count` (1–10), optional `pinned_garment_id`, optional
 `occasion: { formality: 1…5 }`. These are the currently supported ranking signals;
 free-form style labels are not inferred. Absent optional metadata remains unknown.
 An absent, foreign, archived, or unavailable pin stops the job before dispatch.
+
+The manual form permits a custom pattern of up to 200 Unicode scalars, such as
+`paski`. Recognized pattern values retain their meaning; valid custom strings
+become `null` (unknown) only in the AI projection. The stored garment is never
+rewritten. This prevents a valid manual entry from rejecting the entire wardrobe
+and avoids sending free-text instructions to the model. Wrong types and values
+over the storage limit still fail closed. The same projection protects direct
+provider calls and hypothetical purchase metadata.
 
 Selection is deterministic, capped at 40 regardless of request count. It reserves
 the eligible pin, then round-robins ranked category buckets, preserving every
@@ -47,10 +56,13 @@ preference/occasion ranking, category coverage, deterministic ordering and a
 transport. That request has 40 candidates, eight categories, its pinned item,
 no images/private fields, and less than 10 KB of serialized context. Tests also
 cover ownership changes during generation and additions after selection.
+Regression tests include a pinned custom-pattern item in the 1000-item request,
+canonical/null/custom/Unicode-boundary patterns, unchanged source records, and
+direct provider serialization of owned and hypothetical-purchase patterns.
 
 No paid API, deployment or external account was used. Production integration still
 requires the T027 runtime to supply the documented ownership/status metadata and
 map profile/context values to this input contract. Verify on staging with the
 owner-approved runtime/provider; check candidate IDs and payload sizes without
-logging private payloads. macOS CI must run the existing Xcode build/tests; Xcode
-and production services are unavailable in this Linux sandbox. No iOS files changed.
+logging private payloads. macOS CI must run the existing Xcode build/tests.
+No iOS files changed in the manual-pattern compatibility fix.

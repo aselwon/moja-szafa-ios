@@ -15,6 +15,15 @@ export function candidateMetadata(garment) {
     const value = garment[key];
     const rule = recognitionSchema.properties[key];
     if (value === undefined) continue;
+    // The manual garment form/database allow free-text patterns (200 Unicode
+    // scalars), while AI input uses a closed vocabulary. Keep custom text in
+    // the wardrobe, but send unknown instead of rejecting the entire wardrobe
+    // or forwarding arbitrary instructions to the model.
+    if (key === 'pattern' && typeof value === 'string' && !rule.enum.includes(value) &&
+        value.length <= 400 && [...value].length <= 200) {
+      result.pattern = null;
+      continue;
+    }
     if (rule.enum ? !rule.enum.includes(value) : !Array.isArray(value) || value.length > rule.maxItems ||
         !value.every(entry => rule.items.enum.includes(entry))) invalid('candidate_invalid');
     result[key] = structuredClone(value);
