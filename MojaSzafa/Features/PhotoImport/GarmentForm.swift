@@ -214,7 +214,7 @@ struct GarmentFormView: View {
                     TextField("garment.name", text: $input.name)
                     Picker("garment.category", selection: $input.category) {
                         ForEach(APIv1.Category.allCases, id: \.self) { category in
-                            Text(LocalizedStringKey("garment.category.\(category.rawValue)")).tag(category)
+                            Text(LocalizedStringKey("garment.category." + category.rawValue)).tag(category)
                         }
                     }
                     Text("garment.correction")
@@ -226,18 +226,18 @@ struct GarmentFormView: View {
                 .disabled(saving || locked)
                 Section("garment.colors") {
                     ForEach(GarmentFormInput.palette, id: \.self) { color in
-                        Toggle(LocalizedStringKey("garment.color.\(color)"), isOn: membership(color, in: $input.colors))
+                        Toggle(LocalizedStringKey("garment.color." + color), isOn: membership(color, in: $input.colors))
                     }
                 }
                 .disabled(saving || locked)
                 Section("garment.details") {
                     TextField("garment.pattern", text: $input.pattern)
                     ForEach(GarmentFormInput.seasons, id: \.self) { season in
-                        Toggle(LocalizedStringKey("garment.season.\(season)"), isOn: membership(season, in: $input.seasons))
+                        Toggle(LocalizedStringKey("garment.season." + season), isOn: membership(season, in: $input.seasons))
                     }
                     Picker("garment.formality", selection: $input.formality) {
                         ForEach(0...5, id: \.self) { level in
-                            Text(LocalizedStringKey("garment.formality.\(level)")).tag(level)
+                            Text(LocalizedStringKey("garment.formality." + String(level))).tag(level)
                         }
                     }
                 }

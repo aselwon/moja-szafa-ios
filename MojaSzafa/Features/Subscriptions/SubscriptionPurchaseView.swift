@@ -23,7 +23,7 @@ struct SubscriptionPurchaseView: View {
                 ForEach(entitlements) { entitlement in
                     VStack(alignment: .leading, spacing: 8) {
                         if let product = products.first(where: { $0.id == entitlement.productID }) { Text(product.name).font(.headline) }
-                        Text(LocalizedStringKey("subscriptions.status.\(entitlement.status.rawValue)"))
+                        Text(LocalizedStringKey("subscriptions.status." + entitlement.status.rawValue))
                         LabeledContent("subscriptions.expires", value: entitlement.expiresAt.formatted(date: .abbreviated, time: .omitted))
                         if let grace = entitlement.graceExpiresAt {
                             LabeledContent("subscriptions.graceExpires", value: grace.formatted(date: .abbreviated, time: .omitted))

@@ -328,7 +328,7 @@ struct PurchasePreviewView: View {
                 if photos.failed { Text("purchase.photoFailed") }
                 TextField("garment.name", text: $name)
                 Picker("garment.category", selection: $metadata.category) {
-                    ForEach(APIv1.Category.allCases, id: \.self) { Text(LocalizedStringKey("garment.category.\($0.rawValue)")).tag($0) }
+                    ForEach(APIv1.Category.allCases, id: \.self) { Text(LocalizedStringKey("garment.category." + $0.rawValue)).tag($0) }
                 }
                 TextField("purchase.price", text: $price).keyboardType(.decimalPad)
                 Picker("purchase.formality", selection: $metadata.formality) {
@@ -337,7 +337,7 @@ struct PurchasePreviewView: View {
                 }
                 // Explicit optional metadata only; no photo-recognition claim.
                 ForEach(["spring", "summer", "autumn", "winter"], id: \.self) { season in
-                    Toggle(LocalizedStringKey("garment.season.\(season)"), isOn: Binding(
+                    Toggle(LocalizedStringKey("garment.season." + season), isOn: Binding(
                         get: { metadata.seasons.contains(season) }, set: { on in metadata.seasons.removeAll { $0 == season }; if on { metadata.seasons.append(season) } }))
                 }
                 }.disabled(model.journal.draft != nil)

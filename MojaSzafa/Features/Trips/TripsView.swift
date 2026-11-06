@@ -94,7 +94,7 @@ private struct TripDetailView: View {
                         OutfitCollage(garments: day.garments, repository: wardrobe)
                         if !day.missingCategories.isEmpty {
                             Text("trips.missing").font(.headline)
-                            ForEach(day.missingCategories, id: \.self) { category in Text(LocalizedStringKey("trips.category.\(category)")) }
+                            ForEach(day.missingCategories, id: \.self) { category in Text(LocalizedStringKey("trips.category." + category)) }
                         }
                     }
                 }

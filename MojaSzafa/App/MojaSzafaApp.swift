@@ -17,6 +17,9 @@ struct MojaSzafaApp: App {
             UserDefaults.standard.removeObject(forKey: "welcome.seen.v1")
         }
         if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) { return }
+        #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
+        if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") { return }
+        #endif
         #endif
         DataExportClient.clearPreviousDownloads()
     }
@@ -32,11 +35,15 @@ struct MojaSzafaApp: App {
                 }
                 #else
                 #if DEBUG
-                if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) {
-                    DemoRootView()
+                #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
+                if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") {
+                    FeatureLayoutVerificationRoot()
                 } else {
-                    AuthenticationGateView(dependencies: dependencies)
+                    demoOrAuthenticationRoot
                 }
+                #else
+                demoOrAuthenticationRoot
+                #endif
                 #else
                 AuthenticationGateView(dependencies: dependencies)
                 #endif
@@ -44,7 +51,77 @@ struct MojaSzafaApp: App {
             }.tint(Color("accent")).environmentObject(reminders).environmentObject(widget)
         }
     }
+
+    #if DEBUG
+    @ViewBuilder private var demoOrAuthenticationRoot: some View {
+        if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) {
+            DemoRootView()
+        } else {
+            AuthenticationGateView(dependencies: dependencies)
+        }
+    }
+    #endif
 }
+
+// Explicit test instrumentation: absent from ordinary builds and real devices.
+// Hosts production forms, with no session, network transport or provider access.
+#if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
+@MainActor
+private struct FeatureLayoutVerificationRoot: View {
+    @State private var profile: ProfileModel
+    @State private var garmentOpen = false
+    @State private var garmentSaved = false
+    private let consent = LayoutConsentFixture()
+
+    init() {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("layout-profile-" + UUID().uuidString, isDirectory: true)
+        let store = ProfileStore(directory: directory)
+        let account = UUID(uuidString: "00000000-0000-4000-8000-000000000003")!
+        let model = ProfileModel(accountID: account, store: store)
+        model.load()
+        _profile = State(initialValue: model)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Text("Local layout fixtures — no server or AI")
+                NavigationLink("Profile fixture") { ProfileEditorView(model: profile) }
+                    .accessibilityIdentifier("layout.profile")
+                NavigationLink("Consent fixture") { AIPrivacyView(service: consent) }
+                    .accessibilityIdentifier("layout.consent")
+                Button("Garment fixture") { garmentOpen = true }
+                    .accessibilityIdentifier("layout.garment")
+                if garmentSaved { Text("Saved locally").accessibilityIdentifier("layout.garmentSaved") }
+                if !profile.saved.styles.isEmpty { Text("Profile saved locally").accessibilityIdentifier("layout.profileSaved") }
+            }
+        }
+        .sheet(isPresented: $garmentOpen) {
+            GarmentFormView(value: GarmentFormValue(
+                name: String(repeating: "Long garment name ", count: 5), category: .top,
+                colors: ["blue"], pattern: "plain", seasons: ["winter"], formality: 2,
+                brand: "Example", priceGrosz: 12345, purchasedOn: "2025-01-02")) { _ in
+                    garmentSaved = true
+                }
+        }
+    }
+}
+
+private actor LayoutConsentFixture: AIConsentService {
+    private var granted = false
+    private let disclosure = AIDisclosure(policy_version: "layout-only-v1",
+        recipient: "Local test recipient; no external dispatch",
+        data_description: String(repeating: "Category, colors and clothing preferences. ", count: 6),
+        purpose_description: String(repeating: "Preview outfit suggestions with an explicit choice. ", count: 4))
+    func consent() async throws -> AIConsentSnapshot {
+        AIConsentSnapshot(disclosure: disclosure, granted: granted)
+    }
+    func choose(_ choice: AIConsentChoice) async throws -> AIConsentSnapshot {
+        granted = choice.granted
+        return try await consent()
+    }
+}
+#endif
 
 // Explicitly opt-in, simulator-only build instrumentation. Ordinary Debug,
 // Staging and Release builds do not contain this route or its synthetic data.
