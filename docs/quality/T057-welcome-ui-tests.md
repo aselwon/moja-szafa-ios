@@ -18,6 +18,25 @@ Local result bundles:
 - `/private/tmp/T057WelcomeUILight.xcresult`
 - `/private/tmp/T057WelcomeUIDark.xcresult`
 
+### Integrated UI verification — 2026-11-06
+
+After integrating the accessibility UI branch with main `fea90c5`, the
+`MojaSzafaUI` scheme built successfully with `build-for-testing` and both
+localized tests passed again on the dedicated iOS 27.2 simulator
+`51C1DCC4-7F9F-4BB6-A4CC-9EF27B3DD2D5`: English and Polish in light mode (2/2),
+then English and Polish in dark mode (2/2), all at
+`accessibility-extra-extra-extra-large`. The same compiled bundle was reused
+for the dark run. The four screenshots are stored under
+`private-runtime/t057-ui-evidence/integrated-20261106/`, with result bundles at
+`/private/tmp/T057IntegratedUILight.xcresult` and
+`/private/tmp/T057IntegratedUIDark.xcresult`; the detailed receipt is
+`private-runtime/t057-ui-evidence/receipt.json`. The dedicated simulator was
+restored to light appearance and large content size.
+
+After these UI runs, main advanced to `84bb2c6` through PR115, which only adds
+recovery SQL and operations documentation. That merge introduced no app or UI
+test changes, so this recorded UI result remains scoped to the same interface.
+
 The tests assert the translated Continue label and the real sign-in email
 field. They check Skip is hittable, but do not activate it. This is evidence
 for welcome action reachability and navigation only. It does not establish
