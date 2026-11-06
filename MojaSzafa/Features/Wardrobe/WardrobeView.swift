@@ -23,7 +23,15 @@ struct WardrobeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if allowsPhotoImport {
-                    NavigationLink("import.title") { PhotoImportView(model: imports, repository: model.repository, recognition: recognition, consent: consent) }
+                    NavigationLink {
+                        PhotoImportView(model: imports, repository: model.repository, recognition: recognition, consent: consent)
+                    } label: {
+                        Label("import.title", systemImage: "camera.fill")
+                            .frame(maxWidth: .infinity, minHeight: 36)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .foregroundStyle(Color("onAccent"))
+                    .accessibilityIdentifier("wardrobe.addPhotos")
                 }
                 controls
                 if model.cached { Text("wardrobe.cached").font(.callout) }

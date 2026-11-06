@@ -7,7 +7,7 @@ struct AppRootView: View {
     @StateObject private var planner: PlannerModel
     @ObservedObject var reminders: ReminderModel
     @ObservedObject var widget: WardrobeWidgetModel
-    @State private var selectedTab = 0
+    @State private var selectedTab = 1
 
     init(dependencies: AppDependencies, accountID: UUID, reminders: ReminderModel, widget: WardrobeWidgetModel) {
         self.widget = widget

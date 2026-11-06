@@ -95,6 +95,56 @@ final class HostedStagingAcceptanceTests: XCTestCase {
 #endif
 
 #if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
+final class PhotoEntryNavigationTests: XCTestCase {
+    @MainActor func testPolishPhotoEntryAndProfileDismissal() { check(language: "pl") }
+    @MainActor func testEnglishPhotoEntryAndProfileDismissal() { check(language: "en") }
+
+    @MainActor private func check(language: String) {
+        continueAfterFailure = false
+        let pl = language == "pl"
+        let app = XCUIApplication()
+        app.launchArguments = ["--profile-navigation-layout-test", "-AppleLanguages", "(\(language))",
+                               "-AppleLocale", pl ? "pl_PL" : "en_US"]
+        app.launch()
+        defer { app.terminate() }
+        let skip = app.buttons["onboarding.skip"]
+        XCTAssertTrue(skip.waitForExistence(timeout: 10))
+        XCTAssertTrue(skip.isHittable, "Optional onboarding must have an immediately visible exit")
+        skip.tap()
+        let add = app.buttons["wardrobe.addPhotos"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10))
+        XCTAssertTrue(add.isHittable, "The initial tab must expose photo entry without a hidden menu")
+        add.tap()
+        XCTAssertTrue(app.buttons[pl ? "Zrób zdjęcie" : "Take photo"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons[pl ? "Wybierz zdjęcia" : "Choose photos"].exists)
+        let back = app.navigationBars.buttons.element(boundBy: 0)
+        XCTAssertTrue(back.isHittable)
+        back.tap()
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        app.buttons[pl ? "Profil i preferencje" : "Profile and preferences"].firstMatch.tap()
+        let close = app.buttons["profile.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5))
+        XCTAssertTrue(close.isHittable)
+        close.tap()
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        XCTAssertFalse(close.exists)
+        app.tabBars.buttons[pl ? "Dzisiaj" : "Today"].tap()
+        let privacy = app.buttons[pl ? "Prywatność i AI" : "Privacy and AI"].firstMatch
+        for _ in 0..<12 where !privacy.isHittable { app.swipeUp() }
+        XCTAssertTrue(privacy.isHittable)
+        privacy.tap()
+        let closePrivacy = app.buttons["privacy.close"]
+        XCTAssertTrue(closePrivacy.waitForExistence(timeout: 5))
+        XCTAssertTrue(closePrivacy.isHittable)
+        closePrivacy.tap()
+        XCTAssertFalse(closePrivacy.exists)
+        XCTAssertTrue(app.tabBars.buttons[pl ? "Szafa" : "Wardrobe"].isHittable)
+        app.tabBars.buttons[pl ? "Szafa" : "Wardrobe"].tap()
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        // No photo-library access, camera permission, authentication or upload.
+    }
+}
+
 final class AppNavigationLayoutTests: XCTestCase {
     @MainActor
     func testOutfitCreationThroughToolbarOverflow() {

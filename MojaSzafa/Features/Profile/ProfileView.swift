@@ -88,6 +88,14 @@ struct ProfileEditorView: View {
             }
         }
         .navigationTitle(LocalizedStringKey(onboarding ? "onboarding.title" : "profile.title"))
+        .toolbar {
+            if onboarding {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("onboarding.skip") { model.finish(draft, skipping: true) }
+                        .accessibilityIdentifier("onboarding.skip")
+                }
+            }
+        }
     }
 }
 
@@ -139,6 +147,12 @@ struct ProfileGateView: View {
                                     }
                                 }
                             }.navigationTitle("profile.title")
+                                .toolbar {
+                                    ToolbarItem(placement: .topBarTrailing) {
+                                        Button("auth.close") { showProfile = false }
+                                            .accessibilityIdentifier("profile.close")
+                                    }
+                                }
                         }
                     }
             }

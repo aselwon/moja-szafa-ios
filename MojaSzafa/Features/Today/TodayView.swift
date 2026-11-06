@@ -102,7 +102,15 @@ struct TodayView: View {
             NavigationStack { PersonalizationEditor(model: personalization, outfit: outfit) }
         }
         .sheet(isPresented: $showPrivacy) {
-            NavigationStack { AIPrivacyView(service: consent) }
+            NavigationStack {
+                AIPrivacyView(service: consent)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("auth.close") { showPrivacy = false }
+                                .accessibilityIdentifier("privacy.close")
+                        }
+                    }
+            }
         }
         .refreshable { await model.load() }
         .sheet(item: $replacement) { selection in
