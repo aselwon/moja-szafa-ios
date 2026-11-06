@@ -18,7 +18,7 @@ struct MojaSzafaApp: App {
         }
         if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) { return }
         #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
-        if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") || ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") { return }
+        if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") || ProcessInfo.processInfo.arguments.contains("--feature-layout-test") || ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") { return }
         #endif
         #endif
         DataExportClient.clearPreviousDownloads()
@@ -36,7 +36,9 @@ struct MojaSzafaApp: App {
                 #else
                 #if DEBUG
                 #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
-                if ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") {
+                if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") {
+                    PhotoLayoutVerificationRoot()
+                } else if ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") {
                     AppNavigationLayoutVerificationRoot(reminders: reminders, widget: widget)
                 } else if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") {
                     FeatureLayoutVerificationRoot()
@@ -68,6 +70,54 @@ struct MojaSzafaApp: App {
 // Explicit test instrumentation: absent from ordinary builds and real devices.
 // Hosts production forms, with no session, network transport or provider access.
 #if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
+@MainActor
+private struct PhotoLayoutVerificationRoot: View {
+    private let repository = DemoWardrobe.make()
+    @StateObject private var model: PhotoImportModel
+    @State private var outfit: Outfit?
+    @State private var exporting = false
+    @State private var failed = false
+
+    init() {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("layout-photos-" + UUID().uuidString, isDirectory: true)
+        _model = StateObject(wrappedValue: PhotoImportModel(directory: directory))
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Text("Local image fixtures — no server, library or AI")
+                if outfit != nil {
+                    NavigationLink("Photo import fixture") { PhotoImportView(model: model) }
+                        .accessibilityIdentifier("layout.photoImport")
+                    Button("Outfit export fixture") { exporting = true }
+                        .accessibilityIdentifier("layout.photoExport")
+                } else if failed {
+                    Text("Fixture preparation failed").accessibilityIdentifier("layout.photoFailed")
+                } else { ProgressView() }
+            }
+        }
+        .sheet(isPresented: $exporting) {
+            if let outfit { OutfitExportView(outfit: outfit, repository: repository) }
+        }
+        .task {
+            guard outfit == nil, !failed else { return }
+            do {
+                let garments = try await repository.garments()
+                guard let imageID = garments.first?.imageID else { throw PhotoImportError.invalidImage }
+                let bytes = try await repository.thumbnail(imageID: imageID)
+                guard let jpeg = UIImage(data: bytes)?.jpegData(compressionQuality: 0.9) else {
+                    throw PhotoImportError.invalidImage
+                }
+                // Exercise the real normalization, local draft and edit-accept path.
+                model.start([{ jpeg }])
+                outfit = Outfit(name: "Local layout collage", garments: Array(garments.prefix(3)))
+            } catch { failed = true }
+        }
+    }
+}
+
 @MainActor
 private struct AppNavigationLayoutVerificationRoot: View {
     @State private var repository = DemoWardrobe.make()

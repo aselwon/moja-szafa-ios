@@ -87,6 +87,9 @@ struct PhotoImportView: View {
                     Button("import.remove", role: .destructive) { model.remove(draft.id) }
                         .disabled(model.running || model.hasPendingImport(draft.id) || model.hasPendingRecognition(draft.id))
                 }
+                // Several independent actions share this List row. Automatic
+                // row button handling can invoke the other draft actions too.
+                .buttonStyle(.borderless)
             }
         }
         .navigationTitle("import.title")
@@ -223,7 +226,9 @@ private struct PhotoEditorView: View {
                             .accessibilityLabel(Text("edit.after"))
                         Button("edit.accept") {
                             if accept(preview) { dismiss() } else { saveFailed = true }
-                        }.buttonStyle(.borderedProminent).disabled(model.running)
+                        }.buttonStyle(.borderedProminent)
+                            .foregroundStyle(Color("onAccent"))
+                            .disabled(model.running)
                     }
                     if saveFailed { Text("import.storageFailed") }
                 }.padding()

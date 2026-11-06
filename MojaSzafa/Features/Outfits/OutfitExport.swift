@@ -123,6 +123,7 @@ struct OutfitExportView: View {
                         Text(verbatim: payload.caption)
                         Button("outfits.export.share", systemImage: "square.and.arrow.up") { sharing = true }
                             .buttonStyle(.borderedProminent)
+                            .foregroundStyle(Color("onAccent"))
                     } else if failed {
                         Text("outfits.export.failed")
                         Button("common.retry") { attempt += 1 }
