@@ -118,6 +118,28 @@ test('deadline aborts hanging headers and body without retry', async () => {
   }
 });
 
+test('text deadline aborts independently while image requests retain their longer budget', async () => {
+  const signals = [];
+  const { provider, calls } = fixture({
+    env: { AI_TIMEOUT_MS: '2000', AI_OUTFIT_TIMEOUT_MS: '10' },
+    transport: async (_url, request) => {
+      signals.push(request.signal);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      return Response.json({ model: JSON.parse(request.body).model,
+        choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(metadata) } }],
+        usage: { prompt_tokens: 12, completion_tokens: 4 } });
+    }
+  });
+  await assert.rejects(provider.recommendOutfits(outfits), /provider_timeout/);
+  assert.equal(signals[0].aborted, true);
+  const result = await provider.analyzeImage(image);
+  assert.equal(result.telemetry.prompt_version, 'image-analysis-v2');
+  // Successful requests also abort their signal during final resource cleanup.
+  // The successful result after 50 ms proves the image did not use the 10 ms text deadline.
+  assert.equal(result.telemetry.status, 'success');
+  assert.equal(calls.length, 2);
+});
+
 const job = { id: 'job', user_id: 'owner', lease_token: 'lease', attempt: 1, kind: 'image_analysis', input: { image_id: 'private' } };
 function executorFixture(options = {}) {
   const { provider, calls } = fixture(options);

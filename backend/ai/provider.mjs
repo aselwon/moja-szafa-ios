@@ -19,12 +19,14 @@ export function serverConfiguration(env) {
       typeof env.AI_RECIPIENT !== 'string' || !env.AI_RECIPIENT.trim() ||
       typeof env.AI_API_KEY !== 'string' || !env.AI_API_KEY.trim() || /[\r\n]/.test(env.AI_API_KEY)) fail('configuration_invalid');
   const timeoutMs = Number(env.AI_TIMEOUT_MS ?? 30_000);
+  const outfitTimeoutMs = Number(env.AI_OUTFIT_TIMEOUT_MS ?? timeoutMs);
   const maxOutputTokens = Number(env.AI_MAX_OUTPUT_TOKENS ?? 2048);
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 35_000 ||
+      !Number.isInteger(outfitTimeoutMs) || outfitTimeoutMs < 1 || outfitTimeoutMs > timeoutMs ||
       !Number.isInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 8192) fail('configuration_invalid');
   return Object.freeze({ endpoint: endpoint.href, provider: env.AI_PROVIDER, recipient: env.AI_RECIPIENT,
     imageModel: env.AI_IMAGE_MODEL, outfitModel: env.AI_OUTFIT_MODEL,
-    apiKey: env.AI_API_KEY, timeoutMs, maxOutputTokens });
+    apiKey: env.AI_API_KEY, timeoutMs, outfitTimeoutMs, maxOutputTokens });
 }
 
 export const prompts = Object.freeze({
@@ -55,18 +57,20 @@ export function createProvider(configuration, { fetchImpl = globalThis.fetch, no
   const config = serverConfiguration({ AI_ENDPOINT: configuration.endpoint, AI_PROVIDER: configuration.provider,
     AI_RECIPIENT: configuration.recipient, AI_IMAGE_MODEL: configuration.imageModel,
     AI_OUTFIT_MODEL: configuration.outfitModel, AI_API_KEY: configuration.apiKey,
-    AI_TIMEOUT_MS: configuration.timeoutMs, AI_MAX_OUTPUT_TOKENS: configuration.maxOutputTokens });
+    AI_TIMEOUT_MS: configuration.timeoutMs, AI_OUTFIT_TIMEOUT_MS: configuration.outfitTimeoutMs,
+    AI_MAX_OUTPUT_TOKENS: configuration.maxOutputTokens });
 
   async function invoke(kind, content) {
     const model = kind === 'image_analysis' ? config.imageModel : config.outfitModel;
     const prompt = prompts[kind];
     const controller = new AbortController();
     const started = now();
+    const timeoutMs = kind === 'image_analysis' ? config.timeoutMs : config.outfitTimeoutMs;
     let usage = null;
     let timer;
     // Race covers headers AND body and remains bounded even with a broken transport.
     const deadline = new Promise((_, reject) => {
-      timer = setTimeout(() => { controller.abort(); reject(new AIError('provider_timeout')); }, config.timeoutMs);
+      timer = setTimeout(() => { controller.abort(); reject(new AIError('provider_timeout')); }, timeoutMs);
     });
     let status = 'success';
     try {
