@@ -19,6 +19,9 @@ struct PhotoImportView: View {
     var consent: (any AIConsentService)? = nil
     @State private var selection: [PhotosPickerItem] = []
     @State private var showCamera = false
+    @State private var analyzingID: UUID?
+    @State private var showRecognitionConsent = false
+    @State private var showRecognitionError = false
     @State private var editing: PhotoImportModel.Draft?
     private struct FormDraft: Identifiable {
         let id: UUID
@@ -67,8 +70,13 @@ struct PhotoImportView: View {
                     if draft.file != nil {
                         if let recognition {
                             Button(LocalizedStringKey(model.hasPendingRecognition(draft.id) ? "recognition.resume" : "recognition.analyze")) {
+                                analyzingID = draft.id
                                 model.startRecognition(draft.id, using: recognition)
                             }.disabled(model.running || model.hasPendingImport(draft.id))
+                                .accessibilityIdentifier("recognition.analyze")
+                            if model.running && analyzingID == draft.id {
+                                ProgressView("recognition.pending")
+                            }
                             if model.hasPendingRecognition(draft.id) {
                                 Button("recognition.manual") {
                                     model.continueManually(draft.id)
@@ -93,6 +101,34 @@ struct PhotoImportView: View {
             }
         }
         .navigationTitle("import.title")
+        .onChange(of: model.running) { _, running in
+            guard !running, let id = analyzingID else { return }
+            if let suggestions = try? model.recognitionSuggestions(for: id) {
+                formDraft = FormDraft(id: id, value: try? model.garmentValue(for: id), suggestions: suggestions)
+                analyzingID = nil
+            } else if model.message == "generation.consent", consent != nil {
+                showRecognitionConsent = true
+            } else if model.message != nil {
+                analyzingID = nil
+                showRecognitionError = true
+            }
+        }
+        .alert("recognition.failed", isPresented: $showRecognitionError) {
+            Button("common.close", role: .cancel) { }
+        } message: {
+            Text(LocalizedStringKey(model.message ?? "recognition.failed"))
+        }
+        .sheet(isPresented: $showRecognitionConsent, onDismiss: resumeAfterConsent) {
+            NavigationStack {
+                AIPrivacyView(service: consent, onGranted: { showRecognitionConsent = false })
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("common.close") { showRecognitionConsent = false }
+                                .accessibilityIdentifier("recognition.consent.close")
+                        }
+                    }
+            }
+        }
         .task { if let recognition { await model.cleanRecognitionDrafts(using: recognition) } }
         .onChange(of: selection) { _, items in
             guard !items.isEmpty else { return }
@@ -128,6 +164,20 @@ struct PhotoImportView: View {
             CameraCapture { data in
                 showCamera = false
                 if let data { model.start([{ data }]) }
+            }
+        }
+    }
+
+    @MainActor private func resumeAfterConsent() {
+        guard let id = analyzingID, let consent, let recognition else { return }
+        Task {
+            do {
+                guard try await consent.consent().granted else { analyzingID = nil; return }
+                model.startRecognition(id, using: recognition)
+            } catch {
+                analyzingID = nil
+                model.message = "recognition.failed"
+                showRecognitionError = true
             }
         }
     }

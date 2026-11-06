@@ -95,6 +95,29 @@ final class HostedStagingAcceptanceTests: XCTestCase {
 #endif
 
 #if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
+final class PhotoRecognitionConsentNavigationTests: XCTestCase {
+    @MainActor func testAnalysisPromptsForConsentAndAutomaticallyShowsResult() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--recognition-layout-test", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        let entry = app.buttons["layout.photoImport"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 15)); entry.tap()
+        let analyze = app.buttons["recognition.analyze"].firstMatch
+        XCTAssertTrue(analyze.waitForExistence(timeout: 10))
+        for _ in 0..<8 where !analyze.isHittable { app.swipeUp() }
+        XCTAssertTrue(analyze.isHittable); analyze.tap()
+        let close = app.buttons["recognition.consent.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 10), "Missing consent must open a visible, dismissible sheet")
+        let allow = app.buttons["privacy.allow"]
+        XCTAssertTrue(allow.waitForExistence(timeout: 10))
+        for _ in 0..<8 where !allow.isHittable { app.swipeUp() }
+        XCTAssertTrue(allow.isHittable); allow.tap()
+        XCTAssertTrue(app.navigationBars["Garment details"].waitForExistence(timeout: 15),
+                      "After explicit consent the same photo must resume and open its result form")
+    }
+}
+
 final class PhotoEntryNavigationTests: XCTestCase {
     @MainActor func testPolishPhotoEntryAndProfileDismissal() { check(language: "pl") }
     @MainActor func testEnglishPhotoEntryAndProfileDismissal() { check(language: "en") }

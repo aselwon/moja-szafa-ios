@@ -164,8 +164,10 @@ struct ProfileGateView: View {
 
 struct AIPrivacyView: View {
     @State private var model: AIConsentModel
+    private let onGranted: (() -> Void)?
 
-    init(service: (any AIConsentService)?) {
+    init(service: (any AIConsentService)?, onGranted: (() -> Void)? = nil) {
+        self.onGranted = onGranted
         _model = State(initialValue: AIConsentModel(service: service))
     }
 
@@ -185,6 +187,7 @@ struct AIPrivacyView: View {
                         LabeledContent("privacy.version", value: disclosure.policy_version)
                         if !snapshot.granted {
                             Button("privacy.allow") { Task { await model.choose(true) } }
+                                .accessibilityIdentifier("privacy.allow")
                                 .disabled(model.busy || model.pending != nil)
                         }
                     } else { Text("privacy.unconfigured") }
@@ -208,5 +211,8 @@ struct AIPrivacyView: View {
         }
         .navigationTitle("privacy.title")
         .task { await model.load() }
+        .onChange(of: model.snapshot?.granted) { _, granted in
+            if granted == true { onGranted?() }
+        }
     }
 }

@@ -565,8 +565,9 @@ extension PhotoImportModel {
             } catch { /* Retry on next visit; the server also expires private drafts. */ }
         }
     }
-    func startRecognition(_ id: UUID, using service: any PhotoRecognitionService, maxPolls: Int = 10, pollDelay: Duration = .seconds(2)) {
+    func startRecognition(_ id: UUID, using service: any PhotoRecognitionService, maxPolls: Int = 30, pollDelay: Duration = .seconds(2)) {
         guard !running, !hasPendingImport(id), let draft = drafts.first(where: { $0.id == id }), let source = draft.displayFile else { return }
+        message = nil
         running = true
         task = Task { [weak self] in
             guard let self else { return }
@@ -620,6 +621,7 @@ extension PhotoImportModel {
                     if ["cancelled", "dead_letter"].contains(status.status) {
                         try finishAnalysis(intent)
                         message = "recognition.failed"
+                        if let index = drafts.firstIndex(where: { $0.id == id }) { drafts[index].status = "recognition.failed" }
                         return
                     }
                     guard ["queued", "running"].contains(status.status) else { throw APIClientError.invalidResponse }
@@ -627,7 +629,13 @@ extension PhotoImportModel {
                 }
                 message = "recognition.pending"
             } catch {
-                message = Task.isCancelled ? "recognition.pending" : "recognition.failed"
+                if Task.isCancelled { message = "recognition.pending" }
+                else if let failure = error as? APIv1.Failure {
+                    message = ["ai_disabled": "generation.disabled", "quota_exceeded": "generation.quota",
+                               "consent_required": "generation.consent", "unauthorized": "generation.account",
+                               "account_unavailable": "generation.account"][failure.code] ?? "recognition.failed"
+                } else { message = "recognition.failed" }
+                if let message, let index = drafts.firstIndex(where: { $0.id == id }) { drafts[index].status = message }
             }
         }
     }

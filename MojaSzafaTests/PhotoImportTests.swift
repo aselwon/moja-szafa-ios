@@ -43,6 +43,87 @@ final class PhotoImportTests: XCTestCase {
     }
 #endif
 
+#if HOSTED_IMAGE_ACCEPTANCE && targetEnvironment(simulator)
+    /// Opt-in only: consumes at most one persisted image job on an owned test account.
+    /// Supply a private session file through the simulator data container, never argv.
+    func testHostedPhotoRecognitionAndWardrobeSave() async throws {
+        let documents = try XCTUnwrap(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first)
+        let input = documents.appendingPathComponent("image-ai-session.private.json")
+        struct Input: Decodable { let accessToken: String; let userID: UUID; let baseURL: URL }
+        let session = try JSONDecoder().decode(Input.self, from: Data(contentsOf: input))
+        let client = try APIClient(baseURL: session.baseURL, transport: URLSessionTransport.gateway(),
+                                   accessToken: { session.accessToken })
+        let consent = try await client.consent()
+        let disclosure = try XCTUnwrap(consent.disclosure)
+        XCTAssertEqual(disclosure.recipient, "Cloudflare Workers AI")
+        guard disclosure.policy_version == "cloudflare-photo-v1" else { XCTFail("Photo disclosure missing"); return }
+        let granted = try await client.choose(.init(operation_id: UUID(), granted: true, disclosure: disclosure))
+        XCTAssertTrue(granted.granted)
+        let root = documents.appendingPathComponent("hosted-image-e2e")
+        let model = PhotoImportModel(directory: root.appendingPathComponent("drafts"))
+        let savedID = root.appendingPathComponent("garment-id")
+        let id: UUID
+        if FileManager.default.fileExists(atPath: savedID.path) {
+            id = try XCTUnwrap(UUID(uuidString: String(contentsOf: savedID, encoding: .utf8)))
+        } else {
+            if model.drafts.isEmpty {
+                let fixture = try XCTUnwrap(Bundle(for: PhotoImportTests.self).url(forResource: "white-tshirt", withExtension: "jpg"))
+                let bytes = try Data(contentsOf: fixture)
+                model.start([{ bytes }]); await finish(model)
+            }
+            id = try XCTUnwrap(model.drafts.first?.id)
+            try id.uuidString.write(to: savedID, atomically: true, encoding: .utf8)
+        }
+        let store = try OfflineStore(accountID: session.userID,
+            database: OfflineDatabase(url: root.appendingPathComponent("wardrobe.sqlite")), remote: client)
+        if model.drafts.contains(where: { $0.id == id }) {
+            if try model.recognitionSuggestions(for: id) == nil {
+                model.startRecognition(id, using: client, maxPolls: 30)
+                let deadline = Date().addingTimeInterval(95)
+                while model.running && Date() < deadline { try await Task.sleep(for: .milliseconds(100)) }
+                XCTAssertFalse(model.running)
+            }
+            let recognized = try XCTUnwrap(model.recognitionSuggestions(for: id), "Live recognition did not return suggestions: \(model.message ?? "no_message")")
+            XCTAssertEqual(recognized.category, .top)
+            XCTAssertTrue(recognized.colors.contains("white"))
+            XCTAssertFalse(recognized.multipleItems)
+            let form = GarmentFormValue(name: "Photo AI acceptance shirt", category: recognized.category,
+                colors: recognized.colors, pattern: recognized.pattern, seasons: recognized.seasons,
+                formality: recognized.formality, brand: nil, priceGrosz: nil, purchasedOn: nil)
+            try await model.commitGarmentValue(form, for: id, repository: store)
+        }
+        try await store.synchronize()
+        let remote = APIWardrobeRepository(client: client)
+        let detail = try await remote.detail(id: id)
+        XCTAssertEqual(detail.garment.category, .top)
+        XCTAssertTrue(detail.garment.formMetadata?.colors.contains("white") == true)
+        let imageID = try XCTUnwrap(detail.garment.imageID)
+        let thumbnail = try await remote.thumbnail(imageID: imageID)
+        XCTAssertNotNil(UIImage(data: thumbnail))
+        XCTAssertFalse(model.drafts.contains(where: { $0.id == id }))
+        try Data("provider_recognition_native_save_remote_photo_verified".utf8)
+            .write(to: root.appendingPathComponent("passed"), options: .atomic)
+    }
+#endif
+
+    func testRecognitionReportsActionableAdmissionFailuresWithoutLosingPhoto() async throws {
+        for (code, message) in [("ai_disabled", "generation.disabled"),
+                                ("quota_exceeded", "generation.quota"),
+                                ("consent_required", "generation.consent")] {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            defer { try? FileManager.default.removeItem(at: root) }
+            let photo = try fixture(), model = PhotoImportModel(directory: root)
+            model.start([{ photo }]); await finish(model)
+            let id = try XCTUnwrap(model.drafts.first?.id)
+            model.startRecognition(id, using: RecognitionFixture(mode: code), maxPolls: 1, pollDelay: .zero)
+            await finish(model)
+            XCTAssertEqual(model.message, message)
+            XCTAssertEqual(model.drafts.count, 1)
+            model.continueManually(id)
+            XCTAssertFalse(model.hasPendingRecognition(id))
+        }
+    }
+
     func testRecognitionLostAdmissionResponseResumesSameIntentAfterRestart() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -783,6 +864,9 @@ private actor RecognitionFixture: PhotoRecognitionService {
         if mode == "expired-invalid", uploads.count == 1 { throw PhotoUploadError.expired }
     }
     func enqueueRecognition(draftID: UUID, imageID: UUID, operationID: UUID) async throws -> PhotoRecognitionStatus {
+        if ["ai_disabled", "quota_exceeded", "consent_required"].contains(mode) {
+            throw APIv1.Failure(code: mode, message: "Fixture rejection", requestID: UUID())
+        }
         requests.append((draftID, imageID, operationID))
         if mode == "lost-enqueue", requests.count == 1 { throw URLError(.timedOut) }
         return PhotoRecognitionStatus(job_id: job, draft_id: draftID, image_id: imageID, status: "queued", error_code: nil, result: nil)

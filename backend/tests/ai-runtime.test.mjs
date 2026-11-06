@@ -22,7 +22,7 @@ test('Cloudflare configuration fixes endpoint and free model allowlist; unsafe o
  const io={metadata:async()=>({isFile:()=>true,mode:0o100600,size:40}),read:async()=>'synthetic_cloudflare_token_value'};
  const configured=await cloudflareEnvironment(env,io);const config=serverConfiguration(configured);
  assert.equal(config.endpoint,`https://api.cloudflare.com/client/v4/accounts/${'a'.repeat(32)}/ai/v1/chat/completions`);
- assert.equal(config.imageModel,'@cf/meta/llama-3.2-11b-vision-instruct');assert.equal(config.maxOutputTokens,1024);
+ assert.equal(config.imageModel,'@cf/google/gemma-4-26b-a4b-it');assert.equal(config.maxOutputTokens,1024);
  assert.equal(config.outfitModel,'@cf/meta/llama-3.3-70b-instruct-fp8-fast');
  assert.equal(config.timeoutMs,30000); // Single image call keeps its existing budget.
  assert(config.outfitTimeoutMs*2+10000<ADAPTER_TIMEOUT_MS); // Leave time for scoped database operations.

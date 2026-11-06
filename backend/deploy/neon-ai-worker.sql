@@ -46,3 +46,25 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION app.ai_worker_claim() FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION app.ai_worker_claim() TO szafa_ai_worker;
+
+-- Image-capable deployment uses an explicit claim entry point. The legacy
+-- text-only worker continues to reject image policy and cannot consume images.
+CREATE OR REPLACE FUNCTION app.ai_image_worker_readiness() RETURNS jsonb
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT app.ai_worker_readiness() || jsonb_build_object('unsupported_jobs_pending',
+   EXISTS(SELECT FROM app.ai_jobs WHERE kind NOT IN('outfit_generation','image_analysis')
+     AND status IN('queued','running')))
+$$;
+CREATE OR REPLACE FUNCTION app.ai_image_worker_claim() RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+ LOCK TABLE app.ai_jobs IN SHARE ROW EXCLUSIVE MODE;
+ IF NOT EXISTS(SELECT FROM api_private.ai_policy WHERE singleton AND enabled AND image_enabled)
+   THEN RETURN NULL; END IF;
+ IF EXISTS(SELECT FROM app.ai_jobs WHERE kind NOT IN('outfit_generation','image_analysis')
+   AND status IN('queued','running')) THEN RETURN NULL; END IF;
+ RETURN app.jobs_claim();
+END $$;
+REVOKE ALL ON FUNCTION app.ai_image_worker_readiness(),app.ai_image_worker_claim()
+ FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION app.ai_image_worker_readiness(),app.ai_image_worker_claim() TO szafa_ai_worker;

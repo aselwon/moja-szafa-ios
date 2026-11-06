@@ -1,0 +1,45 @@
+[Unit]
+Description=Moja Szafa staging photo recognition and outfit AI worker
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/moja-szafa/image-ai-staging.env
+ConditionPathExists=/etc/moja-szafa/cloudflare-ai.token
+
+[Service]
+Type=simple
+User=moja-szafa-gateway-staging
+Group=moja-szafa-gateway-staging
+WorkingDirectory=/opt/moja-szafa-ai-staging
+EnvironmentFile=/etc/moja-szafa/image-ai-staging.env
+LoadCredential=cloudflare-ai.token:/etc/moja-szafa/cloudflare-ai.token
+Environment=CLOUDFLARE_AI_TOKEN_FILE=%d/cloudflare-ai.token
+Environment="PGOPTIONS=-c role=szafa_ai_worker -c statement_timeout=10000"
+Environment=AI_WORKER_MODE=images
+Environment=PRIVATE_IMAGE_DIRECTORY=/run/szafa-ai-images
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStartPre=/usr/bin/node backend/deploy/ai-worker-preflight.mjs
+ExecStart=/usr/bin/node backend/worker/worker.mjs /opt/moja-szafa-ai-staging/backend/ai/cloudflare-adapter.mjs
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=55
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+InaccessiblePaths=-/var/lib/moja-szafa-gateway-staging /proc
+BindReadOnlyPaths=/var/lib/moja-szafa-gateway-staging/images:/run/szafa-ai-images
+ProtectProc=invisible
+RestrictSUIDSGID=true
+UMask=0077
+MemoryMax=384M
+TasksMax=64
+LimitNOFILE=256
+
+[Install]
+WantedBy=multi-user.target
