@@ -17,11 +17,16 @@ provider call was made or enabled.
 
 The temporary public origin currently observed for the staging quick tunnel is
 `https://frozen-clearing-seek-ancient.trycloudflare.com`; it can change after a
-tunnel restart. PR #114, which updates the checked-in staging endpoint, is
-pending. Earlier endpoint checks observed an unauthenticated sync request
-returning HTTP 401 and malformed input returning HTTP 400. These checks show
-reachability and rejection of those requests; they do not verify a successful
-signed-in session.
+tunnel restart. PR #114 merged as `166134d1ff5a9aee8e49672104296959b74ce108`
+and updated the checked-in staging endpoint. A read-only check on 2026-11-06
+returned HTTP 200 from `/health` and HTTP 401 for unauthenticated recognition.
+Earlier endpoint checks observed an unauthenticated sync request returning HTTP
+401 and malformed input returning HTTP 400. These checks show reachability and
+rejection of those requests; they do not verify a successful signed-in session.
+
+The running gateway source remains `9f4fe3897f9e038e61fbb648a885628f697a73f5`.
+The export/image retention wrappers and sweepers present in newer main source
+have not been deployed; no retention behavior is claimed for this runtime.
 
 Positive authentication and native-app end-to-end behavior remain unverified.
 This is staging evidence only and does not establish a stable production
