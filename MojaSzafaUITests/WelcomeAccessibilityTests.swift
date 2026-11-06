@@ -1,6 +1,89 @@
 import XCTest
 
 #if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
+final class AppNavigationLayoutTests: XCTestCase {
+    @MainActor
+    func testOutfitCreationThroughToolbarOverflow() {
+        continueAfterFailure = false
+        for polish in [true, false] {
+            let app = XCUIApplication()
+            app.launchArguments = ["--app-navigation-layout-test", "-AppleLanguages", polish ? "(pl)" : "(en)",
+                                   "-AppleLocale", polish ? "pl_PL" : "en_US"]
+            app.launch()
+            let outfits = polish ? "Zestawy" : "Outfits"
+            XCTAssertTrue(app.tabBars.buttons[outfits].waitForExistence(timeout: 10))
+            app.tabBars.buttons[outfits].tap()
+            let create = app.buttons[polish ? "Nowy zestaw" : "New outfit"].firstMatch
+            if !create.exists || !create.isHittable {
+                // The captured UIKit hierarchy identifies this system control;
+                // never infer overflow from the ordering of toolbar buttons.
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "before-outfit-overflow"; hierarchy.lifetime = .keepAlways
+                add(hierarchy)
+                let overflow = app.navigationBars.buttons["TopOverflowBarButtonItem"]
+                XCTAssertTrue(overflow.waitForExistence(timeout: 5))
+                XCTAssertTrue(overflow.isHittable)
+                overflow.tap()
+                capture(app, name: "outfit-overflow-\(polish ? "pl" : "en")")
+            }
+            XCTAssertTrue(create.waitForExistence(timeout: 5))
+            XCTAssertTrue(create.isHittable)
+            create.tap()
+            XCTAssertTrue(app.textFields[polish ? "Nazwa zestawu" : "Outfit name"].waitForExistence(timeout: 5))
+            let cancel = app.navigationBars.buttons[polish ? "Anuluj" : "Cancel"].firstMatch
+            XCTAssertTrue(cancel.isHittable)
+            capture(app, name: "outfit-editor-from-overflow-\(polish ? "pl" : "en")")
+            cancel.tap()
+            XCTAssertTrue(app.navigationBars[outfits].waitForExistence(timeout: 5))
+            app.terminate()
+        }
+    }
+
+    @MainActor
+    func testPolishSecondaryDestinations() { checkNavigation(polish: true) }
+
+    @MainActor
+    func testEnglishSecondaryDestinations() { checkNavigation(polish: false) }
+
+    @MainActor
+    private func checkNavigation(polish: Bool) {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--app-navigation-layout-test", "-AppleLanguages", polish ? "(pl)" : "(en)",
+                               "-AppleLocale", polish ? "pl_PL" : "en_US"]
+        app.launch()
+        defer { app.terminate() }
+        let destinations: [(String, String)] = polish
+            ? [("Dzisiaj", "Planer"), ("Dzisiaj", "Historia noszeń"), ("Szafa", "Przed zakupem"),
+               ("Zestawy", "Planer"), ("Zestawy", "Wyjazdy"), ("Statystyki", "Przegląd szafy")]
+            : [("Today", "Planner"), ("Today", "Wear history"), ("Wardrobe", "Before buying"),
+               ("Outfits", "Planner"), ("Outfits", "Trips"), ("Statistics", "Wardrobe review")]
+        for (index, destination) in destinations.enumerated() {
+            let tab = app.tabBars.buttons[destination.0]
+            XCTAssertTrue(tab.waitForExistence(timeout: 10))
+            tab.tap()
+            let link = app.navigationBars.buttons[destination.1].firstMatch
+            XCTAssertTrue(link.waitForExistence(timeout: 5), "The secondary destination must be exposed in the real toolbar")
+            capture(app, name: "toolbar-\(polish ? "pl" : "en")-\(index)")
+            XCTAssertTrue(link.isHittable)
+            link.tap()
+            XCTAssertTrue(app.navigationBars[destination.1].waitForExistence(timeout: 5))
+            capture(app, name: "destination-\(polish ? "pl" : "en")-\(index)")
+            let back = app.navigationBars.buttons.element(boundBy: 0)
+            XCTAssertTrue(back.isHittable)
+            back.tap()
+            XCTAssertTrue(app.tabBars.buttons[destination.0].waitForExistence(timeout: 5))
+        }
+    }
+
+    @MainActor
+    private func capture(_ app: XCUIApplication, name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name; attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+}
+
 final class FeatureLayoutAccessibilityTests: XCTestCase {
     @MainActor
     func testPolishFormActions() { checkForms(language: "pl") }

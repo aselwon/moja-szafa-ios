@@ -18,7 +18,7 @@ struct MojaSzafaApp: App {
         }
         if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) { return }
         #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
-        if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") { return }
+        if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") || ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") { return }
         #endif
         #endif
         DataExportClient.clearPreviousDownloads()
@@ -36,7 +36,9 @@ struct MojaSzafaApp: App {
                 #else
                 #if DEBUG
                 #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
-                if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") {
+                if ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") {
+                    AppNavigationLayoutVerificationRoot(reminders: reminders, widget: widget)
+                } else if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") {
                     FeatureLayoutVerificationRoot()
                 } else {
                     demoOrAuthenticationRoot
@@ -66,6 +68,25 @@ struct MojaSzafaApp: App {
 // Explicit test instrumentation: absent from ordinary builds and real devices.
 // Hosts production forms, with no session, network transport or provider access.
 #if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
+@MainActor
+private struct AppNavigationLayoutVerificationRoot: View {
+    @State private var repository = DemoWardrobe.make()
+    @ObservedObject var reminders: ReminderModel
+    @ObservedObject var widget: WardrobeWidgetModel
+    private var dependencies: AppDependencies {
+        var result = AppDependencies(wardrobe: repository)
+        result.outfits = repository
+        return result
+    }
+    var body: some View {
+        // Real tab and toolbar composition; unavailable services retain their
+        // real error states. No authentication or remote operation is supplied.
+        AppRootView(dependencies: dependencies,
+            accountID: UUID(uuidString: "00000000-0000-4000-8000-000000000004")!,
+            reminders: reminders, widget: widget)
+    }
+}
+
 @MainActor
 private struct FeatureLayoutVerificationRoot: View {
     @State private var profile: ProfileModel
