@@ -1,0 +1,9 @@
+# T003 app navigation layout verification
+
+This opt-in UI check launches the real `AppRootView` with a local demo wardrobe and exercises six secondary toolbar destinations and their back navigation in Polish and English at the largest accessibility text size (AX5).
+
+The checked routes are Today → Planner, Today → Wear history, Wardrobe → Before buying, Outfits → Planner, Outfits → Trips, and Statistics → Wardrobe review. The PL/EN × light/dark AX5 secondary-destination matrix passed 4/4. Two additional outfit-creation checks passed in PL and EN, light and dark: Polish opens New outfit from the toolbar overflow menu; English opens the directly visible action. Representative screenshots inspected include Polish Today, Outfits and Statistics, English dark-mode Outfits, Polish dark-mode Planner, and the Polish overflow menu and editor in light mode.
+
+The fixture supplies demo wardrobe and outfit data. Other destinations retain their actual unconfigured-service error states. The test does not authenticate, call a remote service, or establish backend behavior. It does not cover every feature screen or full VoiceOver acceptance. Existing form source was checked for scrollable containers and fixed-row text clamps; this is source inspection, not a complete visual test. The Polish overflow check uses the observed `Button` with accessibility identifier `TopOverflowBarButtonItem`; the English New outfit action is directly visible. Earlier attempts failed on test selectors/menu-button matching and were corrected; they did not establish a product defect. This limited navigation result does not mark the broader T003 task complete.
+
+The navigation route and UI tests compile only with `DEBUG`, `LAYOUT_VERIFICATION`, and the simulator target condition. Ordinary Staging and Release builds continue through the normal authentication gate.
