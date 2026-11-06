@@ -33,4 +33,5 @@ DO $$ BEGIN
 END $$;
 ROLLBACK;
 SQL
+psql -Xq -v ON_ERROR_STOP=1 -d "$database" -f "$root/tests/ai-image-worker-deployment.sql"
 echo 'PASS: narrow AI worker role, explicit libpq role, disabled defaults and replayable deployment'

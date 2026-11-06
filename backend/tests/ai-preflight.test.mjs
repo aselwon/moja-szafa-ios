@@ -16,3 +16,9 @@ assert.equal((await workerPreflight(env,{...dependencies,requireEnabled:true,
   query:async()=>({role_allowed:true,policy:{...policy,enabled:true,disclosure_matches:true}})})).enabled,true);
 assert(calls>0);
 console.log('OK: AI preflight rejects privileged roles, vision, unapproved budgets and disabled activation');
+
+const imageEnv={...env,AI_WORKER_MODE:'images',AI_WORKER_OUTFIT_ONLY:'false'};
+assert.equal((await workerPreflight(imageEnv,{...dependencies,requireEnabled:true,
+ query:async()=>({role_allowed:true,policy:{...policy,enabled:true,image_enabled:true,disclosure_matches:true}})})).image_enabled,true);
+assert.equal((await workerPreflight(imageEnv,dependencies)).image_enabled,false);
+await assert.rejects(workerPreflight(imageEnv,{...dependencies,requireEnabled:true}),/worker_preflight_failed/);

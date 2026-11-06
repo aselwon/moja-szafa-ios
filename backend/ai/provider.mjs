@@ -77,7 +77,7 @@ export function createProvider(configuration, { fetchImpl = globalThis.fetch, no
       const data = await Promise.race([deadline, (async () => {
         const response = await fetchImpl(config.endpoint, { method: 'POST', redirect: 'error', signal: controller.signal,
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
-          body: JSON.stringify({ model, max_tokens: config.maxOutputTokens, response_format: { type: 'json_object' },
+          body: JSON.stringify({ model, ...(model === '@cf/google/gemma-4-26b-a4b-it' ? {chat_template_kwargs:{enable_thinking:false},temperature:0} : {}), max_tokens: config.maxOutputTokens, response_format: { type: 'json_object' },
             messages: [{ role: 'system', content: prompt.text }, { role: 'user', content }] }) });
         if (!response.ok) {
           await response.body?.cancel().catch(() => {});

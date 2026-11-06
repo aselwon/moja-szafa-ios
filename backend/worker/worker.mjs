@@ -20,13 +20,13 @@ function subprocess(command, args, input, timeout) {
   });
 }
 
-export function postgresStore({ outfitOnly = false } = {}) {
+export function postgresStore({ outfitOnly = false, images = false } = {}) {
   // libpq service configuration supplies the dedicated server identity. Never
   // pass credentials on argv. SQL values are base64 encoded, not interpolated.
   const query = sql => subprocess('psql', ['-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], sql, 10_000);
   const json = value => `convert_from(decode('${Buffer.from(JSON.stringify(value)).toString('base64')}','base64'),'UTF8')::jsonb`;
   return {
-    claim: () => query(`SELECT coalesce(${outfitOnly ? 'app.ai_worker_claim' : 'app.jobs_claim'}(), 'null'::jsonb);`),
+    claim: () => query(`SELECT coalesce(${images ? 'app.ai_image_worker_claim' : outfitOnly ? 'app.ai_worker_claim' : 'app.jobs_claim'}(), 'null'::jsonb);`),
     authorize: job => {
       const data = json({ id: job.id, token: job.lease_token });
       return query(`WITH v AS (SELECT ${data} AS body) SELECT to_json(app.jobs_authorize_dispatch(
@@ -72,7 +72,7 @@ async function main() {
   // Validate installation before claiming jobs; no default fake/paid provider.
   const { access, constants } = await import('node:fs/promises');
   await access(resolve(adapterPath), constants.X_OK);
-  const store = postgresStore({ outfitOnly: process.env.AI_WORKER_OUTFIT_ONLY === 'true' });
+  const store = postgresStore({ outfitOnly: process.env.AI_WORKER_OUTFIT_ONLY === 'true', images: process.env.AI_WORKER_MODE === 'images' });
   const execute = processExecutor(adapterPath);
   let stopping = false;
   process.on('SIGTERM', () => { stopping = true; });

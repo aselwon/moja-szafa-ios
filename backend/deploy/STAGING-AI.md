@@ -1,3 +1,5 @@
+> For persistent photo recognition, use [IMAGE-AI.md](IMAGE-AI.md). The workflow below is the original text-only smoke deployment.
+
 # T027: bounded staging recommendation worker
 
 The staging gateway can enqueue recommendations, but it does not execute them.
