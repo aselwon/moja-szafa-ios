@@ -1,44 +1,13 @@
-# T060 staging gateway deployment
+# T060 staging gateway status
 
-The gateway is deployed as an isolated staging service from backend source
-commit `9f4fe3897f9e038e61fbb648a885628f697a73f5` at 2026-11-05 21:27:30 UTC.
-Its systemd unit is active and enabled. Runtime configuration is supplied by a
-root-owned, mode-0600 environment file outside this repository; its contents
-are not part of this deployment record. The deployment receipt recorded health
-`ok`, unauthenticated recognition returning HTTP 401, no schema change, and no
-services added.
+Current evidence as of 2026-11-06:
 
-The service uses a dedicated restricted staging database role. A read-only
-ledger verification recorded exactly 32 migration versions (001–032) with
-repository-matching checksums. The T029–T032 staging release package was
-completed against merged source and its migration checksums were revalidated.
-AI remains disabled, with global and per-user limits unchanged at 10 and 4. No
-provider call was made or enabled.
+- Stable Cloudflare route: `https://szafa-staging.kredkuj.pl`. It is live; `/health` returned HTTP 200 and unauthenticated sync returned HTTP 401.
+- `Configuration/BackendEndpoints.json` and `Configuration/Staging.xcconfig` point to this same staging host.
+- The gateway currently runs source `7b04e3af3fb6a856e220765986ae5bb69bfe11e9`, including the managed-auth cookie fix and deployed image/export retention functions. The runtime uses a dedicated restricted database role. The staging database has 32 migration versions (001–032) with repository-matching checksums.
+- A real OTP flow through the gateway succeeded using a non-personal test mailbox, and the profile was provisioned automatically. Staging smoke flows verified listing three garments and syncing, uploading and reading back JPEG/PNG photos with EXIF absent, exporting a 42,496-byte JSON package with photos and no session token, and the account-deletion API path.
+- The separate AI worker is installed but inactive and disabled. AI/image processing remain disabled, the global/user limits remain 10/4, and no provider call is claimed.
 
-The temporary public origin currently observed for the staging quick tunnel is
-`https://frozen-clearing-seek-ancient.trycloudflare.com`; it can change after a
-tunnel restart. PR #114 merged as `166134d1ff5a9aee8e49672104296959b74ce108`
-and updated the checked-in staging endpoint. A read-only check on 2026-11-06
-returned HTTP 200 from `/health` and HTTP 401 for unauthenticated recognition.
-Earlier endpoint checks observed an unauthenticated sync request returning HTTP
-401 and malformed input returning HTTP 400. These checks show reachability and
-rejection of those requests; they do not verify a successful signed-in session.
+These results verify gateway/API behavior on staging. The complete native app login-to-wardrobe flow has not yet been verified. PR #136 is merged at `9d37e2f45649829b73b25b254229c4f6b9434a0c`; its performance-related backend update is not yet deployed. No app performance conclusion is claimed from the gateway smoke measurements.
 
-The running gateway source remains `9f4fe3897f9e038e61fbb648a885628f697a73f5`.
-The export/image retention wrappers and sweepers present in newer main source
-have not been deployed; no retention behavior is claimed for this runtime.
-
-Positive authentication and native-app end-to-end behavior remain unverified.
-This is staging evidence only and does not establish a stable production
-origin, photo-storage acceptance, or production readiness.
-
-## Endpoint update — 2026-11-05
-
-After the staging quick-tunnel service was restarted, the currently configured
-public origin is `https://frozen-clearing-seek-ancient.trycloudflare.com`.
-The public `/health` route returned HTTP 200 at the time of this update; the
-previous quick-tunnel hostname returned HTTP 530 and is no longer configured.
-The hostname remains temporary and can change after another restart. The
-checked-in staging allowlist and `Staging.xcconfig` use the current hostname.
-This endpoint update does not verify signed-in authentication or native-app
-end-to-end behavior.
+Historical note: the earlier temporary quick-tunnel endpoint has expired and is superseded by the stable hostname above. Do not use the former address.
