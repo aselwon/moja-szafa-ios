@@ -9,9 +9,16 @@ or that the application is vulnerability-free.
 [PR116 CI run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42136026719)
 completed successfully for head
 `d122f9df1c9ef74b63c90c274dcff2ebf149fb3d`, based on main
-`84bb2c62e0ab6e122fc27e046f2842b5265159ef`. The backend tree hash at the PR head
-and T056 base is identical:
+`84bb2c62e0ab6e122fc27e046f2842b5265159ef`. The backend tree hash at the run
+head and that audited main revision is identical:
 `7110b7da07381485eede89629af2ceb3ef3dd2c8`.
+
+Current main is `da341a8ad712f9ffac2b944565832523f9964d6b`. The only backend
+path changed between the audited run head and current main is the test file
+`backend/gateway/postgres.test.mjs`, added by PR117; the gateway, storage and
+operations lockfiles and `backend/images/requirements.txt` are unchanged. The
+audited production backend and dependency inputs therefore still match current
+main; the full backend tree hash differs only because of the added test file.
 
 The `validate` job passed. It ran `node scripts/harness-check.mjs` with 90/90
 JavaScript tests passing; the harness also runs the Python image decoder tests.
