@@ -11,6 +11,11 @@ struct MojaSzafaApp: App {
 
     init() {
         #if DEBUG
+        // Opt-in UI acceptance runs reset only this local welcome flag. They do
+        // not create sessions, send email, or change the backend composition.
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-reset-welcome") {
+            UserDefaults.standard.removeObject(forKey: "welcome.seen.v1")
+        }
         if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) { return }
         #endif
         DataExportClient.clearPreviousDownloads()
