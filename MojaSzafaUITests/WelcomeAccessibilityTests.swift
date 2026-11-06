@@ -1,5 +1,99 @@
 import XCTest
 
+#if HOSTED_STAGING_ACCEPTANCE && targetEnvironment(simulator)
+import UIKit
+
+/// Explicitly opt-in: uses a real staging account and its emailed OTP.
+/// The external runner must disable all result attachments before supplying input.
+final class HostedStagingAcceptanceTests: XCTestCase {
+    @MainActor
+    func testRealEmailLoginAndSessionRestore() throws {
+        guard ProcessInfo.processInfo.environment["HOSTED_PRIVATE_INPUT"] == "1" else {
+            throw XCTSkip("Use the private hosted-acceptance runner with attachments disabled")
+        }
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        defer { UIPasteboard.general.items = []; app.terminate() }
+        let welcome = app.buttons["welcome.continue"]
+        if welcome.waitForExistence(timeout: 3) {
+            for _ in 0..<12 where !welcome.isHittable { app.swipeUp() }
+            XCTAssertTrue(welcome.isHittable)
+            welcome.tap()
+        }
+        let email = app.textFields["Email address"]
+        XCTAssertTrue(email.waitForExistence(timeout: 15), "A fresh real sign-in screen is required")
+        try pastePrivateInput("email", into: email, app: app)
+        let send = app.buttons["Send code"]
+        XCTAssertTrue(send.isEnabled)
+        send.tap()
+        let code = app.textFields["Email verification code"]
+        XCTAssertTrue(code.waitForExistence(timeout: 30), "The hosted provider must issue a challenge")
+        try pastePrivateInput("otp", into: code, app: app)
+        app.buttons["Sign in with code"].tap()
+        let wardrobe = app.tabBars.buttons["Wardrobe"]
+        if !wardrobe.waitForExistence(timeout: 15) {
+            let skip = app.buttons["Skip"]
+            for _ in 0..<20 {
+                if skip.exists && skip.isHittable { break }
+                app.swipeUp()
+            }
+            XCTAssertTrue(skip.isHittable, "Real sign-in must reach optional onboarding")
+            skip.tap()
+        }
+        XCTAssertTrue(wardrobe.waitForExistence(timeout: 20))
+        wardrobe.tap()
+        let seeded = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@",
+            "Synthetic staging benchmark ")).firstMatch
+        XCTAssertTrue(seeded.waitForExistence(timeout: 30), "The real account's seeded wardrobe must load")
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(wardrobe.waitForExistence(timeout: 20), "The real session must survive app relaunch")
+        wardrobe.tap()
+        XCTAssertTrue(seeded.waitForExistence(timeout: 30))
+        XCTAssertFalse(app.textFields["Email address"].exists)
+    }
+
+    @MainActor
+    private func pastePrivateInput(_ name: String, into field: XCUIElement, app: XCUIApplication) throws {
+        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let request = directory.appendingPathComponent("hosted-\(name).request")
+        let input = directory.appendingPathComponent("hosted-\(name).json")
+        try Data().write(to: request, options: .atomic)
+        defer {
+            try? FileManager.default.removeItem(at: input)
+            try? FileManager.default.removeItem(at: request)
+            UIPasteboard.general.items = []
+        }
+        let deadline = Date().addingTimeInterval(120)
+        while !FileManager.default.fileExists(atPath: input.path) && Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        guard let data = try? Data(contentsOf: input),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: String],
+              let value = object["value"], !value.isEmpty else {
+            XCTFail("Private hosted input was not supplied before the deadline")
+            return
+        }
+        try FileManager.default.removeItem(at: input)
+        UIPasteboard.general.setItems([[UIPasteboard.typeAutomatic: value]],
+            options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(30)])
+        field.tap()
+        field.press(forDuration: 1.1)
+        let menuItem = app.menuItems["Paste"]
+        let button = app.buttons["Paste"]
+        if menuItem.waitForExistence(timeout: 3) { menuItem.tap() }
+        else {
+            XCTAssertTrue(button.waitForExistence(timeout: 3), "User-initiated Paste must be available")
+            button.tap()
+        }
+        // Never typeText, log, attach, or include the input in assertion messages.
+        XCTAssertTrue((field.value as? String) == value, "Private input must reach the intended field")
+    }
+}
+#endif
+
 #if DEBUG && LAYOUT_VERIFICATION && targetEnvironment(simulator)
 final class AppNavigationLayoutTests: XCTestCase {
     @MainActor
