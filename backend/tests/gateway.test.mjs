@@ -12,7 +12,7 @@ const cookie = 'synthetic-managed-session.signature%3D';
 const baseURL = 'https://ep-test.neonauth.eu-central-1.aws.neon.tech/db/auth';
 const close = server => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); });
 async function fixture(t) {
-  const state = { active: true, verified: true, tombstoned: false, sent: 0, inspections: 0, calls: [], weatherCalls: 0,
+  const state = { active: true, verified: true, tombstoned: false, sent: 0, inspections: 0, sessionPreflights: 0, calls: [], weatherCalls: 0,
     cookieName: '__Secure-neon-auth.session_token' };
   const upstream = createServer(async (request, response) => {
     let body = '';
@@ -54,10 +54,16 @@ async function fixture(t) {
     attempt: async id => { if (!challenges.has(id)) throw new GatewayError('authentication_rejected',401); return challenges.get(id); },
     consume: async id => challenges.delete(id),
     session: async principal => {
+      state.sessionPreflights++;
       assert.equal(principal.owner, owner); assert.equal(principal.sessionID, sessionID);
       if (state.tombstoned) throw new GatewayError('unauthorized',401);
     },
-    rpc: async (principal, operation, request) => ({ data: { owner: principal.owner, operation, request }, request_id: randomUUID() }),
+    rpc: async (principal, operation, request) => {
+      // Mirror GatewayStore's in-transaction bind, not a separate HTTP preflight.
+      assert.equal(principal.owner, owner); assert.equal(principal.sessionID, sessionID);
+      if (state.tombstoned) throw new GatewayError('unauthorized',401);
+      return { data: { owner: principal.owner, operation, request }, request_id: randomUUID() };
+    },
   };
   const gateway = createGateway({ auth, store, forecast: async coordinates => {
     state.weatherCalls++;
@@ -109,6 +115,7 @@ test('each RPC requires current managed session and deletion gate; logout invali
   const rpc=()=>f.call('/rest/v1/rpc/api_v1_list_garments',{request:{}},cookie);
   assert.equal((await rpc()).status,200); assert.equal((await rpc()).status,200);
   assert.equal(f.state.inspections,2);
+  assert.equal(f.state.sessionPreflights,0,'RPC session gate belongs to the operation transaction');
   f.state.tombstoned=true;
   assert.equal((await rpc()).status,401);
   f.state.tombstoned=false;
