@@ -1,0 +1,23 @@
+[Unit]
+Description=Bounded encrypted paired staging backup for Moja Szafa
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/moja-szafa/backup-staging.json
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/usr/bin/python3 /opt/moja-szafa-backup/backend/recovery/backup-runner.py --config /etc/moja-szafa/backup-staging.json
+TimeoutStartSec=1000
+KillMode=control-group
+Restart=no
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/moja-szafa-backups
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=512M
+TasksMax=64

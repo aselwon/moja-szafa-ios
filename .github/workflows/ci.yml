@@ -290,6 +290,7 @@ jobs:
             sudo apt-get update -qq
             sudo apt-get install -y age
             python3 -m unittest discover -s backend/recovery -p 'test_paired_backup.py'
+            python3 -m unittest discover -s backend/recovery -p 'test_backup_runner.py'
             bash backend/tests/run-tests.sh
             GATEWAY_PG_TESTS=1 node --test --test-concurrency=1 backend/gateway/postgres.test.mjs backend/gateway/erasure-postgres.test.mjs
             OPS_PG_TESTS=1 node --test backend/operations/postgres.test.mjs

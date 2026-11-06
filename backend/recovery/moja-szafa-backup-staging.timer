@@ -1,0 +1,11 @@
+[Unit]
+Description=Twice-daily paired staging backup for Moja Szafa
+
+[Timer]
+OnCalendar=*-*-* 03,15:00:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+Unit=moja-szafa-backup-staging.service
+
+[Install]
+WantedBy=timers.target
