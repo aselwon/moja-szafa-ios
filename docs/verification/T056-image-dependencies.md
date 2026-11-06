@@ -31,5 +31,5 @@ vulnerabilities. These are point-in-time advisory results; they do not establish
 that the application or dependencies are vulnerability-free.
 
 The dependency remediation and these scans do not mark broader T056 security
-acceptance complete. See the private T056 verification record for the current
-runtime observation, test matrix and its coverage limits.
+acceptance complete. See the [T056 security matrix](T056-security-matrix.md)
+for the current runtime observation, test matrix and its coverage limits.
