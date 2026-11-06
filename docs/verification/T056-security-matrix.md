@@ -13,19 +13,27 @@ completed successfully for head
 head and that audited main revision is identical:
 `7110b7da07381485eede89629af2ceb3ef3dd2c8`.
 
-Current main is `da341a8ad712f9ffac2b944565832523f9964d6b`. The only backend
-path changed between the audited run head and current main is the test file
-`backend/gateway/postgres.test.mjs`, added by PR117; the gateway, storage and
-operations lockfiles and `backend/images/requirements.txt` are unchanged. The
-audited production backend and dependency inputs therefore still match current
-main; the full backend tree hash differs only because of the added test file.
+The later [PR120 CI run](https://github.com/aselwon/moja-szafa-ios/actions/runs/42144751539)
+passed all five required checks at head
+`5bef195782df3ac38f67968a21a5850ab560c585` (base
+`ed8cc1320ad312165285bae6657a8579d1855691`). That change is now on main as
+`bb472a4a52b6add320ed886bd9cf4d2a7389d9a5`; its backend tree hash is
+`87d3e7bab38d47ac232f0bd723ccddffbd7f5c89`. Relative to the audited PR116
+main, four backend paths changed: `backend/ai/candidates.mjs`,
+`backend/gateway/postgres.test.mjs`, `backend/tests/ai-provider.test.mjs`, and
+`backend/tests/candidates.test.mjs`. The runtime change keeps arbitrary
+user-entered pattern text out of AI candidate payloads while preserving the
+stored value; the tests cover both candidate projection and direct provider
+serialization. Gateway, storage and operations lockfiles and
+`backend/images/requirements.txt` remain unchanged, so the prior dependency
+scan inputs are still the current inputs.
 
-The `validate` job passed. It ran `node scripts/harness-check.mjs` with 90/90
-JavaScript tests passing; the harness also runs the Python image decoder tests.
-It also passed the simulator selector and Python test groups for simulator clone,
-bounded commands, and performance summarization.
+The PR120 `validate` job passed. It ran `node scripts/harness-check.mjs` with
+92/92 JavaScript tests passing; the harness also runs the Python image decoder
+tests. It also passed the simulator selector and Python test groups for
+simulator clone, bounded commands, and performance summarization.
 
-The `postgres` job passed `bash backend/tests/run-tests.sh`, then the real
+The PR120 `postgres` job passed `bash backend/tests/run-tests.sh`, then the real
 PostgreSQL gateway/erasure tests and operations test:
 
 ```sh
@@ -45,7 +53,7 @@ tests passed 2/2 and the operations PostgreSQL test passed 1/1.
 | Storage and upload access | PostgreSQL `images.sql` and `recognition-drafts.sql`; HTTP test “recognition draft upload and reads stay on the authenticated private target”; image decoder, recognition, and image retention tests |
 | Upload, input, and usage limits | Image decoder and `images.test.mjs`; PostgreSQL `ai-runtime.sql`; AI tests “invalid image/count and oversized input do not dispatch”, “large valid image stays within the transport limit without regex stack overflow”, bounded repair/timeout/usage tests |
 | Tokens and authenticated operations | Gateway HTTP OTP/session tests, including “each RPC requires current managed session and deletion gate; logout invalidates next request” and “caller cannot choose RPC function, owner, auth origin, token headers or unbounded payload”; gateway session revocation/deletion PostgreSQL test; signed-MFA operations PostgreSQL test |
-| Prompt-injection boundary | AI evaluator tests validate 120 labeled synthetic cases including five instruction-injection cases. Production candidate selection strips notes; AI runtime/provider tests reject unauthorized or invalid results and fail closed. |
+| Prompt-injection boundary | AI evaluator tests validate 120 labeled synthetic cases including five instruction-injection cases. Candidate tests verify custom free-text patterns, including instruction-like text, become unknown in AI input while remaining unchanged in stored metadata; provider serialization tests verify the same for owned garments and purchase candidates. AI runtime/provider tests reject unauthorized or invalid results and fail closed. |
 | Dependency scan | Separate fresh scans on 2026-11-06 found zero known advisories for the existing gateway, storage, and operations npm lockfiles and the pinned Pillow dependency. CI dependency installation uses `--no-audit`; the scans were performed separately. |
 
 The active staging gateway's actual decoder interpreter was checked read-only on
