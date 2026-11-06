@@ -122,3 +122,5 @@ echo 'PASS: clean install, populated v001 upgrade, replay, atomic rollback, chec
 
 # T055: isolated synthetic database + object restore and post-snapshot deletions.
 bash "$root/tests/recovery-drill.sh"
+
+AI_DEPLOYMENT_PG_TESTS=1 bash "$root/tests/ai-worker-deployment.sh"
