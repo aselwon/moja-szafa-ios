@@ -64,6 +64,98 @@ final class WardrobeLaunchBenchmarkTests: XCTestCase {
 }
 #endif
 
+final class CoreLayoutAccessibilityTests: XCTestCase {
+    @MainActor
+    func testPolishWardrobeAndOutfitActionsRemainReachable() {
+        checkCore(language: "pl", locale: "pl_PL", wardrobe: "Szafa", outfits: "Zestawy",
+                  archive: "Pokaż archiwum", newOutfit: "Nowy zestaw", name: "Nazwa zestawu", save: "Zapisz zestaw")
+    }
+
+    @MainActor
+    func testEnglishWardrobeAndOutfitActionsRemainReachable() {
+        checkCore(language: "en", locale: "en_US", wardrobe: "Wardrobe", outfits: "Outfits",
+                  archive: "Show archive", newOutfit: "New outfit", name: "Outfit name", save: "Save outfit")
+    }
+
+    @MainActor
+    private func checkCore(language: String, locale: String, wardrobe: String, outfits: String,
+                           archive: String, newOutfit: String, name: String, save: String) {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        // The existing Debug-only demo uses production views with an in-memory
+        // repository. No login, provider, notification or AI request is made.
+        app.launchArguments = ["--demo", "-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.tabBars.buttons[wardrobe].waitForExistence(timeout: 10))
+        capture(app, name: "wardrobe-start-\(language)")
+        // SwiftUI may expose a NavigationLink's combined label rather than a
+        // separate static-text child. Match the visible garment name either way.
+        let shirt = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Granatowy T-shirt")).firstMatch
+        reveal(shirt, in: app)
+        shirt.tap()
+        let archived = app.switches[archive].firstMatch
+        reveal(archived, in: app)
+        capture(app, name: "garment-status-\(language)")
+        // SwiftUI exposes the whole labeled row as the switch's AX frame.
+        // Activate its trailing control, not the noninteractive label center.
+        archived.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        let changed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: archived)
+        let outcome = XCTWaiter.wait(for: [changed], timeout: 5)
+        if outcome != .completed { capture(app, name: "archive-not-updated-\(language)") }
+        XCTAssertEqual(outcome, .completed)
+
+        app.tabBars.buttons[outfits].tap()
+        let create = app.buttons[newOutfit].firstMatch
+        XCTAssertTrue(create.waitForExistence(timeout: 5))
+        XCTAssertTrue(create.isHittable, "The new-outfit toolbar action must remain reachable")
+        create.tap()
+        let title = app.textFields[name].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        let longName = language == "pl"
+            ? "Strój testowy z bardzo długą nazwą na chłodny dzień"
+            : "An outfit with a deliberately long name for a cold day"
+        title.tap()
+        title.typeText(longName + "\n")
+        let garment = app.buttons["Jasne spodnie"].firstMatch
+        reveal(garment, in: app)
+        garment.tap()
+        let saveButton = app.buttons[save].firstMatch
+        reveal(saveButton, in: app)
+        XCTAssertTrue(saveButton.isEnabled)
+        capture(app, name: "outfit-save-\(language)")
+        saveButton.tap()
+        let saved = app.staticTexts[longName].firstMatch
+        reveal(saved, in: app)
+        capture(app, name: "outfit-saved-\(language)")
+    }
+
+    @MainActor
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<16 {
+            XCTAssertEqual(app.state, .runningForeground)
+            if element.exists && element.isHittable { return }
+            app.swipeUp()
+        }
+        capture(app, name: "unreachable-element")
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "unreachable-element-hierarchy"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        XCTAssertTrue(element.exists, "Expected action or content must exist")
+        XCTAssertTrue(element.isHittable, "Expected action or content must be reachable by scrolling")
+    }
+
+    @MainActor
+    private func capture(_ app: XCUIApplication, name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+}
+
 final class WelcomeAccessibilityTests: XCTestCase {
     @MainActor
     func testPolishWelcomeActionsRemainReachable() {

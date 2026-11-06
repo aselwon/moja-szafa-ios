@@ -12224,6 +12224,40 @@
         }
       }
     },
+    "widget.chooseOutfit": {
+      "comment": "Opens the outfit list from the shortcut's wear-confirmation screen.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz zestaw"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an outfit"
+          }
+        }
+      }
+    },
+    "widget.confirmTitle": {
+      "comment": "Navigation title of the explicit wear-confirmation screen opened by a shortcut.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potwierdź noszenie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm wear"
+          }
+        }
+      }
+    },
     "recognition.explanation": {
       "comment": "T028: optional image recognition action and status.",
       "localizations": {
@@ -12237,6 +12271,159 @@
           "stringUnit": {
             "state": "translated",
             "value": "AI suggestions are optional. Review privacy settings before analysis; nothing is added to your wardrobe until you confirm."
+          }
+        }
+      }
+    },
+    "demo.banner": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo offline"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline demo"
+          }
+        }
+      }
+    },
+    "demo.about": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O podglądzie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About preview"
+          }
+        }
+      }
+    },
+    "demo.tryTitle": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co możesz sprawdzić"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What you can try"
+          }
+        }
+      }
+    },
+    "demo.tryBrowse": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przeglądaj ubrania, szukaj i filtruj kolekcję."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse garments, search and filter the collection."
+          }
+        }
+      }
+    },
+    "demo.tryDetails": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz szczegóły ubrania i zmień jego dostępność."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open garment details and change availability."
+          }
+        }
+      }
+    },
+    "demo.tryOutfits": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj przykładowe zestawy lub utwórz własny."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit sample outfits or create your own."
+          }
+        }
+      }
+    },
+    "demo.localTitle": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To jest lokalny podgląd"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This preview runs locally"
+          }
+        }
+      }
+    },
+    "demo.dataNotice": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubrania i ilustracje są przykładowe. Zmiany w kolekcji i zestawach pozostają tylko w pamięci aplikacji."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garments and illustrations are examples. Collection and outfit changes stay only in app memory."
+          }
+        }
+      }
+    },
+    "demo.disclosure": {
+      "comment": "Debug-only local preview disclosure and navigation; no server or AI access.",
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten tryb nie loguje do konta, nie łączy się z serwerem i nie uruchamia AI. Nie potwierdza gotowości tych usług."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This mode does not sign in, connect to a server or run AI. It does not verify that those services are ready."
           }
         }
       }

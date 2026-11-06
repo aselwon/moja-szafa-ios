@@ -139,35 +139,34 @@ private struct DemoRootView: View {
                 }.tabItem { Label("tab.outfits", systemImage: "square.stack") }
                 NavigationStack {
                     List {
-                        Section("Co możesz sprawdzić") {
-                            Text("Przeglądaj ubrania, szukaj i filtruj kolekcję.")
-                            Text("Otwórz szczegóły ubrania i zmień jego dostępność.")
-                            Text("Edytuj przykładowe zestawy lub utwórz własny.")
+                        Section("demo.tryTitle") {
+                            Text("demo.tryBrowse")
+                            Text("demo.tryDetails")
+                            Text("demo.tryOutfits")
                         }
-                        Section("To jest lokalny podgląd") {
-                            Text("Ubrania i ilustracje są przykładowe. Zmiany w kolekcji i zestawach pozostają tylko w pamięci aplikacji.")
-                            Text("Ten tryb nie loguje do konta, nie łączy się z serwerem i nie uruchamia AI. Nie potwierdza gotowości tych usług.")
+                        Section("demo.localTitle") {
+                            Text("demo.dataNotice")
+                            Text("demo.disclosure")
                         }
-                    }.navigationTitle("O podglądzie")
-                }.tabItem { Label("O podglądzie", systemImage: "info.circle") }
+                    }.navigationTitle("demo.about")
+                }.tabItem { Label("demo.about", systemImage: "info.circle") }
             }
         }
     }
 
-    // Reserve real layout space so large text cannot cover navigation or filters.
+    // A short visible label preserves space at AX5; full disclosure remains
+    // available to VoiceOver and in the About tab, without reducing text size.
     private var demoBanner: some View {
         HStack(spacing: 8) {
-            Image(systemName: "sparkles.rectangle.stack")
-            VStack(alignment: .leading, spacing: 2) {
-                Text("PODGLĄD DEMO").font(.caption.bold())
-                Text("Dane przykładowe · bez połączenia z serwerem").font(.caption2)
-            }
+            Image(systemName: "sparkles.rectangle.stack").accessibilityHidden(true)
+            Text("demo.banner").font(.caption.bold())
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
         .foregroundStyle(Color("primaryText"))
         .background(Color("accent").opacity(0.13))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("demo.disclosure"))
         .fixedSize(horizontal: false, vertical: true)
     }
 }
