@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-11-06T00:59:24Z",
+  "baseCommit": "c9ea0b778db33d9d0e8021b902b42f94c40abcc2",
+  "test": "WardrobeLaunchBenchmarkTests/testPersistedWardrobeLaunchToVisibleFirstPage",
+  "sourceSHA256": {
+    "MojaSzafa/App/MojaSzafaApp.swift": "27dfd1a8578c18783b9eee52f2116cb3db1610bfd1f2621cdcacb0f4eb707dfa",
+    "MojaSzafa/Features/Wardrobe/WardrobeView.swift": "98565a20e02ac5930c8f51d53752d2ec3cdf5c9d5dc46962a6d2a183cb4ff957",
+    "MojaSzafaUITests/WelcomeAccessibilityTests.swift": "be09bceb50407f42f7950111f1657f433c6bfcaed88c2a06484353d3ddc61872"
+  },
+  "environment": {
+    "hostModel": "MacBookPro18,2",
+    "hostName": "MacBook Pro",
+    "chip": "Apple M1 Max",
+    "memoryGB": 32,
+    "macOS": "26.6.2",
+    "xcode": "27.2 (27B52)",
+    "simulatorModel": "iPhone-18-Pro",
+    "simulatorOS": "iOS 27.2 (24B8117)",
+    "appearance": "light",
+    "contentSize": "large",
+    "configuration": "Release",
+    "compilationCondition": "WARDROBE_BENCHMARK",
+    "signing": "disabled",
+    "concurrentRepositoryCI": false
+  },
+  "fixture": {
+    "garments": 1000,
+    "historyDays": 1826,
+    "wearMemberships": 9130,
+    "firstPageCount": 40,
+    "warmups": 3
+  },
+  "xctApplicationLaunchMetric": {
+    "metric": "ApplicationFirstFramePresentationResponsive",
+    "meanSeconds": 4.748,
+    "relativeStandardDeviationPercent": 1.1,
+    "p95NearestRankSeconds": 4.822791,
+    "maxSeconds": 4.861114,
+    "samplesSeconds": [
+      4.861114,
+      4.695808,
+      4.767092,
+      4.681324,
+      4.708921,
+      4.750595,
+      4.807272,
+      4.694885,
+      4.740007,
+      4.788402,
+      4.818381,
+      4.725502,
+      4.731344,
+      4.734,
+      4.705709,
+      4.809402,
+      4.671473,
+      4.706397,
+      4.822791,
+      4.748935
+    ]
+  },
+  "visibleWardrobeReadinessMetric": {
+    "scope": "Process launch through persisted OfflineStore decode and visible first wardrobe page; includes XCTest launch/query overhead and fixture validation; excludes authentication, network, photos, and AI.",
+    "p95NearestRankMilliseconds": 7213.626667,
+    "maxMilliseconds": 7264.978792,
+    "samplesMilliseconds": [
+      7264.978792,
+      7112.870542,
+      7162.156417,
+      7082.416625,
+      7078.557915,
+      7112.718542,
+      7213.626667,
+      7049.706457,
+      7053.63825,
+      7212.485875,
+      7211.621542,
+      7120.83625,
+      7087.092292,
+      7120.787041,
+      7088.308333,
+      7109.436083,
+      7068.0225,
+      7078.949832,
+      7200.599707,
+      7142.521209
+    ]
+  },
+  "interpretation": "Simulator-only observation. It does not establish or pass the physical-device launch SLA."
+}
