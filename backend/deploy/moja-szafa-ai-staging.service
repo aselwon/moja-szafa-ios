@@ -1,0 +1,40 @@
+[Unit]
+Description=Moja Szafa staging text-only AI worker
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/moja-szafa/ai-staging.env
+ConditionPathExists=/etc/moja-szafa/cloudflare-ai.token
+
+[Service]
+Type=simple
+DynamicUser=true
+WorkingDirectory=/opt/moja-szafa-ai-staging
+EnvironmentFile=/etc/moja-szafa/ai-staging.env
+LoadCredential=cloudflare-ai.token:/etc/moja-szafa/cloudflare-ai.token
+Environment=CLOUDFLARE_AI_TOKEN_FILE=%d/cloudflare-ai.token
+Environment="PGOPTIONS=-c role=szafa_ai_worker -c statement_timeout=10000"
+Environment=AI_WORKER_OUTFIT_ONLY=true
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStartPre=/usr/bin/node backend/deploy/ai-worker-preflight.mjs
+ExecStart=/usr/bin/node backend/worker/worker.mjs /opt/moja-szafa-ai-staging/backend/ai/cloudflare-adapter.mjs
+Restart=no
+RuntimeMaxSec=90
+TimeoutStopSec=55
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+InaccessiblePaths=-/var/lib/moja-szafa-gateway-staging
+UMask=0077
+MemoryMax=384M
+TasksMax=64
+LimitNOFILE=256
+
+[Install]
+WantedBy=multi-user.target
