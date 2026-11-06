@@ -18,7 +18,7 @@ struct MojaSzafaApp: App {
         }
         if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) { return }
         #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
-        if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") || ProcessInfo.processInfo.arguments.contains("--feature-layout-test") || ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") { return }
+        if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") || ProcessInfo.processInfo.arguments.contains("--feature-layout-test") || ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") || ProcessInfo.processInfo.arguments.contains("--profile-navigation-layout-test") { return }
         #endif
         #endif
         DataExportClient.clearPreviousDownloads()
@@ -38,6 +38,8 @@ struct MojaSzafaApp: App {
                 #if LAYOUT_VERIFICATION && targetEnvironment(simulator)
                 if ProcessInfo.processInfo.arguments.contains("--photo-layout-test") {
                     PhotoLayoutVerificationRoot()
+                } else if ProcessInfo.processInfo.arguments.contains("--profile-navigation-layout-test") {
+                    AppNavigationLayoutVerificationRoot(reminders: reminders, widget: widget, profileGate: true)
                 } else if ProcessInfo.processInfo.arguments.contains("--app-navigation-layout-test") {
                     AppNavigationLayoutVerificationRoot(reminders: reminders, widget: widget)
                 } else if ProcessInfo.processInfo.arguments.contains("--feature-layout-test") {
@@ -121,8 +123,10 @@ private struct PhotoLayoutVerificationRoot: View {
 @MainActor
 private struct AppNavigationLayoutVerificationRoot: View {
     @State private var repository = DemoWardrobe.make()
+    @State private var profileAccountID = UUID()
     @ObservedObject var reminders: ReminderModel
     @ObservedObject var widget: WardrobeWidgetModel
+    var profileGate = false
     private var dependencies: AppDependencies {
         var result = AppDependencies(wardrobe: repository)
         result.outfits = repository
@@ -131,9 +135,13 @@ private struct AppNavigationLayoutVerificationRoot: View {
     var body: some View {
         // Real tab and toolbar composition; unavailable services retain their
         // real error states. No authentication or remote operation is supplied.
-        AppRootView(dependencies: dependencies,
-            accountID: UUID(uuidString: "00000000-0000-4000-8000-000000000004")!,
-            reminders: reminders, widget: widget)
+        if profileGate {
+            ProfileGateView(dependencies: dependencies, accountID: profileAccountID)
+        } else {
+            AppRootView(dependencies: dependencies,
+                accountID: UUID(uuidString: "00000000-0000-4000-8000-000000000004")!,
+                reminders: reminders, widget: widget)
+        }
     }
 }
 
