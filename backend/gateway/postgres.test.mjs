@@ -68,6 +68,36 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
   const own=await call('api_v1_list_garments',{limit:20,cursor:null});
   const foreign=await call('api_v1_list_garments',{limit:20,cursor:null},tokenB);
   assert(JSON.stringify(own.body).includes(garment)); assert(!JSON.stringify(foreign.body).includes(garment));
+  await t.test('concurrent HTTP edits have one winner, explicit resolution and a durable deletion fence', async () => {
+    const id = randomUUID();
+    const created = await call('api_v1_save_garment', { ...payload, operation_id: randomUUID(), garment_id: id });
+    assert.equal(created.body.data?.version, 1);
+    const proposals = ['Client one', 'Client two'].map(name => ({ ...payload,
+      operation_id: randomUUID(), garment_id: id, base_version: 1,
+      garment: { ...payload.garment, name } }));
+    const results = await Promise.all(proposals.map(input => call('api_v1_save_garment', input)));
+    const winner = results.findIndex(result => result.body.data);
+    assert.notEqual(winner, -1, JSON.stringify(results));
+    const loser = 1 - winner;
+    assert.equal(results[winner].body.data.version, 2);
+    assert.equal(results[loser].body.error?.code, 'version_conflict', JSON.stringify(results));
+    assert.equal(results.filter(result => result.body.data).length, 1, 'no silent last-writer-wins overwrite');
+    const row = async () => (await ownerPool.query('SELECT name,version,deleted_at FROM app.garments WHERE id=$1', [id])).rows[0];
+    assert.equal((await row()).name, proposals[winner].garment.name);
+    // Resolving the loser requires a new operation against the winning version.
+    const resolved = await call('api_v1_save_garment', { ...proposals[loser], operation_id: randomUUID(), base_version: 2 });
+    assert.equal(resolved.body.data?.version, 3);
+    assert.equal((await row()).name, proposals[loser].garment.name);
+    assert.deepEqual((await call('api_v1_save_garment', proposals[winner])).body, results[winner].body,
+      'an ambiguous old response replays without overwriting the resolved edit');
+    assert.equal(Number((await row()).version), 3);
+    const removed = await call('api_v1_delete_garment', { operationID: randomUUID(), garmentID: id });
+    assert.equal(removed.body.data, true);
+    const stale = await call('api_v1_save_garment', { ...proposals[loser], operation_id: randomUUID() });
+    assert.equal(stale.body.error?.code, 'version_conflict');
+    assert.ok((await row()).deleted_at, 'the stale request cannot resurrect the deleted UUID');
+    assert.equal((await ownerPool.query('SELECT count(*)::int AS n FROM app.garments WHERE id=$1', [id])).rows[0].n, 1);
+  });
   const signedAt = Date.now();
   const verifiedSubscription = { source: 'transaction', eventID: randomUUID(), digest: 'a'.repeat(64),
     eventType: 'TRANSACTION', eventSignedAt: signedAt, renewal: null,
