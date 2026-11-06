@@ -1,6 +1,6 @@
 // Managed Better Auth owns OTP generation, verification, sessions and revocation.
 // We transport its signed session cookie; we never mint or sign authentication tokens.
-const COOKIE = '__Secure-neonauth.session_token';
+const COOKIE = '__Secure-neon-auth.session_token';
 const UUID = /^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const TOKEN = /^[A-Za-z0-9._~%+\/=-]{20,4096}$/;
 export class GatewayError extends Error {

@@ -25,7 +25,7 @@ The existing Swift `AuthSession` DTO stays unchanged:
 ```
 
 The token fields are opaque. They contain only the provider-issued
-`__Secure-neonauth.session_token` cookie value, not a JWT, invented refresh token
+`__Secure-neon-auth.session_token` cookie value, not a JWT, invented refresh token
 or complete Cookie header. Native clients keep these values in their existing
 Keychain store. Resource requests use `Authorization: Bearer <accessToken>`.
 

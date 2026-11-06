@@ -120,7 +120,7 @@ test('erasure role enforces live lease, owner isolation and managed identity abs
       const fresh = randomUUID(), cookie = `synthetic-fresh-${fresh}.signature`;
       await db.query('INSERT INTO neon_auth.session(id,"userId","expiresAt","updatedAt") VALUES($1,$2,now()+interval \'1 hour\',now())',[fresh,other]);
       sessions.set(cookie,fresh);
-      response.setHeader('Set-Cookie',`__Secure-neonauth.session_token=${cookie}; Secure; HttpOnly`);
+      response.setHeader('Set-Cookie',`__Secure-neon-auth.session_token=${cookie}; Secure; HttpOnly`);
       return send({token:'unused-raw-token',user:{id:other}});
     }
     if (request.url === '/db/auth/get-session?disableCookieCache=true') {

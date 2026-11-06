@@ -12,7 +12,8 @@ const cookie = 'synthetic-managed-session.signature%3D';
 const baseURL = 'https://ep-test.neonauth.eu-central-1.aws.neon.tech/db/auth';
 const close = server => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); });
 async function fixture(t) {
-  const state = { active: true, verified: true, tombstoned: false, sent: 0, inspections: 0, calls: [], weatherCalls: 0 };
+  const state = { active: true, verified: true, tombstoned: false, sent: 0, inspections: 0, calls: [], weatherCalls: 0,
+    cookieName: '__Secure-neon-auth.session_token' };
   const upstream = createServer(async (request, response) => {
     let body = '';
     for await (const chunk of request) body += chunk;
@@ -22,18 +23,18 @@ async function fixture(t) {
     if (request.url === '/db/auth/email-otp/send-verification-otp') { state.sent++; return send({ success: true }); }
     if (request.url === '/db/auth/sign-in/email-otp') {
       if (JSON.parse(body).otp !== '123456') { response.statusCode = 401; return send({ message: 'private-provider-details' }); }
-      response.setHeader('Set-Cookie', [`__Secure-neonauth.session_token=${cookie}; HttpOnly; Secure; Path=/`, 'session_data=must-never-forward; Secure']);
+      response.setHeader('Set-Cookie', [`${state.cookieName}=${cookie}; HttpOnly; Secure; Path=/`, 'session_data=must-never-forward; Secure']);
       return send({ token: 'raw-provider-token-must-not-use', user: { id: owner } });
     }
     if (request.url === '/db/auth/get-session?disableCookieCache=true') {
       state.inspections++;
-      if (!state.active || request.headers.cookie !== `__Secure-neonauth.session_token=${cookie}`) return send(null);
+      if (!state.active || request.headers.cookie !== `__Secure-neon-auth.session_token=${cookie}`) return send(null);
       return send({ session: { id: sessionID, userId: owner, expiresAt: new Date(Date.now()+3600000).toISOString() },
         user: { id: owner, email: 'person@example.test', emailVerified: state.verified, banned: false } });
     }
     if (request.url === '/db/auth/sign-out') {
       state.active = false;
-      response.setHeader('Set-Cookie', '__Secure-neonauth.session_token=; Max-Age=0; Secure');
+      response.setHeader('Set-Cookie', '__Secure-neon-auth.session_token=; Max-Age=0; Secure');
       return send({ success: true });
     }
     response.statusCode = 404; send({});
@@ -113,6 +114,16 @@ test('each RPC requires current managed session and deletion gate; logout invali
   f.state.tombstoned=false;
   assert.equal((await f.call('/auth/v1/logout',{refreshToken:cookie})).status,200);
   assert.equal((await rpc()).status,401);
+});
+
+test('OTP rejects an unrelated session cookie rather than using the raw JSON token', async t => {
+  const f = await fixture(t);
+  f.state.cookieName = '__Secure-other.session_token';
+  const challengeID = await f.store.challenge('person@example.test');
+  const response = await f.call('/auth/v1/email/verify', { challengeID, code: '123456' });
+  assert.equal(response.status, 503);
+  assert.equal(f.state.inspections, 0);
+  assert(!JSON.stringify(await response.json()).includes('raw-provider-token'));
 });
 
 test('renewal uses managed session, rejects unverified identity and never exposes provider errors', async t => {
