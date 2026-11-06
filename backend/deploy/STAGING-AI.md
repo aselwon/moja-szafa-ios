@@ -32,6 +32,15 @@ profile tables, or use the general queue-claim function. Photo recognition is
 deliberately outside this text-only service; photo upload/sync/cleanup can be
 verified independently without sending photos to an AI provider.
 
+Text recommendations use `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, listed in
+[Cloudflare's supported JSON Mode models](https://developers.cloudflare.com/workers-ai/features/json-mode/).
+The previous FP8 variant returned invalid JSON during a real staging test.
+Each text request has a 15-second deadline, leaving time for the single allowed
+JSON repair within the worker's unchanged 45-second adapter deadline. Image
+requests retain their 30-second deadline. These settings do not raise quotas,
+enable a paid plan, or establish successful live AI acceptance; verify a real
+result before marking that gate complete. Preserve failed dispatch receipts.
+
 Rollback: stop the service and set both AI policy switches to false. Preserve
 jobs, dispatch receipts and accounting; an already dispatched call can finish
 within its existing deadline. Do not drop application migrations or revoke

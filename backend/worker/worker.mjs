@@ -40,8 +40,9 @@ export function postgresStore({ outfitOnly = false } = {}) {
   };
 }
 
-export function processExecutor(adapterPath, timeout = 45_000) {
-  if (!Number.isInteger(timeout) || timeout < 1 || timeout > 45_000) throw new Error('invalid_timeout');
+export const ADAPTER_TIMEOUT_MS = 45_000;
+export function processExecutor(adapterPath, timeout = ADAPTER_TIMEOUT_MS) {
+  if (!Number.isInteger(timeout) || timeout < 1 || timeout > ADAPTER_TIMEOUT_MS) throw new Error('invalid_timeout');
   return job => subprocess(resolve(adapterPath), [], JSON.stringify(job) + '\n', timeout);
 }
 

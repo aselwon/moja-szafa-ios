@@ -14,8 +14,10 @@ export async function cloudflareEnvironment(env, {read=readFile,metadata=stat}={
   if(!/^[A-Za-z0-9_-]{20,4096}$/.test(key))throw new Error('configuration_invalid');
   return {...env,AI_PROVIDER:'cloudflare',AI_RECIPIENT:'Cloudflare Workers AI',
     AI_ENDPOINT:`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/ai/v1/chat/completions`,
-    AI_IMAGE_MODEL:'@cf/meta/llama-3.2-11b-vision-instruct',AI_OUTFIT_MODEL:'@cf/meta/llama-3.1-8b-instruct-fp8',
-    AI_API_KEY:key,AI_MAX_OUTPUT_TOKENS:'1024',AI_TIMEOUT_MS:'30000',
+    AI_IMAGE_MODEL:'@cf/meta/llama-3.2-11b-vision-instruct',AI_OUTFIT_MODEL:'@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+    // The recommendation model supports JSON Mode. Two bounded calls (including
+    // the one permitted JSON repair) must fit inside the worker's 45s deadline.
+    AI_API_KEY:key,AI_MAX_OUTPUT_TOKENS:'1024',AI_TIMEOUT_MS:'30000',AI_OUTFIT_TIMEOUT_MS:'15000',
     AI_RUNTIME_MODULE:new URL('./runtime.mjs',import.meta.url).pathname};
 }
 export async function cloudflareResponse({env=process.env,stdin=process.stdin}={}) {
