@@ -45,6 +45,10 @@ struct WardrobeView: View {
                             .buttonStyle(.plain)
                         }
                     }
+                    #if WARDROBE_BENCHMARK && targetEnvironment(simulator)
+                    .accessibilityIdentifier("benchmark.wardrobe.loaded")
+                    .accessibilityValue("\(model.items.count)")
+                    #endif
                     if model.nextOffset != nil {
                         if model.pageFailed {
                             Text(LocalizedStringKey(model.pageOffline ? "foundation.offline" : "foundation.loadFailed"))

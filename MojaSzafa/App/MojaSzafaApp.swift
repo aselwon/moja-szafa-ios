@@ -24,6 +24,13 @@ struct MojaSzafaApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
+                #if WARDROBE_BENCHMARK && targetEnvironment(simulator)
+                if ProcessInfo.processInfo.arguments.contains("--wardrobe-benchmark") {
+                    WardrobeBenchmarkRoot()
+                } else {
+                    AuthenticationGateView(dependencies: dependencies)
+                }
+                #else
                 #if DEBUG
                 if DemoMode.isEnabled(arguments: ProcessInfo.processInfo.arguments) {
                     DemoRootView()
@@ -33,10 +40,80 @@ struct MojaSzafaApp: App {
                 #else
                 AuthenticationGateView(dependencies: dependencies)
                 #endif
+                #endif
             }.tint(Color("accent")).environmentObject(reminders).environmentObject(widget)
         }
     }
 }
+
+// Explicitly opt-in, simulator-only build instrumentation. Ordinary Debug,
+// Staging and Release builds do not contain this route or its synthetic data.
+#if WARDROBE_BENCHMARK && targetEnvironment(simulator)
+private struct WardrobeBenchmarkRoot: View {
+    private static let account = UUID(uuidString: "59000000-0000-4000-8000-000000000001")!
+    private let repository: OfflineStore?
+    @State private var validated = false
+    @State private var invalidFixture = false
+
+    init() {
+        do {
+            let database = OfflineDatabase(url: URL.applicationSupportDirectory
+                .appendingPathComponent("LaunchBenchmark/fixture.sqlite"))
+            if ProcessInfo.processInfo.arguments.contains("--seed-wardrobe-benchmark") {
+                let garments = (0..<1000).map { index in
+                    SyncGarment(id: UUID(uuidString: String(format: "59000001-0000-4000-8000-%012x", index))!,
+                        version: 1, deleted: false,
+                        fields: APIv1.GarmentFields(name: String(format: "Benchmark garment %04d", index),
+                            category: .top, priceGrosz: 10000 + Int64(index), availability: .available))
+                }
+                var calendar = Calendar(identifier: .gregorian)
+                calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+                let start = calendar.date(from: DateComponents(year: 2021, month: 1, day: 1))!
+                let formatter = DateFormatter()
+                formatter.calendar = calendar; formatter.timeZone = calendar.timeZone
+                formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.dateFormat = "yyyy-MM-dd"
+                let wears = (0..<1826).map { index in
+                    SyncWear(id: UUID(uuidString: String(format: "59000002-0000-4000-8000-%012x", index))!,
+                        version: 1, deleted: false,
+                        wornOn: formatter.string(from: calendar.date(byAdding: .day, value: index, to: start)!),
+                        timezone: "UTC", garmentIDs: (0..<5).map { garments[(index * 5 + $0) % 1000].id })
+                }
+                var state = OfflineStore.State(accountID: Self.account)
+                state.garments = garments; state.wears = wears
+                try database.write(JSONEncoder().encode(state))
+            }
+            // Missing or damaged fixtures fail visibly instead of measuring an
+            // empty wardrobe. Measured launches never regenerate the fixture.
+            guard FileManager.default.fileExists(atPath: database.url.path) else { throw OfflineError.invalidState }
+            repository = try OfflineStore(accountID: Self.account, database: database, remote: BenchmarkOfflineRemote())
+        } catch { repository = nil }
+    }
+
+    var body: some View {
+        if let repository, validated {
+            NavigationStack {
+                WardrobeView(repository: repository, accountID: Self.account, allowsPhotoImport: false)
+            }
+        } else if repository == nil || invalidFixture {
+            Text("Benchmark fixture unavailable").accessibilityIdentifier("benchmark.fixture.failed")
+        } else {
+            ProgressView().task {
+                guard let repository else { return }
+                let state = await repository.status()
+                validated = state.garments.count == 1000 && state.wears.count == 1826
+                    && state.wears.reduce(0, { $0 + $1.garmentIDs.count }) == 9130 && state.outbox.isEmpty
+                invalidFixture = !validated
+            }
+        }
+    }
+}
+
+private struct BenchmarkOfflineRemote: OfflineRemote {
+    func snapshot() async throws -> SyncSnapshot { throw URLError(.notConnectedToInternet) }
+    func save(_ operation: APIv1.SaveGarment) async throws -> APIv1.GarmentDTO { throw URLError(.notConnectedToInternet) }
+    func save(_ operation: SaveWear) async throws -> SyncWear { throw URLError(.notConnectedToInternet) }
+}
+#endif
 
 // The preview is compiled out of Release and never supplies authentication,
 // server success, account data or a network transport to the production app.
