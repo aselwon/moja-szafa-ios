@@ -249,6 +249,111 @@ final class OfflineStoreTests: XCTestCase {
         XCTAssertEqual(unarchived.wornOn.count, 1)
     }
 
+    func testIndependentClientsCompetingEditsRequireResolutionAndConvergeAfterRestart() async throws {
+        let firstDB = database(), secondDB = database()
+        defer {
+            try? FileManager.default.removeItem(at: firstDB.url.deletingLastPathComponent())
+            try? FileManager.default.removeItem(at: secondDB.url.deletingLastPathComponent())
+        }
+        let remote = SyncTestRemote()
+        let first = try OfflineStore(accountID: remote.accountID, database: firstDB, remote: remote)
+        let second = try OfflineStore(accountID: remote.accountID, database: secondDB, remote: remote)
+        let id = try await first.saveGarment(fields: fields)
+        try await first.recordWear(wornOn: "2026-01-01", timezone: "Europe/Warsaw", garmentIDs: [id])
+        try await first.synchronize()
+        try await second.synchronize()
+        let history = await first.status().wears
+        let firstEdit = APIv1.GarmentFields(name: "First proposal", category: .top, priceGrosz: 80000, availability: .laundry)
+        let secondEdit = APIv1.GarmentFields(name: "Second proposal", category: .top, priceGrosz: 80000, availability: .available)
+        try await first.saveGarment(id: id, fields: firstEdit)
+        try await second.saveGarment(id: id, fields: secondEdit)
+        let firstQueued = await first.status(), secondQueued = await second.status()
+        let firstPending = try XCTUnwrap(firstQueued.outbox.first?.garment)
+        let secondPending = try XCTUnwrap(secondQueued.outbox.first?.garment)
+        XCTAssertEqual(firstPending.baseVersion, secondPending.baseVersion)
+        XCTAssertNotEqual(firstPending.operationID, secondPending.operationID)
+
+        // Both proposals originate from real independent stores at the same
+        // server version; neither test code nor a direct remote mutation wins it.
+        let firstSync = Task { try await first.synchronize() }
+        let secondSync = Task { try await second.synchronize() }
+        let firstOutcome = await firstSync.result, secondOutcome = await secondSync.result
+        let outcomes = [firstOutcome, secondOutcome]
+        var successes = 0, conflicts = 0
+        for outcome in outcomes {
+            switch outcome {
+            case .success: successes += 1
+            case .failure(let error):
+                XCTAssertEqual((error as? APIv1.Failure)?.code, "version_conflict")
+                conflicts += 1
+            }
+        }
+        XCTAssertEqual(successes, 1)
+        XCTAssertEqual(conflicts, 1)
+        let firstState = await first.status(), secondState = await second.status()
+        let firstLost = firstState.outbox.first?.failure == "version_conflict"
+        let losingState = firstLost ? firstState : secondState
+        let losingDB = firstLost ? firstDB : secondDB
+        let proposal = firstLost ? firstEdit : secondEdit
+        let rejected = try XCTUnwrap(losingState.outbox.first)
+        XCTAssertEqual(rejected.garment?.garment, proposal)
+        let restarted = try OfflineStore(accountID: remote.accountID, database: losingDB, remote: remote)
+        let restored = await restarted.status()
+        XCTAssertEqual(restored.outbox.first?.id, rejected.id)
+        XCTAssertEqual(restored.outbox.first?.failure, "version_conflict")
+        XCTAssertEqual(restored.wears, history)
+        try await restarted.resolveGarment(id: id, keepLocal: true)
+        let resolvedState = await restarted.status()
+        let replacement = try XCTUnwrap(resolvedState.outbox.first?.garment)
+        XCTAssertNotEqual(replacement.operationID, rejected.id)
+        XCTAssertEqual(replacement.baseVersion, 2)
+        try await restarted.synchronize()
+        let winner = firstLost ? second : first
+        try await winner.synchronize()
+        for store in [restarted, winner] {
+            let state = await store.status()
+            XCTAssertTrue(state.outbox.isEmpty)
+            XCTAssertEqual(state.wears, history)
+            let garment = try XCTUnwrap(state.garments.first { $0.id == id })
+            XCTAssertEqual(garment.version, 3)
+            XCTAssertEqual(garment.fields, proposal)
+            XCTAssertFalse(garment.deleted)
+        }
+    }
+
+    func testSecondClientDeletionFencesStaleOutboxAcrossRestart() async throws {
+        let firstDB = database(), secondDB = database()
+        defer {
+            try? FileManager.default.removeItem(at: firstDB.url.deletingLastPathComponent())
+            try? FileManager.default.removeItem(at: secondDB.url.deletingLastPathComponent())
+        }
+        let remote = SyncTestRemote()
+        await remote.enableDeletion()
+        let first = try OfflineStore(accountID: remote.accountID, database: firstDB, remote: remote)
+        let second = try OfflineStore(accountID: remote.accountID, database: secondDB, remote: remote)
+        let id = try await first.saveGarment(fields: fields)
+        try await first.synchronize()
+        try await second.synchronize()
+        try await second.saveGarment(id: id, fields: fields)
+        try await first.deleteGarment(id: id)
+        try await first.synchronize()
+        let requestsBefore = await remote.requests.count
+        let restarted = try OfflineStore(accountID: remote.accountID, database: secondDB, remote: remote)
+        try await restarted.synchronize()
+        let state = await restarted.status()
+        XCTAssertTrue(state.garments.first { $0.id == id }?.deleted == true)
+        XCTAssertEqual(state.outbox.first?.failure, "version_conflict")
+        let requestsAfter = await remote.requests.count
+        XCTAssertEqual(requestsAfter, requestsBefore, "A stale edit must not be sent after the deletion is pulled")
+        do { try await restarted.resolveGarment(id: id, keepLocal: true); XCTFail("Must not resurrect another client's deletion") }
+        catch { XCTAssertEqual(error as? OfflineError, .conflict) }
+        try await restarted.resolveGarment(id: id, keepLocal: false)
+        try await restarted.synchronize()
+        let accepted = await restarted.status()
+        XCTAssertTrue(accepted.outbox.isEmpty)
+        XCTAssertTrue(accepted.garments.first { $0.id == id }?.deleted == true)
+    }
+
     func testArchiveConflictRequiresResolutionAndTimeoutReplaysSameIntent() async throws {
         let db = database()
         defer { try? FileManager.default.removeItem(at: db.url.deletingLastPathComponent()) }
@@ -565,6 +670,8 @@ private actor SyncTestRemote: OfflineRemote {
     private var wearTimeout = false
     private var deleted = false
     private var offline = false
+    private var deletionEnabled = false
+    func enableDeletion() { deletionEnabled = true }
     func setOffline(_ value: Bool) { offline = value }
     private(set) var requests: [Data] = []
     func timeoutNextWrite() { timeout = true }
@@ -580,6 +687,13 @@ private actor SyncTestRemote: OfflineRemote {
         let old = garments.first { $0.id == id }!
         garments.removeAll { $0.id == id }
         garments.append(SyncGarment(id: id, version: old.version + 1, deleted: deleted, fields: old.fields))
+    }
+    func delete(_ operation: DeleteGarment) throws {
+        guard deletionEnabled else { throw RepositoryError.backendNotConfigured }
+        if offline { throw URLError(.notConnectedToInternet) }
+        if deleted { throw failure("account_unavailable") }
+        guard let old = garments.first(where: { $0.id == operation.garmentID }) else { throw failure("not_found") }
+        if !old.deleted { change(id: old.id, deleted: true) }
     }
     func save(_ operation: APIv1.SaveGarment) throws -> APIv1.GarmentDTO {
         let encoder = JSONEncoder()
