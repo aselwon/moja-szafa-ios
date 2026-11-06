@@ -14,4 +14,38 @@ The gateway PostgreSQL integration additionally sends concurrent HTTP writes thr
 
 ## Evidence limits
 
-The native remote is synthetic, while the gateway test uses actual local HTTP and PostgreSQL with synthetic provider identities. These tests are not two physical devices, real managed-provider login, or authenticated staging acceptance. T058's network-loss during photo upload, logout/account isolation and physical-device checks require their own evidence; these scenarios do not substitute for them.
+The native remote is synthetic, while the gateway test uses actual local HTTP and PostgreSQL with synthetic provider identities. These tests are not two physical devices, real managed-provider login, or authenticated staging acceptance.
+
+## Interrupted transport and logout isolation — 2026-11-06
+
+`backend/tests/images.test.mjs` now sends half of an image over a real local TCP
+connection to the production image HTTP handler, waits until the server receives
+bytes, then destroys the connection before its declared body length arrives.
+It verifies that the operation remains pending, the decoder has not run, and no
+partial file exists. Reconnecting with the same signed capability and complete
+body succeeds; replay does not decode or publish again. This uses the production
+normalizer and private file adapter, with a synthetic operation store and
+authentication callback. It is a real transport interruption, not a simulated
+exception after successful publication.
+
+`ArchitectureTests.testLogoutAndAccountSwitchDoNotExposePreviousWardrobeCache`
+uses production authentication composition and separate durable SQLite stores.
+It loads account A's wardrobe, logs out, signs in as B, and disconnects resource
+requests. B must see no A garments, wear history or pending writes, including
+after reopening the store. A's stale store must reject synchronization before
+sending any request with B's credentials. Existing per-account data is retained
+for same-account offline use; this test does not require erasing it on logout.
+
+Executed results: the initial focused Release `ArchitectureTests` suite passed
+12/12 with zero skips on iOS 27.2 Simulator. After strengthening the new scenario
+with actual account-A wear history and pending outbox state, its fresh Release
+rerun passed 1/1 with zero skips (`/private/tmp/T058LogoutIsolationSeeded.xcresult`).
+The integrated repository harness passed 92/92 (`/private/tmp/T058LogoutHarness.log`).
+The image suite passed with the actual local socket interruption and real decoder.
+The first image invocation lacked the worktree's native storage dependency;
+installing the locked dependency resolved that setup failure without a product-code
+change.
+
+These checks strengthen two T058 scenarios but do not establish two physical
+devices, photo-cache UI isolation, or a combined native-client-to-staging upload
+interruption. Those remaining checks are not marked complete.

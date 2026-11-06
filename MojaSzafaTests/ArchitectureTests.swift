@@ -154,6 +154,52 @@ final class ArchitectureTests: XCTestCase {
         XCTAssertEqual(logout?.url?.path, "/auth/v1/logout")
     }
 
+    func testLogoutAndAccountSwitchDoNotExposePreviousWardrobeCache() async throws {
+        let transport = GatewayFixture()
+        let dependencies = AppDependencies.live(backendBaseURL: "https://gateway.example.invalid", transport: transport)
+        let credentials = GatewaySessionStore()
+        let model = AuthenticationModel(service: dependencies.authentication, store: credentials)
+        let directory = temporaryGatewayStorage()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        await model.startEmail("first@example.invalid")
+        await model.verifyEmail("123456")
+        let firstID = try XCTUnwrap(model.session?.userID)
+        let first = try XCTUnwrap(dependencies.authenticated(using: model, storageDirectory: directory).offline)
+        let firstGarments = try await first.garments()
+        XCTAssertEqual(firstGarments.map(\.name), ["Gateway shirt"])
+        let garmentID = try XCTUnwrap(firstGarments.first?.id)
+        _ = try await first.recordWear(wornOn: "2026-11-01", timezone: "Europe/Warsaw", garmentIDs: [garmentID])
+        let firstState = await first.status()
+        XCTAssertEqual(firstState.wears.count, 1)
+        XCTAssertFalse(firstState.outbox.isEmpty, "The first account must have durable pending work to isolate")
+
+        await model.logout()
+        XCTAssertNil(credentials.value)
+        await transport.changeAccount()
+        await transport.disconnectResources()
+        await model.startEmail("second@example.invalid")
+        await model.verifyEmail("123456")
+        let secondID = try XCTUnwrap(model.session?.userID)
+        XCTAssertNotEqual(firstID, secondID)
+        let second = try XCTUnwrap(dependencies.authenticated(using: model, storageDirectory: directory).offline)
+        // No network snapshot can hide accidental reuse of the first account's SQLite cache.
+        let secondGarments = try await second.garments()
+        XCTAssertTrue(secondGarments.isEmpty)
+        let secondState = await second.status()
+        XCTAssertEqual(secondState.accountID, secondID)
+        XCTAssertTrue(secondState.wears.isEmpty)
+        XCTAssertTrue(secondState.outbox.isEmpty)
+        let reopened = try XCTUnwrap(dependencies.authenticated(using: model, storageDirectory: directory).offline)
+        let reopenedGarments = try await reopened.garments()
+        XCTAssertTrue(reopenedGarments.isEmpty, "Isolation must survive reopening the durable store")
+
+        let before = await transport.requests.count
+        do { try await first.synchronize(); XCTFail("Logged-out work must not borrow the second account's credentials") }
+        catch { XCTAssertEqual(error as? AuthError, .expired) }
+        let after = await transport.requests.count
+        XCTAssertEqual(before, after)
+    }
+
     func testLiveGatewayRejectsResource401AndOldAccountWork() async throws {
         let transport = GatewayFixture()
         let dependencies = AppDependencies.live(backendBaseURL: "https://gateway.example.invalid", transport: transport)
@@ -222,7 +268,9 @@ private actor GatewayFixture: APITransport {
     private let challenge = UUID()
     private let garmentID = UUID()
     private var unauthorized = false
+    private var resourcesDisconnected = false
     func rejectResources() { unauthorized = true }
+    func disconnectResources() { resourcesDisconnected = true }
     func changeAccount() { userID = UUID(); unauthorized = false }
 
     private struct Envelope<Value: Encodable>: Encodable {
@@ -245,6 +293,7 @@ private actor GatewayFixture: APITransport {
                     request.url!.path.hasSuffix("refresh") ? 3600 : 30)))
         case "/auth/v1/logout": data = Data("{}".utf8)
         case "/rest/v1/rpc/api_v1_sync_snapshot":
+            if resourcesDisconnected { throw URLError(.networkConnectionLost) }
             if unauthorized { status = 401; data = Data() }
             else {
                 let garment = SyncGarment(id: garmentID, version: 1, deleted: false,
