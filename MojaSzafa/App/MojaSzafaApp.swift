@@ -169,7 +169,7 @@ private struct FeatureLayoutVerificationRoot: View {
         }
         .sheet(isPresented: $garmentOpen) {
             GarmentFormView(value: GarmentFormValue(
-                name: String(repeating: "Long garment name ", count: 5), category: .top,
+                name: String(String(repeating: "Long garment name ", count: 12).prefix(200)), category: .top,
                 colors: ["blue"], pattern: "plain", seasons: ["winter"], formality: 2,
                 brand: "Example", priceGrosz: 12345, purchasedOn: "2025-01-02")) { _ in
                     garmentSaved = true
