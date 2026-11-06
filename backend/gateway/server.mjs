@@ -185,8 +185,10 @@ export function createGateway({ auth, store, storage, signingKey, exportDirector
         if (request.headers['content-profile'] && request.headers['content-profile'] !== 'app') throw new GatewayError('invalid_request', 400);
         const body = await jsonBody(request, 1024 * 1024);
         fields(body, ['request']);
-        await authenticate(request.headers.authorization);
-        return send(200, await store.rpc(context.getStore().principal, rpc[1], body.request));
+        const principal = await auth.current(bearer(request.headers.authorization));
+        // rpc() binds and checks the database session/deletion ledger in the
+        // same transaction as the operation. A separate session transaction is redundant.
+        return send(200, await store.rpc(principal, rpc[1], body.request));
       }
       if (url.pathname.startsWith('/v1/purchase-images/') && purchaseImages) return await purchaseImages(request, response);
       if (url.pathname.startsWith('/v1/recognition-images/') && recognitionImages) return await recognitionImages(request, response);

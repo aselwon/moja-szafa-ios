@@ -47,6 +47,26 @@ test('real PostgreSQL gateway bootstrap, owner isolation, replay, session revoca
     await ownerPool.query('INSERT INTO neon_auth.session VALUES($1,$2,now()+interval \'1 hour\',null)',[principal.sessionID,principal.owner]);
   }
   const store=new GatewayStore(runtime,await loadRPCOperations());
+  await t.test('batched transaction setup stays local and rollback does not leak gateway privileges', async () => {
+    const single = new Pool({ database, max: 1, user: runtimeRole, password: runtimePassword });
+    try {
+      const isolated = new GatewayStore(single, await loadRPCOperations());
+      const originalTimeout = (await single.query("SELECT current_setting('statement_timeout') AS timeout")).rows[0].timeout;
+      await assert.rejects(isolated.transaction(async client => {
+        const settings = (await client.query("SELECT current_user AS role, current_setting('statement_timeout') AS timeout")).rows[0];
+        assert.equal(settings.role, 'szafa_gateway');
+        assert.equal(settings.timeout, '10s');
+        throw new Error('synthetic rollback');
+      }), /synthetic rollback/);
+      const settings = (await single.query("SELECT current_user AS role, current_setting('statement_timeout') AS timeout")).rows[0];
+      assert.equal(settings.role, runtimeRole);
+      assert.equal(settings.timeout, originalTimeout);
+      await assert.rejects(single.query('SELECT * FROM app.garments'), error => error.code === '42501');
+      const allowed = await isolated.rpc(b, 'api_v1_list_garments', { limit: 20, cursor: null });
+      assert(allowed.data, JSON.stringify(allowed));
+      assert.equal((await single.query('SELECT current_user AS role')).rows[0].role, runtimeRole);
+    } finally { await single.end(); }
+  });
   const tokenA='synthetic-managed-owner-a.signature', tokenB='synthetic-managed-owner-b.signature';
   const auth={ current:async token=>{
     if(token===tokenA)return a; if(token===tokenB)return b; throw new GatewayError('unauthorized',401);

@@ -9,10 +9,9 @@ export class GatewayStore {
   async transaction(work) {
     const client = await this.pool.connect();
     try {
-      await client.query('BEGIN');
       // The LOGIN is NOINHERIT; activate only the narrow gateway role per transaction.
-      await client.query('SET LOCAL ROLE szafa_gateway');
-      await client.query("SET LOCAL statement_timeout = '10s'");
+      // These fixed statements contain no input and share one network round trip.
+      await client.query("BEGIN; SET LOCAL ROLE szafa_gateway; SET LOCAL statement_timeout = '10s'");
       const value = await work(client);
       await client.query('COMMIT');
       return value;
