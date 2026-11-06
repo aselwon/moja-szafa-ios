@@ -22,7 +22,20 @@ final class WardrobeModel: ObservableObject {
 
     func load() async {
         // A changed query supersedes an in-flight page. A duplicate refresh does not.
-        guard state != .loading else { return }
+        guard !Task.isCancelled, state != .loading || activeQuery != query else { return }
+        await reload()
+    }
+
+    func loadQuery() async {
+        // Initial display, navigation returns and filter changes load immediately.
+        // Only typing is debounced; SwiftUI cancels this task for newer queries.
+        let requested = query
+        if requested.search != activeQuery.search {
+            do { try await Task.sleep(for: .milliseconds(250)) } catch { return }
+        }
+        guard requested == query, !Task.isCancelled else { return }
+        // A new view task replaces its cancelled predecessor, including a return
+        // from navigation while the old repository call has not finished yet.
         await reload()
     }
 

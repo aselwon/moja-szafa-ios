@@ -20,6 +20,22 @@ The test records two different measurements:
   and any XCTest measurement warm-up. It is an upper-bound simulator
   observation, not a physical-device launch SLA result.
 
+## First-page loading correction after the recorded baseline
+
+The original view started a page request on appearance and independently started
+another request after the query task's 250 ms delay. The second request cleared
+the visible page and could duplicate backend work. The view now has one query
+task: initial display, navigation returns and filter changes load immediately;
+only typed search changes are debounced. An initial scene activation does not
+refresh again, while returning from the background still refreshes.
+
+A returning view task supersedes its cancelled predecessor even if the repository
+has not observed cancellation. Focused tests cover duplicate generic load requests,
+navigation refresh, stale/cancelled completions, and cancellation of intermediate
+searches. This fixes redundant work; it does not establish a new launch p95 or
+claim the physical-device target has passed. The recorded raw baseline remains
+unchanged and refers to its original source hashes.
+
 ## Reproduction
 
 Use a dedicated iPhone simulator in its default text size. Do not run competing
